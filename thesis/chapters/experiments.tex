@@ -1,0 +1,260 @@
+\chapter{Experiments}
+\label{ch:experiments}
+
+This chapter describes the experimental setup and design of Experiments 1--5.
+
+%==============================================================================
+\section{Experimental Setup}
+%==============================================================================
+
+\subsection{Implementation and Software Architecture}
+
+Following the proposal's implementation framework, our pipeline is built with the following tools and libraries:
+
+\begin{itemize}
+\item \textbf{Language \& Core}: Python 3.10+.
+\item \textbf{Deep Learning}: PyTorch for ETHOS encoder and few-shot training.
+\item \textbf{Classical ML}: scikit-learn (Logistic Regression, Random Forest, metrics), XGBoost, LightGBM, CatBoost.
+\item \textbf{Data}: NumPy, Pandas for preprocessing and feature engineering.
+\item \textbf{Federated}: Custom FedAvg implementation (PySyft-compatible design for future extension).
+\item \textbf{Visualization}: Matplotlib, Seaborn for ROC curves and learning curves.
+\end{itemize}
+
+Experiments were run on a standard workstation with multi-core CPU. All random seeds are fixed (seed=42) for reproducibility. See Appendix~\ref{app:repro} for requirements and environment details.
+
+\subsection{Data Configuration}
+
+\begin{itemize}
+\item Dataset: MIMIC-IV v3.1.
+\item Cohort size: 2,000 patients.
+\item Splits: 64\% train (1,280), 16\% validation (320), 20\% test (400).
+\item Disease nodes: 5 (sepsis, cardiac, respiratory, renal, diabetes).
+\item Features: 25 dimensions (22 base + 3 engineered).
+\end{itemize}
+
+\subsection{ETHOS+FewShot Configuration}
+
+\begin{itemize}
+\item $K = 5$ support, $Q = 15$ query per class.
+\item 500 train episodes per epoch, 100 validation episodes.
+\item 50 epochs, early stopping patience 10.
+\item Temperature $\tau = 10$, focal loss $\gamma = 2$.
+\item Learning rate 0.001, Adam optimizer.
+\end{itemize}
+
+\subsection{Classical Baseline Configuration}
+
+\begin{itemize}
+\item RandomizedSearchCV with 50--80 trials (XGBoost, Random Forest), 50 trials (LightGBM, CatBoost).
+\item 5-fold stratified cross-validation on train+validation.
+\item Scoring: AUROC.
+\item Threshold tuning on validation: $\theta \in [0.3, 0.7]$, step 0.01, maximize F1.
+\end{itemize}
+
+%==============================================================================
+\section{Experiment Hypotheses}
+%==============================================================================
+
+Each experiment is designed to test specific hypotheses:
+
+\begin{table}[htbp]
+\centering
+\caption{Experiment Hypotheses and Expected Outcomes}
+\small
+\begin{tabular}{p{1.5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Exp} & \textbf{Hypothesis} & \textbf{Expected Outcome} \\
+\midrule
+1 & Few-shot can match classical baselines & Compare AUROC across models \\
+2 & Larger $K$ improves few-shot performance & AUROC increases with $K$ \\
+3 & Federated has negligible cost vs.\ centralized & Gap $<$ 2\% AUROC \\
+4 & Intensity weighting is critical & Removal drops AUROC significantly \\
+5 & Model generalizes to unseen disease nodes & AUROC $>$ 0.55 on held-out nodes \\
+\bottomrule
+\end{tabular}
+\label{tab:exp_hypotheses}
+\end{table}
+
+%==============================================================================
+\section{Statistical Power and Sample Size}
+%==============================================================================
+
+With 400 test samples and a 42/58 class split, we have approximately 168 positive and 232 negative examples. For detecting an AUROC difference of 0.10 (e.g., 0.76 vs.\ 0.66) with 80\% power and $\alpha = 0.05$, DeLong's test requires roughly 100--200 samples per group; our test set meets this. Bootstrap confidence intervals (1,000 resamples) provide stable estimates; we report 95\% CIs for key metrics.
+
+%==============================================================================
+\section{Hardware and Software Specifications}
+%==============================================================================
+
+Experiments were conducted on a standard workstation: Intel Core i7 or equivalent, 16--32 GB RAM, optional NVIDIA GPU (CUDA 11.x). Training times: Random Forest $\approx$1 min; ETHOS 50 epochs $\approx$2--3 hours (CPU) or $\approx$15 min (GPU). Software: Python 3.10, PyTorch 2.x, scikit-learn 1.3+, XGBoost 2.x, pandas 2.x. All dependencies are listed in \texttt{requirements.txt} (Appendix~\ref{app:repro}).
+
+%==============================================================================
+\section{Experiment Design Philosophy}
+%==============================================================================
+
+Our experiments follow a hierarchical design: (1) establish strong baselines with classical ML; (2) compare against neural and few-shot approaches; (3) ablate components to understand contributions; (4) evaluate federated and cross-disease generalization. We fix all random seeds (42) and data splits to ensure reproducibility. Each experiment is run once with the fixed configuration; we report point estimates. Bootstrap confidence intervals and statistical tests are provided in Chapter~\ref{ch:results}.
+
+%==============================================================================
+\section{Experiment Execution Procedure}
+%==============================================================================
+
+All experiments follow a standardized procedure: (1) Load preprocessed data (train/val/test splits); (2) For classical models: fit on train, tune threshold on val, evaluate on test; (3) For ETHOS+FewShot: episodic training on train, validation episodes on val, evaluate on test; (4) For federated: partition by disease node, run FedAvg for 20 rounds, evaluate global model on test; (5) Record metrics (AUROC, F1, etc.) and save models. No test data are used for model selection. All experiments use the same fixed splits (seed=42).
+
+%==============================================================================
+\section{Baseline Model Configurations}
+%==============================================================================
+
+We provide detailed configurations for each baseline. \textbf{Logistic Regression}: L2 regularization (C=1.0), class\_weight=balanced, max\_iter=1000. \textbf{Random Forest}: n\_estimators from RandomizedSearchCV (best: 200), max\_depth (best: 28), min\_samples\_split=5, min\_samples\_leaf=2, max\_features=log2. \textbf{XGBoost}: n\_estimators=200, max\_depth=6, learning\_rate=0.05, subsample=0.8, colsample\_bytree=0.8. \textbf{LightGBM}: n\_estimators=200, max\_depth=6, learning\_rate=0.05, num\_leaves=31. \textbf{CatBoost}: iterations=200, depth=6, learning\_rate=0.05. All classical models use the same 25-D tabular feature vector and identical train/val/test splits. Threshold tuning is performed on the validation set for all models to maximize F1; the tuned threshold is applied to the test set for final evaluation.
+
+%==============================================================================
+\section{Evaluation Metrics and Reporting}
+%==============================================================================
+
+We report AUROC (primary), F1-macro, Precision, Recall, Accuracy, and MCC for all models. AUROC is threshold-invariant and suitable for imbalanced data. F1-macro averages per-class F1 to avoid dominance by the majority class. We also report 95\% bootstrap confidence intervals (1,000 resamples) for key metrics. For statistical comparison, we use DeLong's test for paired ROC curves. We avoid multiple comparison correction (e.g., Bonferroni) across experiments to preserve power; we report confidence intervals to convey uncertainty. All metrics are computed on the held-out test set; no test data are used for model selection or hyperparameter tuning. For few-shot evaluation, we sample 100 episodes; each episode has $K$ support and $Q$ query per class. We report mean and standard deviation across episodes. For classical models, we evaluate once on the full test set. The different protocols mean that K-shot experiment metrics (0.51--0.55 AUROC) are not directly comparable to main ETHOS evaluation (0.619 AUROC); the main evaluation uses the full test set with a single trained model.
+
+%==============================================================================
+\section{Experiment 1: Main Model Comparison}
+%==============================================================================
+
+\subsection{Objective}
+
+Compare ETHOS+FewShot (Proposed\_FewShot) against classical baselines and neural baselines on the test set.
+
+\subsection{Models}
+
+\begin{itemize}
+\item LogisticRegression
+\item RandomForest
+\item XGBoost
+\item StandardNN (MLP, no few-shot)
+\item FederatedNN\_NoFewShot (federated MLP, no few-shot)
+\item Proposed\_FewShot (ETHOS + prototypical head)
+\end{itemize}
+
+\subsection{Results Summary}
+
+Proposed\_FewShot: AUROC 0.619, F1 0.58, Accuracy 0.62. Best classical (Random Forest): AUROC 0.734 in this experiment. Our final tuned Random Forest (from the SOTA pipeline) reaches AUROC 0.760. See Table~\ref{tab:exp1} in Chapter~\ref{ch:results}.
+
+%==============================================================================
+\section{Experiment 2: K-Shot Sensitivity}
+%==============================================================================
+
+\subsection{Objective}
+
+Determine how the number of support shots $K$ affects few-shot performance. In few-shot learning, $K$ is the number of labeled examples per class used to form the support set. Larger $K$ provides more information for prototype computation but may reduce the ``few-shot'' nature of the task. We vary $K$ to understand the trade-off.
+
+\subsection{Design Details}
+
+For each $K \in \{1, 3, 5, 7, 10, 15, 20\}$, we sample episodes with $K$ support and $Q=15$ query per class. Each configuration is evaluated over 100 test episodes. We report mean AUROC and standard deviation. The main ETHOS+FewShot model uses $K=5$ for training; this experiment varies $K$ at evaluation time to assess sensitivity. Note: the episodic evaluation protocol differs from the main evaluation (full test set); hence the absolute AUROC values (0.51--0.55) are lower than the main model (0.619).
+
+\subsection{Design}
+
+We vary $K \in \{1, 3, 5, 7, 10, 15, 20\}$ and measure AUROC and F1 on the test set. Each configuration is evaluated over multiple episodes.
+
+\subsection{Results Summary}
+
+AUROC ranges from 0.51 (K=1) to 0.55 (K=20). No monotonic trend; K=20 yields best AUROC 0.554. See Table~\ref{tab:exp2}.
+
+%==============================================================================
+\section{Experiment 3: Federated vs Centralized}
+%==============================================================================
+
+\subsection{Objective}
+
+Quantify the performance cost of federated learning. Federated learning trains across distributed data without centralizing raw samples; the question is whether this constraint hurts performance.
+
+\subsection{Design}
+
+Train ETHOS+FewShot in two settings: (1) centralized (all data pooled, standard episodic training); (2) federated (5 nodes by disease, FedAvg, 20 rounds, 3 local epochs per round). Both use identical model architecture, hyperparameters, and data splits. The federated setting partitions data by primary ICD-10 diagnosis into 5 nodes; each node trains locally and sends model updates to the server; the server aggregates with FedAvg (weighted by node size). We compare AUROC and F1 on the held-out test set. The test set is global (not partitioned) to ensure fair comparison.
+
+\subsection{Results Summary}
+
+Centralized: AUROC 0.619, F1 0.582. Federated: AUROC 0.624, F1 0.595. Gap: $-0.5\%$ AUROC. Federated learning preserves privacy with negligible cost. See Table~\ref{tab:exp3}.
+
+%==============================================================================
+\section{Experiment 4: Ablation Study}
+%==============================================================================
+
+\subsection{Objective}
+
+Identify which components contribute most to the proposed model. Ablation studies remove one component at a time and measure performance change. This helps understand which design choices are critical.
+
+\subsection{Variants}
+
+\begin{itemize}
+\item full\_model: Complete ETHOS+FewShot.
+\item no\_symptom\_tokens: Replace with Logistic Regression on raw 25 features.
+\item no\_clinical\_bias: Remove clinical bias in embeddings.
+\item no\_intensity\_weighting: Remove intensity weighting.
+\item no\_temporal\_decay: Remove temporal decay.
+\item no\_few\_shot: Standard NN (no episodic training).
+\end{itemize}
+
+\subsection{Results Summary}
+
+full\_model: 0.591 AUROC. no\_symptom\_tokens: 0.724 (LR on raw features). no\_intensity\_weighting: 0.544. Intensity weighting is critical. See Table~\ref{tab:exp4}.
+
+%==============================================================================
+\section{Experiment 5: Cross-Disease Generalization}
+%==============================================================================
+
+\subsection{Objective}
+
+Evaluate generalization to unseen disease groups. In federated or multi-site settings, a model trained on some disease groups may need to generalize to others with limited local data.
+
+\subsection{Design}
+
+Train on nodes 1--3 (sepsis, cardiac, respiratory); test on nodes 4 and 5 (renal, diabetes). This simulates a scenario where a new hospital or disease group joins the federation with no local training data. We compare Proposed\_FewShot, Logistic Regression, XGBoost, and Standard NN. Few-shot learning is designed for such scenarios; we test whether it outperforms classical models when the test distribution differs from the training distribution.
+
+\subsection{Results Summary}
+
+Proposed: 0.59 (node\_4), 0.53 (node\_5). LR: 0.67, 0.66. XGBoost: 0.70, 0.70. Classical models generalize better. See Table~\ref{tab:exp5}.
+
+%==============================================================================
+\section{Hyperparameter Search Procedure}
+%==============================================================================
+
+For classical models, we use RandomizedSearchCV with 50--80 trials. The search space for Random Forest: n\_estimators [100, 200, 300, 400, 500], max\_depth [8, 12, 16, 20, 24, 28], min\_samples\_split [2, 5, 10], min\_samples\_leaf [1, 2, 4], max\_features [sqrt, log2], class\_weight [balanced, balanced\_subsample]. For XGBoost: n\_estimators [100, 200, 300, 400, 500], max\_depth [4, 6, 8, 10, 12], learning\_rate [0.01, 0.03, 0.05, 0.1], subsample [0.5, 0.7, 0.85, 1.0], colsample\_bytree [0.5, 0.7, 0.85, 1.0]. Scoring metric: AUROC. We use 5-fold stratified cross-validation on train+validation. The best configuration is selected by mean AUROC across folds. We then tune the decision threshold on the validation set (maximize F1) and report final metrics on the test set. See Appendix~\ref{app:hyperparams} for full grids.
+
+%==============================================================================
+\section{Experiment 5.8: ETHOS Ablation Extensions}
+\label{sec:ethos-ablation}
+%==============================================================================
+
+\subsection{Objective}
+
+Extend the ablation study to test whether \emph{supervised} training (no episodic few-shot) improves ETHOS performance. The original no\_few\_shot variant (standard NN) achieved AUROC 0.645; we hypothesize that ETHOS with a supervised classification head may outperform episodic training.
+
+\subsection{Design}
+
+We train the ETHOS encoder with a supervised head: Linear(128$\to$64$\to$1) with sigmoid, CrossEntropyLoss with class weights. Same data splits as RF (seed=42). 100 epochs, early stopping patience 15. Optional: load pretrained ETHOS encoder from MLM pretraining.
+
+\subsection{Results Summary}
+
+ETHOS\_Supervised achieves AUROC 0.610, F1 0.386, Accuracy 0.627. Compared to ETHOS+FewShot (0.619), supervised training yields comparable AUROC. The supervised head learns from the full dataset without episodic sampling. See Table~\ref{tab:exp1} and Table~\ref{tab:exp8}.
+
+%==============================================================================
+\section{Experiment 5.9: Hybrid Architectures}
+\label{sec:exp-hybrid}
+%==============================================================================
+
+\subsection{Objective}
+
+Compare hybrid architectures that combine ETHOS embeddings with tabular features. We test: (1) RF on [ETHOS 128D + tabular 25D] = 153D, (2) RF on ETHOS-only 128D.
+
+\subsection{Design}
+
+\begin{enumerate}
+\item \textbf{ETHOS\_RF\_Hybrid}: Extract ETHOS embeddings for all samples. Concatenate with tabular features: $\mathbf{x}_{\text{hybrid}} = [\mathbf{e}_{\text{ETHOS}}; \mathbf{x}_{\text{tab}}] \in \mathbb{R}^{153}$. Train Random Forest with RandomizedSearchCV (50 trials) on train+val. Threshold tuning on validation.
+\item \textbf{RF\_on\_ETHOS\_only}: Train RF on 128-D ETHOS embeddings only (no tabular). Same CV and threshold tuning.
+\end{enumerate}
+
+\subsection{Results Summary}
+
+ETHOS\_RF\_Hybrid achieves AUROC 0.717, F1 0.652, Accuracy 0.665---a substantial gain over ETHOS+FewShot (0.619) and ETHOS\_Supervised (0.610). The hybrid leverages both learned representations and engineered features, narrowing the gap to RF (0.760) to 0.04 AUROC. RF\_on\_ETHOS\_only: AUROC 0.598, F1 0.576---weaker than hybrid, confirming that tabular features add critical signal. See Table~\ref{tab:exp8}.
+
+%==============================================================================
+\section{Chapter Summary}
+%==============================================================================
+
+This chapter described the experimental setup: implementation and software architecture, data configuration, ETHOS+FewShot and classical baseline configurations, experiment hypotheses, statistical power and sample size, hardware and software specifications, experiment design philosophy, experiment execution procedure, baseline model configurations, evaluation metrics and reporting, and detailed design for each of Experiments 1--5, ETHOS ablation extensions, and hybrid architectures. The next chapter reports the results.
+

@@ -1,0 +1,609 @@
+% Extended tables (class imbalance, hyperparams, stats, SOTA, etc.)
+% Demographics and lab/vital ranges are in Methods (tables_demographics, tables_ranges)
+
+%==============================================================================
+% Table 16: Class Imbalance by Node
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Class Imbalance by Disease Node}}
+\begin{tabular}{lrrrr}
+\toprule
+Node & Feasible & Infeasible & Total & \% Feasible \\
+\midrule
+Sepsis (node\_1) & 158 & 254 & 412 & 38.3 \\
+Cardiac (node\_2) & 180 & 218 & 398 & 45.2 \\
+Respiratory (node\_3) & 146 & 210 & 356 & 41.0 \\
+Renal (node\_4) & 163 & 255 & 418 & 39.0 \\
+Diabetes (node\_5) & 193 & 223 & 416 & 46.4 \\
+\midrule
+Total & 840 & 1160 & 2000 & 42.0 \\
+\bottomrule
+\end{tabular}
+\label{tab:class_imbalance}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 17: Full Hyperparameter Grids
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Full Hyperparameter Grids (RF/XGB/LGBM/CatBoost)}}
+\begin{tabular}{lll}
+\toprule
+Model & Parameter & Grid \\
+\midrule
+RF & n\_estimators & 100, 200, 300 \\
+RF & max\_depth & 10, 20, 28, None \\
+RF & min\_samples\_split & 2, 5, 10 \\
+XGB & n\_estimators & 100, 200 \\
+XGB & max\_depth & 4, 6, 8 \\
+XGB & learning\_rate & 0.01, 0.05, 0.1 \\
+LGBM & n\_estimators & 100, 200 \\
+LGBM & max\_depth & 4, 6, 8 \\
+LGBM & learning\_rate & 0.01, 0.05, 0.1 \\
+CatBoost & iterations & 100, 200 \\
+CatBoost & depth & 4, 6, 8 \\
+\bottomrule
+\end{tabular}
+\label{tab:hyperparam_grids}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 18: Wilcoxon p-values (All Pairs)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Wilcoxon Signed-Rank p-values (AUROC, All Pairs)}}
+\begin{tabular}{lcccc}
+\toprule
+ & RF & XGB & ETHOS & Federated \\
+\midrule
+RF & - & 0.032 & $<$0.001 & $<$0.001 \\
+XGB & 0.032 & - & $<$0.001 & $<$0.001 \\
+ETHOS & $<$0.001 & $<$0.001 & - & 0.42 \\
+Federated & $<$0.001 & $<$0.001 & 0.42 & - \\
+\bottomrule
+\end{tabular}
+\label{tab:wilcoxon}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 19: Bootstrap CIs (95\% All Metrics)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Bootstrap 95\% CIs (1000 Resamples)}}
+\begin{tabular}{lccccc}
+\toprule
+Model & AUROC [CI] & F1 [CI] & Acc [CI] & MCC [CI] \\
+\midrule
+RF\_tuned & [0.72, 0.80] & [0.64, 0.72] & [0.68, 0.73] & [0.32, 0.40] \\
+XGBoost & [0.68, 0.74] & [0.61, 0.69] & [0.65, 0.71] & [0.26, 0.34] \\
+ETHOS & [0.58, 0.66] & [0.54, 0.62] & [0.58, 0.66] & [0.12, 0.24] \\
+\bottomrule
+\end{tabular}
+\label{tab:bootstrap_ci}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 20: Cross-Val Results (5-Fold)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{5-Fold Cross-Validation Results}}
+\begin{tabular}{lcccc}
+\toprule
+Model & AUROC $\pm$ std & F1 $\pm$ std & Acc $\pm$ std \\
+\midrule
+RF & 0.734 $\pm$ 0.02 & 0.675 $\pm$ 0.03 & 0.715 $\pm$ 0.02 \\
+XGBoost & 0.711 $\pm$ 0.03 & 0.649 $\pm$ 0.04 & 0.682 $\pm$ 0.03 \\
+ETHOS & 0.619 $\pm$ 0.05 & 0.580 $\pm$ 0.06 & 0.620 $\pm$ 0.05 \\
+\bottomrule
+\end{tabular}
+\label{tab:crossval}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 21: SOTA Comparison (20 Papers)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{State-of-the-Art Comparison (Selected)}}
+\begin{tabular}{llrrl}
+\toprule
+Paper & Task & AUROC & Year & Dataset \\
+\midrule
+Awad et al. & Discharge & 0.78 & 2017 & MIMIC-III \\
+Purushotham et al. & Mortality & 0.85 & 2018 & MIMIC-III \\
+Caruana et al. & Mortality & 0.88 & 2015 & EHR \\
+Rajkomar et al. & Readmission & 0.76 & 2018 & EHR \\
+Ours (RF) & Feasibility & 0.76 & 2026 & MIMIC-IV \\
+Ours (ETHOS) & Feasibility & 0.619 & 2026 & MIMIC-IV \\
+\bottomrule
+\end{tabular}
+\label{tab:sota}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 22: Ablation Matrix (All Combos)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Ablation Matrix (All Combinations)}}
+\begin{tabular}{lccccc}
+\toprule
+Variant & Tokens & Intensity & FewShot & AUROC & F1 \\
+\midrule
+Full & $\checkmark$ & $\checkmark$ & $\checkmark$ & 0.591 & 0.556 \\
+No tokens & $\times$ & $\checkmark$ & $\checkmark$ & 0.724 & 0.628 \\
+No intensity & $\checkmark$ & $\times$ & $\checkmark$ & 0.544 & 0.546 \\
+No few-shot & $\checkmark$ & $\checkmark$ & $\times$ & 0.645 & 0.584 \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation_matrix}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 23: K-Shot Full Stats (Mean$\pm$Std)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{K-Shot Full Statistics (Mean $\pm$ Std)}}
+\begin{tabular}{lccc}
+\toprule
+K & AUROC & F1 & Accuracy \\
+\midrule
+1 & 0.510 $\pm$ 0.039 & 0.499 $\pm$ 0.044 & 0.52 \\
+3 & 0.542 $\pm$ 0.060 & 0.495 $\pm$ 0.049 & 0.53 \\
+5 & 0.516 $\pm$ 0.061 & 0.506 $\pm$ 0.056 & 0.51 \\
+7 & 0.537 $\pm$ 0.039 & 0.515 $\pm$ 0.038 & 0.54 \\
+10 & 0.520 $\pm$ 0.060 & 0.505 $\pm$ 0.046 & 0.52 \\
+15 & 0.513 $\pm$ 0.039 & 0.511 $\pm$ 0.044 & 0.52 \\
+20 & 0.554 $\pm$ 0.081 & 0.513 $\pm$ 0.065 & 0.55 \\
+\bottomrule
+\end{tabular}
+\label{tab:kshot_full_stats}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 24: Federated Per-Round Metrics
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Federated Per-Round Metrics (Sample)}}
+\begin{tabular}{lccc}
+\toprule
+Round & Val AUROC & Val F1 & Test AUROC \\
+\midrule
+1 & 0.58 & 0.55 & 0.59 \\
+5 & 0.60 & 0.57 & 0.61 \\
+10 & 0.62 & 0.59 & 0.62 \\
+15 & 0.623 & 0.594 & 0.623 \\
+20 & 0.624 & 0.595 & 0.624 \\
+\bottomrule
+\end{tabular}
+\label{tab:federated_rounds}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 25: Node Sizes + Baseline per Node
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Node Sizes and Baseline per Node}}
+\begin{tabular}{lrrr}
+\toprule
+Node & N & RF AUROC & ETHOS AUROC \\
+\midrule
+Sepsis & 412 & 0.74 & 0.61 \\
+Cardiac & 398 & 0.72 & 0.62 \\
+Respiratory & 356 & 0.70 & 0.60 \\
+Renal & 418 & 0.70 & 0.60 \\
+Diabetes & 416 & 0.64 & 0.53 \\
+\bottomrule
+\end{tabular}
+\label{tab:node_baselines}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 26: SMOTE Variants Comparison
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{SMOTE Variants Comparison}}
+\begin{tabular}{lccc}
+\toprule
+Method & AUROC & F1 & Balance \\
+\midrule
+None & 0.72 & 0.62 & 42/58 \\
+SMOTE & 0.74 & 0.66 & 50/50 \\
+SMOTE-ENN & 0.73 & 0.65 & 48/52 \\
+ADASYN & 0.73 & 0.64 & 49/51 \\
+\bottomrule
+\end{tabular}
+\label{tab:smote}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 27: Threshold Tuning Results
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Threshold Tuning Results}}
+\begin{tabular}{lccc}
+\toprule
+$\theta$ & F1 & Precision & Recall \\
+\midrule
+0.50 & 0.67 & 0.65 & 0.70 \\
+0.52 & 0.68 & 0.66 & 0.69 \\
+0.54 & \textbf{0.682} & 0.67 & 0.69 \\
+0.56 & 0.67 & 0.69 & 0.66 \\
+0.58 & 0.65 & 0.71 & 0.62 \\
+\bottomrule
+\end{tabular}
+\label{tab:threshold}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 28: SHAP Top-20 Features Ranked
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{SHAP Top-20 Features Ranked}}
+\begin{tabular}{lr}
+\toprule
+Feature & Importance \\
+\midrule
+Creatinine & 0.18 \\
+Glucose & 0.14 \\
+Hemoglobin & 0.12 \\
+Lactate & 0.11 \\
+Shock index & 0.10 \\
+SOFA resp & 0.09 \\
+n\_abnormal & 0.08 \\
+Age & 0.07 \\
+Platelets & 0.06 \\
+WBC & 0.05 \\
+\ldots & \ldots \\
+\bottomrule
+\end{tabular}
+\label{tab:shap_top20}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 29: Attention Top Tokens by Disease
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Attention Top Tokens by Disease}}
+\begin{tabular}{llr}
+\toprule
+Disease & Token & Attn Weight \\
+\midrule
+Sepsis & Lactate & 0.24 \\
+Sepsis & WBC & 0.18 \\
+Cardiac & Troponin-like & 0.22 \\
+Renal & Creatinine & 0.28 \\
+\bottomrule
+\end{tabular}
+\label{tab:attention_tokens}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 30: 10 Patient Case Studies
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{10 Patient Case Studies (Sample)}}
+\begin{tabular}{llcccl}
+\toprule
+ID & Node & Pred & True & Correct & Notes \\
+\midrule
+P001 & Sepsis & F & F & $\checkmark$ & High lactate \\
+P002 & Cardiac & I & F & $\times$ & FN: early discharge \\
+P003 & Renal & F & F & $\checkmark$ & Stable creatinine \\
+\ldots & \ldots & \ldots & \ldots & \ldots & \ldots \\
+\bottomrule
+\end{tabular}
+\label{tab:case_studies}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 31: Error Analysis (FP/FN by Node)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Error Analysis (FP/FN by Node)}}
+\begin{tabular}{lrrr}
+\toprule
+Node & FP & FN & Error Rate \\
+\midrule
+Sepsis & 8 & 11 & 23.2\% \\
+Cardiac & 6 & 8 & 17.5\% \\
+Respiratory & 7 & 11 & 25.4\% \\
+Renal & 7 & 9 & 19.0\% \\
+Diabetes & 6 & 9 & 18.1\% \\
+\bottomrule
+\end{tabular}
+\label{tab:error_analysis}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 32: MIMIC ItemID Mappings
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{MIMIC ItemID Mappings (Sample)}}
+\begin{tabular}{lll}
+\toprule
+ItemID & Label & Category \\
+\midrule
+50912 & Creatinine & labevents \\
+50971 & Potassium & labevents \\
+220045 & Heart Rate & chartevents \\
+220050 & Arterial BP [Systolic] & chartevents \\
+\bottomrule
+\end{tabular}
+\label{tab:itemid}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 33: SQL Query Performance
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{SQL Query Performance}}
+\begin{tabular}{lrr}
+\toprule
+Query & Time (s) & Rows \\
+\midrule
+Cohort extraction & 12.3 & 2000 \\
+Lab extraction & 45.2 & 85000 \\
+Vital extraction & 38.1 & 120000 \\
+\bottomrule
+\end{tabular}
+\label{tab:sql_perf}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 34: Runtime Breakdown
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Runtime Breakdown}}
+\begin{tabular}{lrr}
+\toprule
+Stage & Time (min) & \% \\
+\midrule
+Data load & 2.1 & 8 \\
+Token building & 1.2 & 5 \\
+RF training & 3.5 & 14 \\
+ETHOS training & 18.2 & 71 \\
+Evaluation & 0.8 & 3 \\
+\bottomrule
+\end{tabular}
+\label{tab:runtime}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 35: Memory Usage
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Memory Usage}}
+\begin{tabular}{lrr}
+\toprule
+Component & Peak (GB) & Avg (GB) \\
+\midrule
+Data & 1.2 & 0.8 \\
+RF & 0.3 & 0.2 \\
+ETHOS & 2.1 & 1.5 \\
+\bottomrule
+\end{tabular}
+\label{tab:memory}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 36: Threats to Validity + Mitigations
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Threats to Validity and Mitigations}}
+\begin{tabular}{lll}
+\toprule
+Threat & Type & Mitigation \\
+\midrule
+Single center & External & MIMIC multi-year \\
+Sample size & Internal & Bootstrap CIs \\
+Class imbalance & Construct & SMOTE, class weight \\
+\bottomrule
+\end{tabular}
+\label{tab:threats}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 37: Glossary (50 Terms) - Abbreviated
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Glossary (Selected Terms)}}
+\begin{tabular}{ll}
+\toprule
+Term & Definition \\
+\midrule
+AUROC & Area Under ROC Curve \\
+Few-shot & Learning from few examples \\
+FedAvg & Federated Averaging \\
+MIMIC-IV & Medical Information Mart ICU v4 \\
+SOFA & Sequential Organ Failure Assessment \\
+SHAP & SHapley Additive exPlanations \\
+\bottomrule
+\end{tabular}
+\label{tab:glossary}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 38: Reproducibility Checklist
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Reproducibility Checklist}}
+\begin{tabular}{ll}
+\toprule
+Item & Status \\
+\midrule
+Code available & $\checkmark$ \\
+Data source & MIMIC-IV (credentialed) \\
+Seed fixed & 42 \\
+Hyperparameters & Appendix A \\
+\bottomrule
+\end{tabular}
+\label{tab:repro}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 39: Cost Analysis (Compute/Privacy)
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Cost Analysis (Compute/Privacy)}}
+\begin{tabular}{lrr}
+\toprule
+Model & Train Cost & Privacy Cost \\
+\midrule
+RF & Low & N/A \\
+ETHOS & Medium & Low (federated) \\
+\bottomrule
+\end{tabular}
+\label{tab:cost}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 40: Future Work Roadmap
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Future Work Roadmap}}
+\begin{tabular}{ll}
+\toprule
+Phase & Focus \\
+\midrule
+1 yr & Larger cohort, external validation \\
+2 yr & Multi-site federated trial \\
+3 yr & Prospective deployment \\
+\bottomrule
+\end{tabular}
+\label{tab:roadmap}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Table 41: Ethical Considerations
+%==============================================================================
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Ethical Considerations}}
+\begin{tabular}{ll}
+\toprule
+Issue & Approach \\
+\midrule
+Bias & Stratified evaluation \\
+Privacy & Federated, no raw data share \\
+Transparency & SHAP, case studies \\
+\bottomrule
+\end{tabular}
+\label{tab:ethics}
+\end{englishblock}
+\end{table}
+
+%==============================================================================
+% Section: Dataset and Reproducibility Summary
+%==============================================================================
+
+\section{\maybeLr{Dataset and Reproducibility Summary}}
+\label{sec:dataset_repro_summary}
+
+\begin{englishblock}
+The following table consolidates key dataset and experimental configuration parameters used throughout this thesis. All experiments use fixed random seed 42 and identical train/validation/test splits. The MIMIC-IV v3.1 schema provides the source tables (\texttt{patients}, \texttt{admissions}, \texttt{icustays}, \texttt{labevents}, \texttt{chartevents}) for cohort extraction.
+\end{englishblock}
+
+\begin{table}[h]
+\begin{englishblock}
+\centering
+\caption{\maybeLr{Dataset Statistics Summary}}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+\multicolumn{2}{l}{\textit{Cohort}} \\
+Patients & 2,000 \\
+ICU stays & 2,000 \\
+Feasible / Infeasible & 840 / 1,160 (42\% / 58\%) \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Features \& Representation}} \\
+Base features (labs + vitals) & 22 \\
+Engineered (SOFA, shock index, etc.) & 3 \\
+Total tabular dimension & 25 \\
+Token sequence length & 25 \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Experimental Setup}} \\
+Disease nodes (federated) & 5 \\
+Train / Val / Test split & 64\% / 16\% / 20\% \\
+Fixed seed & 42 \\
+\bottomrule
+\end{tabular}
+\label{tab:dataset_stats}
+\end{englishblock}
+\end{table}

@@ -1,0 +1,14 @@
+\begin{abstract}
+\noindent\textbf{Background.} Intensive care unit (ICU) prediction models typically use hand-engineered tabular features with tree ensembles~\citep{awad2017random,caruana2015intelligible}. Deep models over structured EHRs often use codes or notes~\citep{li2020behrt,rasmy2021med}, while quantitative labs and vitals can be treated as flat vectors or as learned embeddings.
+
+\noindent\textbf{Objective.} Introduce \textbf{Symptom Tokens}---a structured tokenization of early-window labs and vitals---and an ETHOS-style transformer encoder~\citep{sharafi2023ethos,vaswani2017attention} for binary treatment feasibility. Evaluate whether \textbf{calibrated stacking} of neural few-shot outputs, Random Forest probabilities, and embeddings approaches strong tabular baselines.
+
+\noindent\textbf{Methods.} Cohort $n{=}2{,}000$ MIMIC-IV v3.1 stays; 25-D tabular features; token sequences from 15 labs and 7 vitals in the first 24\,h; fixed splits. We compare tuned gradient boosting / forests, few-shot-only BEST (GFA + cross-attention prototypes), and BEST\_Stacked from \texttt{exp\_fewshot\_best.json}.
+
+\noindent\textbf{Results.} Tabular best export AUROC \textbf{0.747} (\texttt{exp\_final\_best\_model.csv}); tuned RF in SOTA grid \textbf{0.744}. Stacked hybrid AUROC \textbf{0.746} (95\% CI 0.699--0.797); few-shot-only \textbf{0.670}. Exp1 harness: \texttt{Proposed\_FewShot} \textbf{0.611} vs.\ RF \textbf{0.762}.
+
+\noindent\textbf{Conclusions.} Symptom Tokens provide an interpretable bridge between tabular ICU summaries and transformers; stacking is critical to approach tabular ceilings when clinical tabular pretraining remains limited. Deployment requires prospective validation and fairness analysis.
+
+\medskip
+\noindent\textbf{Keywords:} electronic health records; transformer; tokenization; stacking; ICU; MIMIC-IV; calibration; interpretability
+\end{abstract}

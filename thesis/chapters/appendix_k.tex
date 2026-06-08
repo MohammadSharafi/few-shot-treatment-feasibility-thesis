@@ -1,0 +1,64 @@
+\chapter{Creative Elements and Visualizations}
+\label{app:creative}
+
+This appendix describes creative elements and supplementary visualizations.
+
+%==============================================================================
+\section{Architecture Posters}
+%==============================================================================
+
+\textbf{ETHOS Pipeline (3 views):}
+\begin{enumerate}
+\item \textbf{Data flow}: Raw MIMIC $\to$ cohort $\to$ labs/vitals $\to$ tokens $\to$ sequences.
+\item \textbf{Model flow}: Tokens $\to$ ETHOS encoder $\to$ embeddings $\to$ prototypes $\to$ prediction.
+\item \textbf{Federated flow}: Local training $\to$ gradient upload $\to$ FedAvg $\to$ global model broadcast.
+\end{enumerate}
+
+%==============================================================================
+\section{Patient Journey Infographic}
+%==============================================================================
+
+\textbf{ICU Day 1 $\to$ Tokens $\to$ Prediction $\to$ Discharge:}
+\begin{itemize}
+\item Hour 0--24: Labs and vitals collected.
+\item Tokenization: Each measurement $\to$ (bin, intensity) pair.
+\item Sequence: 25 tokens per patient (padded if needed).
+\item Model: ETHOS encodes $\to$ prototype comparison $\to$ feasible/infeasible.
+\item Outcome: Discharge to home/rehab (feasible) vs.\ SNF/death (infeasible).
+\end{itemize}
+
+%==============================================================================
+\section{SWOT Analysis}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{SWOT: Tabular ML vs.\ Deep Learning}
+\begin{tabular}{ll}
+\toprule
+\textbf{Strengths} & Tabular: Interpretable, fast, strong performance. Deep: Flexible, representation learning. \\
+\textbf{Weaknesses} & Tabular: Manual features. Deep: Data-hungry, less interpretable. \\
+\textbf{Opportunities} & Hybrid models; better tokenization; larger cohorts. \\
+\textbf{Threats} & Distribution shift; regulatory hurdles; clinician trust. \\
+\bottomrule
+\end{tabular}
+\label{tab:swot}
+\end{table}
+
+%==============================================================================
+\section{Interactive Demo}
+%==============================================================================
+
+\textbf{Gradio app for clinicians:} A web interface allows uploading anonymized lab/vital CSV, tokenizing on-the-fly, and displaying RF + ETHOS predictions with SHAP explanations. Supports threshold adjustment and sensitivity analysis.
+
+%==============================================================================
+\section{Sensitivity Tornado Plot}
+%==============================================================================
+
+A tornado plot shows AUROC sensitivity to hyperparameter changes: max\_depth, n\_estimators, learning rate, threshold. RF is most sensitive to threshold; ETHOS to temperature and K.
+
+%==============================================================================
+\section{Parallel Coordinates}
+%==============================================================================
+
+Ablation results can be visualized in parallel coordinates: each axis = one ablation dimension (tokens, intensity, few-shot); each line = one configuration; color = AUROC.

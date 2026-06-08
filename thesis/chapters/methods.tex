@@ -1,0 +1,698 @@
+\chapter{Methods}
+\label{ch:methods}
+
+This chapter describes our methodology in detail: dataset extraction, symptom tokenization, ETHOS encoder, few-shot protocol, federated training, and evaluation. We begin with notation and pipeline overview, then proceed to each component.
+
+%==============================================================================
+\section{Notation}
+%==============================================================================
+
+We use the following notation throughout. Table~\ref{tab:notation} provides a quick reference.
+
+\begin{table}[htbp]
+\centering
+\caption{Notation Summary}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$\mathcal{X}$ & Input space (patient representations) \\
+$\mathcal{Y}$ & Label space $\{0, 1\}$ (infeasible, feasible) \\
+$\mathcal{S}$, $\mathcal{Q}$ & Support set, query set \\
+$K$, $Q$ & Support shots per class, query shots per class \\
+$N$ & Number of classes (2 for binary) \\
+$\theta$ & Model parameters \\
+$\mathbf{c}_k$ & Prototype of class $k$ \\
+$\tau$ & Temperature in softmax \\
+$d$ & Embedding dimension (128) \\
+$L$ & Sequence length (25 tokens) \\
+\bottomrule
+\end{tabular}
+\label{tab:notation}
+\end{table}
+
+$\mathcal{X}$ denotes the input space (patient representations); $\mathcal{Y} = \{0, 1\}$ the binary label (infeasible, feasible); $\mathcal{S}$ the support set; $\mathcal{Q}$ the query set; $K$ the number of support examples per class; $N$ the number of classes (2 for binary); $\theta$ model parameters; $\mathbf{c}_k$ the prototype of class $k$; $\tau$ the temperature in the softmax; $d$ the embedding dimension (128 for ETHOS); $L$ the sequence length (25 tokens).
+
+%==============================================================================
+\section{Pipeline Overview}
+%==============================================================================
+
+Figure~\ref{fig:pipeline} illustrates the end-to-end pipeline. Raw MIMIC-IV labs and vitals (first 24h) are extracted and normalized. Two branches: (1) \textbf{Tabular}: 25-D feature vector $\to$ classical models (RF, XGBoost, etc.); (2) \textbf{Neural}: tokenization $\to$ Symptom Tokens $\to$ ETHOS encoder $\to$ 128-D embedding $\to$ prototypical few-shot head or supervised head. In federated mode, nodes train locally and aggregate via FedAvg. The hybrid model concatenates ETHOS embeddings with tabular features before a final RF classifier.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering\small
+\textbf{Data flow:}\\[0.3em]
+MIMIC-IV (labs, vitals) $\to$ Normalize $\to$ [Tabular 25-D | Tokenize $\to$ ETHOS $\to$ 128-D] $\to$ [RF/XGB | Prototypical head | Hybrid 153-D $\to$ RF] $\to$ Feasibility prediction
+}}
+\caption{End-to-end pipeline: data extraction, dual representation (tabular and token-based), and model branches.}
+\label{fig:pipeline}
+\end{figure}
+
+%==============================================================================
+\section{Dataset and Preprocessing}
+%==============================================================================
+
+\subsection{Cohort Extraction}
+
+We extract a 2,000-patient cohort from MIMIC-IV v3.1 using the following criteria:
+\begin{itemize}
+\item First ICU stay only (no readmissions in the cohort).
+\item Minimum 4 hours length of stay (to ensure sufficient data).
+\item Age $\geq$ 18 at admission.
+\item Primary ICD-10 diagnosis available for disease node assignment.
+\end{itemize}
+
+The extraction pipeline (see Appendix~\ref{app:sql}) filters \texttt{icustays}, joins with \texttt{patients} and \texttt{admissions}, and samples 2,000 stays with stratification by primary diagnosis group. Table~\ref{tab:demographics} summarizes cohort demographics.
+
+\input{tables_demographics}
+
+\subsection{Detailed MIMIC-IV Extraction Pipeline}
+
+The data extraction follows a multi-stage SQL pipeline designed for reproducibility and clinical validity. Algorithm~\ref{alg:extraction} formalizes the extraction process.
+
+\begin{algorithm}[htbp]
+\caption{MIMIC-IV Cohort Extraction Pipeline}
+\label{alg:extraction}
+\begin{algorithmic}[1]
+\Require MIMIC-IV database, target size $n=2000$
+\State \textbf{Stage 1: Candidate ICU stays}
+\State $\mathcal{C} \gets$ \texttt{SELECT} from \texttt{icustays} \texttt{WHERE} first\_stay = TRUE
+\State $\mathcal{C} \gets \{c \in \mathcal{C} : \text{LOS}(c) \geq 4\text{h}\}$
+\State \textbf{Stage 2: Age filter}
+\State $\mathcal{C} \gets \{c \in \mathcal{C} : \text{age}(c) \geq 18\}$ \Comment{Via \texttt{patients.anchor\_age}}
+\State \textbf{Stage 3: Diagnosis assignment}
+\For{each $c \in \mathcal{C}$}
+\State $\text{dx}(c) \gets$ primary ICD-10 from \texttt{diagnoses\_icd} (\texttt{seq\_num}=1)
+\State $\text{node}(c) \gets \text{map\_to\_disease\_node}(\text{dx}(c))$
+\EndFor
+\State $\mathcal{C} \gets \{c \in \mathcal{C} : \text{node}(c) \neq \texttt{NULL}\}$
+\State \textbf{Stage 4: Stratified sampling}
+\State $\mathcal{S} \gets \text{stratified\_sample}(\mathcal{C}, n=2000, \text{strata}=\text{node})$
+\State \textbf{Stage 5: Label derivation}
+\For{each $c \in \mathcal{S}$}
+\State $\text{dest}(c) \gets$ \texttt{admissions.discharge\_location}
+\State $\text{readmit}(c) \gets$ check 30-day readmission from \texttt{admissions}
+\State $y(c) \gets \mathbb{1}[\text{dest}(c) \in \{\text{HOME}, \text{REHAB}, \ldots\} \land \neg\text{readmit}(c)]$
+\EndFor
+\State \Return $\{(c, y(c)) : c \in \mathcal{S}\}$
+\end{algorithmic}
+\end{algorithm}
+
+The join structure traverses three primary keys: \texttt{subject\_id} links patients to admissions, \texttt{hadm\_id} links admissions to diagnoses and discharge records, and \texttt{stay\_id} links ICU stays to lab and vital events. The join order is optimized to minimize intermediate result sizes: we first filter ICU stays (reducing from 250K+ to $\approx$180K first stays), then apply age and LOS filters ($\approx$150K), then require ICD-10 assignment ($\approx$120K), and finally sample 2,000. This cascading filter ensures that expensive joins (with \texttt{labevents} and \texttt{chartevents}) operate on the smallest possible cohort.
+
+\subsection{Lab and Vital Extraction}
+
+We use 15 lab itemids and 7 vital itemids from MIMIC-IV \texttt{d\_labitems} and \texttt{d\_items}. Values are extracted from the first 24 hours of ICU stay. Each measurement is clipped to a clinical range (e.g., creatinine [0.1, 30] mg/dL) to remove outliers, then min-max normalized to [0,1]:
+\begin{equation}
+x' = \frac{\text{clip}(x, x_{\min}, x_{\max}) - x_{\min}}{x_{\max} - x_{\min}}
+\end{equation}
+Tables~\ref{tab:lab_ranges} and~\ref{tab:vital_ranges} list the lab and vital ranges.
+
+\input{tables_ranges}
+
+The 15 laboratory measurements were selected based on clinical relevance to ICU discharge prediction and availability in MIMIC-IV:
+\begin{itemize}
+\item \textbf{Renal panel}: Creatinine, BUN (blood urea nitrogen), potassium, sodium, chloride, bicarbonate
+\item \textbf{Hematology}: Hemoglobin, platelets, white blood cell count (WBC)
+\item \textbf{Metabolic}: Glucose, lactate, albumin
+\item \textbf{Hepatic}: ALT (alanine aminotransferase), bilirubin
+\item \textbf{Coagulation}: INR (international normalized ratio)
+\end{itemize}
+
+The 7 vital signs are: heart rate, systolic blood pressure, diastolic blood pressure, mean arterial pressure, temperature, SpO$_2$ (oxygen saturation), and respiratory rate. When multiple measurements exist within the 24-hour window, we use the \emph{median} value to reduce sensitivity to transient spikes or measurement artifacts.
+
+\subsection{Feature Engineering}
+
+We add three engineered features to the 22 base features (15 labs + 7 vitals):
+\begin{enumerate}
+\item \textbf{Shock index}: $\text{SI} = \text{HR} / \text{SBP}$, normalized to [0,1] using clinical range [0.3, 2.0]. The shock index is a validated marker of hemodynamic instability; values $>1.0$ are associated with increased mortality and prolonged ICU stay. Formally:
+\begin{equation}
+\text{SI}_{\text{norm}} = \frac{\text{clip}(\text{HR}/\text{SBP}, 0.3, 2.0) - 0.3}{2.0 - 0.3}
+\end{equation}
+
+\item \textbf{SOFA proxy}: A simplified approximation of the Sequential Organ Failure Assessment score, computed as:
+\begin{equation}
+\text{SOFA}_{\text{proxy}} = \frac{1}{4}\left[(1 - x_{\text{creat}}) + (1 - x_{\text{plt}}) + (1 - x_{\text{SpO}_2}) + x_{\text{lactate}}\right]
+\end{equation}
+where each $x$ is the min-max normalized value. Higher proxy values indicate worse organ function. This approximation captures four of the six SOFA domains (renal, coagulation, respiratory, cardiovascular) using available lab and vital data. The neurological (GCS) and hepatic (bilirubin) domains are excluded due to missingness; bilirubin is available but contributes to the raw feature set independently.
+
+\item \textbf{Abnormal lab count}: The fraction of lab values with extreme derangement:
+\begin{equation}
+\text{AbnCount} = \frac{1}{15}\sum_{j=1}^{15} \mathbb{1}[|x_j - 0.5| > 0.35]
+\end{equation}
+This captures the number of labs outside the central 30\% of their normalized range, reflecting overall physiological derangement. A patient with 8 of 15 labs abnormal is clinically sicker than one with 2 abnormal, regardless of which specific labs are deranged.
+\end{enumerate}
+The final tabular feature set has 25 dimensions. Table~\ref{tab:feature_summary} categorizes all features.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of the 25-Dimensional Feature Vector}
+\small
+\begin{tabular}{llc}
+\toprule
+\textbf{Category} & \textbf{Features} & \textbf{Count} \\
+\midrule
+Renal panel & Creatinine, BUN, K$^+$, Na$^+$, Cl$^-$, HCO$_3^-$ & 6 \\
+Hematology & Hemoglobin, Platelets, WBC & 3 \\
+Metabolic & Glucose, Lactate, Albumin & 3 \\
+Hepatic & ALT, Bilirubin & 2 \\
+Coagulation & INR & 1 \\
+Vitals & HR, SBP, DBP, MAP, Temp, SpO$_2$, RR & 7 \\
+Engineered & Shock Index, SOFA Proxy, Abnormal Count & 3 \\
+\midrule
+\textbf{Total} & & \textbf{25} \\
+\bottomrule
+\end{tabular}
+\label{tab:feature_summary}
+\end{table}
+
+\subsection{Missing Data Strategy}
+
+Clinical data are inherently incomplete. Our imputation strategy follows a conservative hierarchy:
+\begin{enumerate}
+\item \textbf{Within-patient forward fill}: If a lab value is measured at hour 2 and hour 18, a query at hour 12 uses the hour-2 value (no backward fill to prevent information leakage).
+\item \textbf{Median aggregation}: For the first-24h summary, we take the median of all available measurements within the window. The median is robust to outliers from measurement artifacts.
+\item \textbf{Population median imputation}: If no measurement is available for a feature within 24 hours, we impute the population median (computed on the training set only to prevent data leakage).
+\item \textbf{Missingness indicator}: We do not use explicit missingness indicators in the 25-D feature vector but note that the abnormal lab count feature implicitly captures information about which features are at extreme values.
+\end{enumerate}
+
+Missingness rates in our cohort: routine labs (creatinine, sodium, potassium) 5--12\%; specialty labs (lactate, albumin, INR) 18--35\%; vitals 2--8\%. Features with $>$50\% missingness were excluded during feature selection; all 22 retained features have $\leq$35\% missingness.
+
+\subsection{Data Splits}
+
+We use fixed train/validation/test splits with seed 42:
+\begin{itemize}
+\item 80\% train+validation, 20\% test (stratified by label).
+\item Of the 80\%, 80\% train and 20\% validation.
+\item Final: 64\% train (1,280 patients), 16\% validation (320 patients), 20\% test (400 patients).
+\end{itemize}
+No test data are used for model selection or hyperparameter tuning. All decisions are validated on the validation set and reported on the test set. Stratification ensures that the feasibility rate (approximately 42\% feasible) is preserved across all splits. For federated experiments, the training set is further partitioned by disease node, with each node receiving its proportional share of training data.
+
+%==============================================================================
+\section{Symptom Tokenization}
+%==============================================================================
+
+\subsection{Token Structure}
+
+Each patient is represented as a sequence of up to 25 tokens. Each token has four components:
+\begin{equation}
+\text{token} = [\text{symptom\_id}, \text{intensity}, \text{time\_delta}, \text{modality}]
+\end{equation}
+where:
+\begin{itemize}
+\item \textbf{symptom\_id}: 1--15 for labs, 16--22 for vitals, 0 for MASK (padding).
+\item \textbf{intensity}: Normalized value in [0,1].
+\item \textbf{time\_delta}: Normalized time offset (0 for aggregated first-24h).
+\item \textbf{modality}: 0 for lab, 1 for vital.
+\end{itemize}
+
+\subsection{Sequence Construction}
+
+For each patient, we collect all non-missing measurements, sort by symptom\_id, and pad to length 25 with MASK tokens. This yields a fixed-length sequence suitable for transformer encoders.
+
+\subsection{Relation to Tabular Features}
+
+The tabular representation (25 features) is the flattened, aggregated version of the token sequence. Both use the same underlying normalized values. Tabular models receive the 25-D vector; ETHOS receives the token sequence.
+
+%==============================================================================
+\section{ETHOS Encoder Architecture}
+%==============================================================================
+
+\subsection{Overview}
+
+ETHOS~\cite{sharafi2023ethos} is a transformer encoder that maps token sequences to fixed-size embeddings. It consists of:
+\begin{itemize}
+\item Embedding layer: Maps (symptom\_id, intensity, time\_delta, modality) to $d$-dimensional vectors.
+\item Positional encoding: Sinusoidal or learned.
+\item $L$ transformer layers: Multi-head self-attention + feed-forward.
+\item Pooling: Mean over sequence (excluding MASK) or [CLS]-style token.
+\end{itemize}
+
+\subsection{Configuration}
+
+From \texttt{config.yaml}:
+\begin{itemize}
+\item $d_{\text{model}} = 128$
+\item $n_{\text{head}} = 8$
+\item $n_{\text{layers}} = 2$
+\item $d_{\text{ff}} = 512$
+\item $\text{dropout} = 0.2$
+\item $\text{vocab\_size} = 23$ (22 symptoms + 1 MASK)
+\end{itemize}
+
+\subsection{Output}
+
+The encoder outputs a 128-D embedding per patient. This embedding is used by the prototypical head for few-shot classification.
+
+\subsection{Attention Mechanism Details}
+
+The multi-head self-attention computes:
+\begin{equation}
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
+\end{equation}
+where $Q$, $K$, $V$ are linear projections of the input. We use 8 heads with $d_k = d_{\text{model}}/8 = 16$. The feed-forward layer applies a two-layer MLP with ReLU and dimension 512. Residual connections and layer normalization stabilize training.
+
+%==============================================================================
+\section{Few-Shot Treatment Prediction}
+%==============================================================================
+
+\subsection{Episodic Protocol}
+
+Each episode samples:
+\begin{itemize}
+\item $K$ support examples per class (default $K=5$).
+\item $Q$ query examples per class (default $Q=15$).
+\item 2 classes: feasible (1) and infeasible (0).
+\end{itemize}
+Total: $2K$ support, $2Q$ query per episode.
+
+\subsection{Prototypical Head}
+
+For support set $\mathcal{S}_k$ of class $k$:
+\begin{equation}
+\mathbf{c}_k = \frac{1}{K} \sum_{(x_i, y_i) \in \mathcal{S}_k} f_\theta(x_i)
+\end{equation}
+For query $x$, logits:
+\begin{equation}
+z_k = \frac{\langle f_\theta(x), \mathbf{c}_k \rangle}{\|f_\theta(x)\| \|\mathbf{c}_k\|} \cdot \tau
+\end{equation}
+where $\tau = 10$ is the temperature. Probabilities: $\text{softmax}(z)$.
+
+\subsection{Loss Function}
+
+We use focal loss to handle class imbalance:
+\begin{equation}
+\mathcal{L} = -\alpha (1-p)^\gamma \log p
+\end{equation}
+with $\gamma = 2$ and $\alpha$ from class weights. Cross-entropy is the special case $\gamma = 0$.
+
+\subsection{Metric Space Projection}
+
+To improve the discriminative power of the embedding space, we explore an optional projection MLP between the encoder output and the prototypical computation:
+\begin{equation}
+g_\phi(\mathbf{h}) = W_2 \cdot \text{GELU}(\text{BN}(W_1 \cdot \mathbf{h} + b_1)) + b_2
+\end{equation}
+where $W_1 \in \mathbb{R}^{d_h \times d}$, $W_2 \in \mathbb{R}^{d_p \times d_h}$, with $d = 128$, $d_h = 256$, $d_p = 64$. BatchNorm and dropout (0.2) are applied after the first layer. The projection reduces the embedding dimension from 128 to 64, creating a compact metric space optimized for prototype distance computation. The temperature parameter $\tau$ is made learnable via $\tau = \exp(\log \tau_0)$, allowing the model to adaptively control the sharpness of the probability distribution.
+
+\subsection{Training}
+
+Up to 1,500 train episodes, early stopping patience 10. Optimizer: AdamW with weight decay $10^{-4}$ and cosine annealing learning rate schedule (from $10^{-3}$ to $10^{-5}$). Encoder and head use differential learning rates (encoder: $10^{-4}$, head: $10^{-3}$) to preserve pretrained representations while adapting the classification head. Gradient clipping (max norm 1.0) prevents training instability. Validation: 100 episodes.
+
+%==============================================================================
+\section{Relation Network Head (Alternative)}
+%==============================================================================
+
+As an alternative to the prototypical head, we implement a relation network head~\cite{sung2018learning} that replaces the fixed cosine similarity with a learned relation module. Given query embedding $\mathbf{q} = f_\theta(x)$ and class prototype $\mathbf{c}_k$, the relation score is computed by a two-layer MLP:
+
+\begin{equation}
+\mathbf{h} = \text{ReLU}(W_1 [\mathbf{q}; \mathbf{c}_k; \mathbf{q} \odot \mathbf{c}_k; |\mathbf{q} - \mathbf{c}_k|] + b_1) \in \mathbb{R}^{256}
+\end{equation}
+\begin{equation}
+r_k = \sigma(W_2 \mathbf{h} + b_2) \in [0,1]
+\end{equation}
+
+where the input concatenates four interaction features: raw embeddings ($2 \times 128 = 256$ dims), element-wise product (128 dims), and absolute difference (128 dims), yielding a 640-dimensional input to the relation module. The loss is mean squared error:
+\begin{equation}
+\mathcal{L}_{\text{relation}} = \frac{1}{|\mathcal{Q}|} \sum_{(x,y) \in \mathcal{Q}} \sum_{k=0}^{1} (r_k(x) - \mathbb{1}[y=k])^2
+\end{equation}
+
+Algorithm~\ref{alg:relation} describes the relation network training procedure.
+
+\begin{algorithm}[htbp]
+\caption{Relation Network Episodic Training}
+\label{alg:relation}
+\begin{algorithmic}[1]
+\Require Encoder $f_\theta$, relation module $g_\phi$, support shots $K$, query shots $Q$
+\For{each episode}
+\State Sample $\mathcal{S}_0, \mathcal{S}_1$ ($K$ per class), $\mathcal{Q}_0, \mathcal{Q}_1$ ($Q$ per class)
+\State $\mathbf{c}_k \gets \frac{1}{K}\sum_{x \in \mathcal{S}_k} f_\theta(x)$ for $k \in \{0,1\}$
+\State $\mathcal{L} \gets 0$
+\For{each $(x, y) \in \mathcal{Q}_0 \cup \mathcal{Q}_1$}
+\State $\mathbf{q} \gets f_\theta(x)$
+\For{$k \in \{0, 1\}$}
+\State $r_k \gets g_\phi(\mathbf{q}, \mathbf{c}_k)$
+\State $\mathcal{L} \gets \mathcal{L} + (r_k - \mathbb{1}[y=k])^2$
+\EndFor
+\EndFor
+\State Update $\theta, \phi$ via backpropagation on $\mathcal{L}$
+\EndFor
+\State \Return $\theta, \phi$
+\end{algorithmic}
+\end{algorithm}
+
+The relation network adds approximately 0.2M parameters (the relation MLP) to the 1.8M encoder parameters. In our ablation, the relation head achieves comparable AUROC to the prototypical head (within 0.01), suggesting that the fixed cosine metric is sufficient for this binary task and that the bottleneck lies in the encoder representations rather than the similarity function.
+
+%==============================================================================
+\section{Federated Training}
+%==============================================================================
+
+\subsection{Node Partition}
+
+Data are partitioned by primary ICD-10 diagnosis into 5 disease nodes, simulating a multi-institutional setting where each ``institution'' specializes in a disease area. Table~\ref{tab:node_partition} details the partition.
+
+\begin{table}[htbp]
+\centering
+\caption{Federated Node Partition (Training Set)}
+\small
+\begin{tabular}{clccc}
+\toprule
+\textbf{Node} & \textbf{Disease} & \textbf{ICD-10 Codes} & \textbf{$n$ (train)} & \textbf{Feasible \%} \\
+\midrule
+1 & Sepsis & A40, A41, R652 & $\approx$264 & 38\% \\
+2 & Cardiac & I21, I22, I25, I50, I47--49 & $\approx$255 & 45\% \\
+3 & Respiratory & J18, J44, J96, J80, J15 & $\approx$228 & 41\% \\
+4 & Renal & N17, N18, N19 & $\approx$267 & 39\% \\
+5 & Diabetes & E10, E11, E13 & $\approx$266 & 46\% \\
+\bottomrule
+\end{tabular}
+\label{tab:node_partition}
+\end{table}
+
+The non-IID nature is evident: node sizes vary (228--267 patients), and feasibility rates differ across nodes (38--46\%). This heterogeneity tests whether federated aggregation can learn a global model that generalizes across disease-specific distributions.
+
+\subsection{FedAvg Protocol}
+
+We implement the standard Federated Averaging (FedAvg) protocol~\cite{mcmahan2017communication} with the following configuration:
+\begin{itemize}
+\item \textbf{Communication rounds}: $T = 20$. Validation AUROC plateaus by round 15--20.
+\item \textbf{Local epochs}: $E = 3$ per round. Each node trains for 3 full passes over its local data before sending updates.
+\item \textbf{Local batch size}: 32.
+\item \textbf{Aggregation weights}: Proportional to local dataset size: $w_k = n_k / \sum_j n_j$.
+\item \textbf{Learning rate}: Same as centralized ($10^{-3}$ for head, $10^{-4}$ for encoder).
+\item \textbf{Client selection}: Full participation (all 5 nodes participate in every round).
+\end{itemize}
+
+The server aggregation step computes the weighted average of all model parameters:
+\begin{equation}
+\theta_{t+1} = \sum_{k=1}^{5} \frac{n_k}{\sum_j n_j} \theta_{t}^{(k)}
+\end{equation}
+
+For our architecture, the full model ($\approx$2M parameters) is transmitted each round. Total communication cost: $5 \text{ nodes} \times 20 \text{ rounds} \times 2 \text{ directions} \times 8\text{ MB} \approx 1.6\text{ GB}$.
+
+\subsection{Shared vs Local Parameters}
+
+The ETHOS encoder is shared across nodes, enabling all nodes to benefit from the global representation. The prototypical head is also shared; we found that local heads degrade performance by 1--2\% AUROC due to insufficient local data for head specialization. Each node computes gradients on local data and sends the full updated model to the server.
+
+\subsection{Convergence Monitoring}
+
+We monitor convergence by tracking global validation AUROC after each round. The convergence criterion is: no improvement in validation AUROC for 5 consecutive rounds. In practice, convergence occurs by round 15--18 for most hyperparameter configurations. We set $T=20$ as a conservative upper bound.
+
+%==============================================================================
+\section{Hybrid Architecture: ETHOS\_RF\_Hybrid}
+\label{sec:hybrid}
+%==============================================================================
+
+Motivated by the observation that ETHOS embeddings capture complementary signal to engineered tabular features, we design a hybrid architecture. For each patient $i$:
+\begin{equation}
+\mathbf{x}_{\text{hybrid}}^{(i)} = [\mathbf{e}_{\text{ETHOS}}^{(i)}; \mathbf{x}_{\text{tab}}^{(i)}] \in \mathbb{R}^{153}
+\end{equation}
+where $\mathbf{e}_{\text{ETHOS}} \in \mathbb{R}^{128}$ is the ETHOS CLS embedding and $\mathbf{x}_{\text{tab}} \in \mathbb{R}^{25}$ is the engineered tabular feature vector. A Random Forest classifier with RandomizedSearchCV (50 trials, 5-fold stratified CV) is trained on the concatenated representation. Threshold tuning on the validation set maximizes F1. This architecture combines the representation learning capacity of the transformer with the robust classification of gradient-based ensemble methods, addressing the representation bottleneck identified in the ablation study.
+
+We also evaluate RF on ETHOS embeddings alone (128-D) to isolate the contribution of learned representations from engineered features.
+
+%==============================================================================
+\section{Evaluation Protocol}
+%==============================================================================
+
+\subsection{Metrics}
+
+We report multiple metrics to capture different aspects of performance. Each metric is formally defined below.
+
+\subsubsection{AUROC (Area Under the Receiver Operating Characteristic Curve)}
+
+The primary evaluation metric. For a binary classifier with score function $s(x)$, the ROC curve plots true positive rate (TPR, sensitivity) against false positive rate (FPR, 1 -- specificity) as the decision threshold varies:
+\begin{equation}
+\text{AUROC} = \int_0^1 \text{TPR}(t) \, d(\text{FPR}(t)) = P(s(x^+) > s(x^-))
+\end{equation}
+where $x^+$ is a randomly chosen positive example and $x^-$ a randomly chosen negative example. AUROC is threshold-invariant and robust to class imbalance. We compute AUROC using the trapezoidal rule (\texttt{sklearn.metrics.roc\_auc\_score}). Values: 0.5 = random; 0.7--0.8 = acceptable for clinical decision support; 0.8--0.9 = good; $>$0.9 = excellent. Our best model (AUROC 0.76) falls in the acceptable range.
+
+\subsubsection{Precision, Recall, and F1-Score}
+
+For class $k$ with true positives (TP), false positives (FP), and false negatives (FN):
+\begin{align}
+\text{Precision}_k &= \frac{\text{TP}_k}{\text{TP}_k + \text{FP}_k} \\
+\text{Recall}_k &= \frac{\text{TP}_k}{\text{TP}_k + \text{FN}_k} \\
+\text{F1}_k &= \frac{2 \cdot \text{Precision}_k \cdot \text{Recall}_k}{\text{Precision}_k + \text{Recall}_k} = \frac{2\text{TP}_k}{2\text{TP}_k + \text{FP}_k + \text{FN}_k}
+\end{align}
+
+We use \textbf{F1-macro}, the unweighted mean of per-class F1 scores, to avoid dominance by the majority class:
+\begin{equation}
+\text{F1-macro} = \frac{1}{N} \sum_{k=1}^{N} \text{F1}_k = \frac{\text{F1}_0 + \text{F1}_1}{2}
+\end{equation}
+
+\subsubsection{Matthews Correlation Coefficient (MCC)}
+
+MCC provides a balanced measure for binary classification, accounting for all four cells of the confusion matrix:
+\begin{equation}
+\text{MCC} = \frac{\text{TP} \cdot \text{TN} - \text{FP} \cdot \text{FN}}{\sqrt{(\text{TP}+\text{FP})(\text{TP}+\text{FN})(\text{TN}+\text{FP})(\text{TN}+\text{FN})}}
+\end{equation}
+MCC ranges from $-1$ (perfect misclassification) through $0$ (random prediction) to $+1$ (perfect classification). Unlike accuracy, MCC is informative even with highly imbalanced classes. A model that predicts the majority class always would achieve accuracy $\approx 0.58$ but MCC $= 0$.
+
+\subsubsection{Accuracy}
+
+Standard classification accuracy:
+\begin{equation}
+\text{Accuracy} = \frac{\text{TP} + \text{TN}}{\text{TP} + \text{TN} + \text{FP} + \text{FN}}
+\end{equation}
+We report accuracy for completeness but do not use it as the primary metric due to class imbalance (42\% feasible).
+
+\subsubsection{Brier Score}
+
+For probabilistic calibration assessment:
+\begin{equation}
+\text{Brier} = \frac{1}{n} \sum_{i=1}^{n} (p_i - y_i)^2
+\end{equation}
+where $p_i$ is the predicted probability and $y_i \in \{0,1\}$ is the true label. Lower is better; 0.25 corresponds to a constant predictor at 0.5.
+
+\subsubsection{Statistical Significance}
+
+We assess significance using two approaches:
+\begin{enumerate}
+\item \textbf{Bootstrap confidence intervals}: Resample the test set with replacement 1,000 times, compute the metric for each resample, and report the 2.5th--97.5th percentile as the 95\% CI.
+\item \textbf{DeLong's test}~\cite{delong1988comparing}: Compare two correlated ROC curves from models evaluated on the same test set. The null hypothesis is that the two AUROCs are equal. We report the test statistic and $p$-value.
+\end{enumerate}
+
+\subsubsection{Stability (Variance)}
+
+For few-shot episodic evaluation, we report the standard deviation of AUROC across 100 sampled episodes:
+\begin{equation}
+\text{Stability} = \sqrt{\frac{1}{M-1}\sum_{m=1}^{M}(\text{AUROC}_m - \overline{\text{AUROC}})^2}
+\end{equation}
+where $M = 100$ episodes. Lower variance indicates more stable few-shot performance across random episode compositions.
+
+\subsection{Baselines}
+
+\begin{itemize}
+\item Logistic Regression (class\_weight=balanced).
+\item Random Forest (tuned).
+\item XGBoost (tuned).
+\item LightGBM (tuned).
+\item CatBoost (tuned).
+\item Standard NN (no few-shot).
+\item Federated NN (no few-shot).
+\end{itemize}
+All use identical preprocessing and the same train/val/test splits.
+
+\subsection{Threshold Tuning}
+
+For binary classification, we tune the decision threshold $\theta \in [0.3, 0.7]$ on the validation set to maximize F1. The optimal threshold (0.54 for Random Forest) is applied to the test set. AUROC is threshold-invariant; F1 and accuracy depend on $\theta$.
+
+%==============================================================================
+\section{Implementation Details}
+%==============================================================================
+
+\subsection{Optimization}
+
+We use Adam~\cite{kingma2014adam} for ETHOS with learning rate 0.001, $\beta_1=0.9$, $\beta_2=0.999$. Batch size is 32 for episodic training. We apply dropout~\cite{srivastava2014dropout} (0.2) after attention and feed-forward layers. Layer normalization~\cite{ba2016layer} stabilizes training.
+
+\subsection{Regularization}
+
+Early stopping monitors validation loss with patience 10 epochs. We clip gradients to max norm 1.0 to prevent explosion. Weight decay (L2) is 1e-5 for the encoder. Class weights balance the focal loss for the 42/58 label distribution.
+
+\subsection{Reproducibility}
+
+All experiments use \texttt{random\_seed=42} in NumPy, PyTorch, and scikit-learn. Data splits are fixed and saved; no shuffling between runs. Hyperparameter grids are in Appendix~\ref{app:hyperparams}.
+
+%==============================================================================
+\section{Algorithm Pseudocode}
+%==============================================================================
+
+\subsection{Prototypical Few-Shot Training}
+
+Algorithm~\ref{alg:proto} summarizes the episodic training procedure. Each episode samples a support set $\mathcal{S}$ and query set $\mathcal{Q}$; the model computes prototypes from $\mathcal{S}$ and minimizes cross-entropy on $\mathcal{Q}$.
+
+\begin{algorithm}[htbp]
+\caption{Episodic Prototypical Training}
+\label{alg:proto}
+\small
+\begin{algorithmic}[1]
+\Require Encoder $f_\theta$, support shots $K$, query shots $Q$, temperature $\tau$
+\For{each episode}
+\State $\mathcal{L} \gets 0$
+\State Sample $\mathcal{S}_0, \mathcal{S}_1$ ($K$ examples per class)
+\State Sample $\mathcal{Q}_0, \mathcal{Q}_1$ ($Q$ examples per class)
+\State $\mathbf{c}_k \gets \frac{1}{K}\sum_{x \in \mathcal{S}_k} f_\theta(x)$ for $k \in \{0,1\}$
+\For{each $x \in \mathcal{Q}_0 \cup \mathcal{Q}_1$}
+\State $z_k \gets \langle f_\theta(x), \mathbf{c}_k \rangle / (\|f_\theta(x)\| \|\mathbf{c}_k\|) \cdot \tau$
+\State $\mathcal{L} \gets \mathcal{L} + \text{CrossEntropy}(\text{softmax}(z), y)$
+\EndFor
+\State Update $\theta$ via backpropagation
+\EndFor
+\State \Return $\theta$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Federated Averaging}
+
+Algorithm~\ref{alg:fedavg} describes the FedAvg protocol. Each node trains locally for $E$ epochs, then the server aggregates model parameters weighted by local dataset size.
+
+\begin{algorithm}[htbp]
+\caption{Federated Averaging (FedAvg)}
+\label{alg:fedavg}
+\small
+\begin{algorithmic}[1]
+\Require Nodes $\{1,\ldots,N\}$, local data $\mathcal{D}_k$, rounds $T$
+\State Initialize global model $\theta_0$
+\For{round $t = 1$ to $T$}
+\State Server broadcasts $\theta_t$ to all nodes
+\For{each node $k$}
+\State $\theta_t^{(k)} \gets \theta_t$
+\For{epoch $e = 1$ to $E$}
+\State $\theta_t^{(k)} \gets \theta_t^{(k)} - \eta \nabla \mathcal{L}_k(\theta_t^{(k)})$
+\EndFor
+\State Send $\theta_t^{(k)}$ to server
+\EndFor
+\State $\theta_{t+1} \gets \sum_k \frac{n_k}{n} \theta_t^{(k)}$
+\EndFor
+\State \Return $\theta_T$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Note on Algorithm Environment}
+
+The above pseudocode uses the \texttt{algorithm} and \texttt{algorithmic} environments. If these packages are not loaded, the algorithms can be presented as numbered procedures in the main text. We include them here for conceptual clarity.
+
+%==============================================================================
+\section{Computational Complexity}
+%==============================================================================
+
+\subsection{ETHOS Encoder}
+
+For sequence length $L=25$, embedding dimension $d=128$, and $L_{\text{layers}}=2$ transformer layers, the encoder has $\mathcal{O}(L^2 d + L d^2)$ complexity per forward pass. With batch size 32 and 500 episodes per epoch, training takes approximately 2--3 minutes per epoch on a standard CPU. GPU acceleration reduces this to under 30 seconds per epoch.
+
+\subsection{Federated Communication}
+
+With 5 nodes and 20 rounds, we perform 100 total communication steps. Each step transmits the full model (encoder + head); for our architecture, this is $\approx$2M parameters. In a real deployment, gradient compression or partial updates could reduce bandwidth.
+
+\subsection{Tokenization Alternatives}
+
+We considered alternative tokenization schemes: (1) \textbf{Continuous embeddings}: Use raw normalized values as continuous token embeddings instead of discrete bins; we use discrete IDs for compatibility with standard transformer vocab. (2) \textbf{Hierarchical tokens}: Encode lab category (e.g., renal, cardiac) as a parent token; we use flat structure for simplicity. (3) \textbf{Time-binned}: Aggregate by 6-hour or 12-hour windows; we use first-24h aggregate. Future work could explore these alternatives.
+
+\subsection{Classical Baselines}
+
+Random Forest with 200 trees and depth 28 trains in under 1 minute on our 2,000-patient cohort. XGBoost and LightGBM are similarly fast. Hyperparameter search (50 trials $\times$ 5-fold CV) adds 10--20 minutes per model. The full tabular SOTA pipeline completes in under 2 hours.
+
+%==============================================================================
+\section{Mathematical Derivations}
+%==============================================================================
+
+\subsection{Prototypical Loss Gradient}
+
+For prototypical networks with cross-entropy loss, the gradient of the loss with respect to the query embedding $f_\theta(x)$ can be derived as follows. Let $p_k = \exp(z_k) / \sum_{k'} \exp(z_{k'})$ where $z_k = \langle f_\theta(x), \mathbf{c}_k \rangle / \tau$. For true class $y$:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial f_\theta(x)} = \frac{1}{\tau} \sum_k (p_k - \mathbb{1}[y=k]) \mathbf{c}_k
+\end{equation}
+The gradient pushes the query embedding toward the true prototype and away from the false prototype, with magnitude scaled by the temperature $\tau$.
+
+\subsection{Focal Loss}
+
+The focal loss~\cite{lin2017focal} is $\mathcal{L}_{\text{focal}} = -\alpha (1-p_t)^\gamma \log(p_t)$ where $p_t$ is the predicted probability for the true class. For $\gamma = 0$, this reduces to cross-entropy. For $\gamma > 0$, easy examples (high $p_t$) are down-weighted by $(1-p_t)^\gamma$, focusing the loss on hard examples. We use $\gamma = 2$ and $\alpha$ from class weights to handle the 42/58 imbalance.
+
+\subsection{Bootstrap Confidence Intervals}
+
+For bootstrap CIs, we resample the test set with replacement 1,000 times, compute AUROC for each resample, and take the 2.5th and 97.5th percentiles as the 95\% CI. Our test set of 400 samples yields CIs of width $\approx$0.10--0.12 for AUROC. DeLong's test compares two correlated ROC curves; we report $p < 0.01$ for RF vs.\ ETHOS, indicating statistically significant difference.
+
+\subsection{SOFA Proxy and Shock Index Derivation}
+
+The SOFA (Sequential Organ Failure Assessment) score quantifies organ dysfunction. We use a simplified proxy: $\text{SOFA}_{\text{proxy}} = w_1(1 - \text{creatinine}) + w_2(1 - \text{platelets}) + w_3(1 - \text{SpO}_2) + w_4(1 - \text{lactate})$ with equal weights, each component normalized to [0,1]. Higher values indicate worse function. Shock index = Heart Rate / Systolic Blood Pressure; normal range 0.5--0.7; values $>$1.0 indicate hemodynamic instability. We normalize to [0,1] using clip and min-max. High shock index is associated with infeasible discharge.
+
+%==============================================================================
+\section{Software Architecture Overview}
+%==============================================================================
+
+Our pipeline is organized as follows: (1) \textbf{Data layer}: MIMIC-IV extraction via SQL, preprocessing (normalization, imputation), train/val/test splits. (2) \textbf{Representation layer}: Tabular feature vector (25-D base, expanded to 92--132-D with feature engineering) and token sequences for each patient. (3) \textbf{Model layer}: Classical (sklearn RF, XGBoost, etc.), ETHOS encoder, prototypical head, hybrid. (4) \textbf{Training layer}: Episodic sampler for few-shot, FedAvg for federated. (5) \textbf{Evaluation layer}: Metrics (AUROC, F1), SHAP, calibration, conformal prediction. The codebase follows a modular structure; each component can be replaced or extended independently. See the project repository for full implementation.
+
+%==============================================================================
+\section{V5 Architecture: Gated Feature Attention with Cross-Attention Prototypes}
+\label{sec:v5_architecture}
+%==============================================================================
+
+The V5 architecture introduces two novel components designed to address limitations identified in V1--V4:
+
+\subsection{Gated Feature Attention (GFA)}
+
+Inspired by TabNet~\cite{arik2021tabnet}, the GFA module implements sequential, per-sample feature selection. At each of $S=3$ attention steps, the module computes:
+\begin{align}
+\mathbf{a}_s &= \text{softmax}(\mathbf{W}_s \cdot \mathbf{h}_{\text{shared}} \odot \mathbf{p}_s) \\
+\mathbf{p}_{s+1} &= \mathbf{p}_s \cdot (\gamma - \mathbf{a}_s) \\
+\mathbf{o}_s &= \text{FC}_s(\mathbf{a}_s \odot \mathbf{x})
+\end{align}
+where $\mathbf{p}_s$ is the prior scale (initialized to $\mathbf{1}$), $\gamma=1.5$ is the sparsity coefficient, and $\mathbf{h}_{\text{shared}} = \text{FC}_{\text{shared}}(\mathbf{x})$ is a shared context. The aggregated output $\sum_s \mathbf{o}_s$ is fused with a parallel transformer pathway via a learned gate: $\mathbf{z} = \sigma(g) \cdot \mathbf{z}_{\text{trans}} + (1-\sigma(g)) \cdot \mathbf{z}_{\text{GFA}}$.
+
+The dual-path design allows the model to combine \emph{local} feature selection (GFA) with \emph{global} feature interaction modeling (transformer), capturing both feature-level importance and cross-feature relationships.
+
+\subsection{Cross-Attention Prototypical Head}
+
+The standard prototypical network computes cosine similarity between query embeddings and class mean prototypes. The V5 cross-attention head instead uses multi-head cross-attention:
+\begin{equation}
+\mathbf{h}_{\text{cross}} = \text{MultiHead}(\mathbf{Q}=\mathbf{q}, \mathbf{K}=\mathbf{P}, \mathbf{V}=\mathbf{P}) + \mathbf{q}
+\end{equation}
+where $\mathbf{q}$ is the query embedding (expanded across classes) and $\mathbf{P}$ are the class prototypes. A classifier MLP then produces logits from $[\mathbf{h}_{\text{cross}}; \mathbf{q}]$, blended 50/50 with cosine prototype logits. This allows the model to learn non-linear, context-dependent similarity functions rather than relying solely on distance metrics.
+
+%==============================================================================
+\section{V6 Architecture: Heterogeneous Deep Ensemble}
+\label{sec:v6_architecture}
+%==============================================================================
+
+The V6 experiment evaluates whether architectural diversity improves ensemble performance. Three distinct encoder architectures are combined:
+
+\begin{enumerate}
+\item \textbf{FT-Transformer}: Per-feature learned embedding vectors ($\mathbf{e}_j = \mathbf{W}_j x_j + \mathbf{b}_j$) processed through self-attention layers with attention-based pooling.
+\item \textbf{GFA-Transformer}: The V5 dual-path architecture combining gated feature attention with grouped-feature transformer.
+\item \textbf{MLP-Mixer}: An attention-free architecture using interleaved token-mixing (spatial) and channel-mixing (feature) MLPs, adapted from vision to tabular data.
+\end{enumerate}
+
+Each architecture is wrapped in a universal few-shot head (prototypical + relation network) and trained with the same multi-phase pipeline (SupCon, supervised KD, episodic). The meta-learner blends XGBoost and calibrated logistic regression predictions for the final output. V6 also incorporates split conformal prediction for uncertainty quantification.
+
+%==============================================================================
+\section{Alternative Architectures Considered}
+%==============================================================================
+
+We considered several alternatives before settling on the current design. \textbf{MAML instead of prototypical}: MAML is more flexible but computationally expensive; we use prototypical for efficiency. \textbf{RNN/LSTM instead of transformer}: RNNs can model temporal sequences; we use a transformer for parallelization and attention over tokens. \textbf{Raw tabular only}: We support both tabular and token representations; the hybrid (ETHOS + tabular) outperforms either alone. \textbf{Different $K$}: We vary $K \in \{1,3,5,7,10,15,20\}$ in sensitivity analysis; main model uses $K=5$. \textbf{FedProx instead of FedAvg}: FedProx adds a proximal term for non-IID; we use FedAvg as the baseline and leave FedProx for future work. These choices are documented for reproducibility and to guide future extensions.
+
+%==============================================================================
+\section{Implementation and Reproducibility}
+%==============================================================================
+
+Our implementation uses Python 3.10, PyTorch 2.x for ETHOS, scikit-learn 1.3+ for classical models, and pandas 2.x for data processing. The codebase is organized into modules: \texttt{data/} for extraction and preprocessing, \texttt{models/} for ETHOS and baselines, \texttt{training/} for episodic and federated training, \texttt{evaluation/} for metrics and SHAP. All random seeds are fixed (42) in NumPy, PyTorch, and scikit-learn. Data splits are saved to disk and loaded consistently across experiments. Hyperparameter grids are in Appendix~\ref{app:hyperparams}. We provide \texttt{requirements.txt} with pinned versions for reproducibility. MIMIC-IV access requires PhysioNet credentialing (CITI training, data use agreement); our preprocessing scripts assume the standard MIMIC-IV schema.
+
+%==============================================================================
+\section{Data Pipeline and Preprocessing Steps}
+%==============================================================================
+
+The data pipeline consists of: (1) \textbf{Extraction}: SQL queries against MIMIC-IV \texttt{icustays}, \texttt{labevents}, \texttt{chartevents}, \texttt{patients}, \texttt{admissions}, \texttt{diagnoses\_icd}. Filter: first ICU stay, age $\geq$ 18, LOS $\geq$ 4h, primary ICD-10 available. (2) \textbf{Stratification}: Sample 2,000 stays with stratification by primary diagnosis group. (3) \textbf{Lab extraction}: 15 lab types from first 24h; clip to clinical ranges; min-max normalize to [0,1]. (4) \textbf{Vital extraction}: 7 vitals; same normalization. (5) \textbf{Feature engineering}: Shock index, SOFA proxy, abnormal lab count. (6) \textbf{Tokenization}: For ETHOS, convert to token sequence. (7) \textbf{Splitting}: 64\% train, 16\% val, 20\% test; stratified. All steps are deterministic given seed=42.
+
+%==============================================================================
+\section{Evaluation Protocol Details}
+%==============================================================================
+
+For classical models, we fit on train (1,280 samples), tune threshold on validation (320 samples), and evaluate once on test (400 samples). For ETHOS+FewShot, we train episodically on train, validate with 100 episodes on validation, and evaluate on test. The test evaluation for ETHOS can be done in two ways: (1) full test set with a single forward pass (each sample as query, support from train)---we use this for the main 0.619 AUROC; (2) episodic sampling (100 episodes, each with $K$ support and $Q$ query from test)---we use this for K-shot sensitivity. The two protocols yield different absolute values; we report both and clarify which protocol is used in each experiment. For federated evaluation, we use the global model (aggregated across nodes) on the full test set.
+
+%==============================================================================
+\section{Chapter Summary}
+%==============================================================================
+
+This chapter described our methodology: notation and pipeline overview, dataset extraction and preprocessing, symptom tokenization, ETHOS encoder architecture, few-shot protocol with prototypical head, federated training via FedAvg, evaluation metrics and interpretation, algorithm pseudocode (prototypical training, FedAvg), computational complexity, mathematical derivations (prototypical gradient, focal loss, bootstrap CIs, SOFA proxy, shock index), software architecture, alternative architectures considered, implementation and reproducibility, and evaluation protocol details. The next chapter presents the experimental setup and design.

@@ -1,0 +1,94 @@
+\chapter{ابرپارامترها}
+\label{app:hyperparams}
+
+این پیوست تمام ابرپارامترهای به‌کاررفته در آزمایش‌های ما را فهرست می‌کند.
+
+%==============================================================================
+\section{رمزگذار \lr{ETHOS}}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{پیکربندی رمزگذار \lr{ETHOS}}
+\begin{tabular}{lc}
+\toprule
+پارامتر & مقدار \\
+\midrule
+\lr{d\_model} & \cnum{128} \\
+\lr{nhead} & \cnum{8} \\
+\lr{num\_layers} & \cnum{2} \\
+\lr{d\_ff} & \cnum{512} \\
+\lr{dropout} & \cnum{0.2} \\
+\lr{vocab\_size} & \cnum{23} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{یادگیری کم‌نمونه}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{پیکربندی \lr{Few-Shot}}
+\begin{tabular}{lc}
+\toprule
+پارامتر & مقدار \\
+\midrule
+\lr{n\_support (K)} & \cnum{5} \\
+\lr{n\_query (Q)} & \cnum{15} \\
+\lr{n\_way} & \cnum{2} \\
+\lr{temperature} & \cnum{10.0} \\
+\lr{use\_focal\_loss} & \lr{true} \\
+\lr{focal\_gamma} & \cnum{2.0} \\
+\lr{n\_episodes\_train} & \cnum{500} \\
+\lr{n\_episodes\_val} & \cnum{100} \\
+\lr{n\_episodes\_test} & \cnum{500} \\
+\lr{lr} & \cnum{0.001} \\
+\lr{max\_epochs} & \cnum{50} \\
+\lr{early\_stop\_patience} & \cnum{10} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{یادگیری فدرال}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{پیکربندی فدرال}
+\begin{tabular}{lc}
+\toprule
+پارامتر & مقدار \\
+\midrule
+\lr{n\_rounds} & \cnum{20} \\
+\lr{n\_nodes} & \cnum{5} \\
+\lr{aggregation} & \lr{fedavg} \\
+\lr{local\_epochs} & \cnum{3} \\
+\lr{local\_batch\_size} & \cnum{32} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{بهترین مدل نهایی (جنگل تصادفی)}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{ابرپارامترهای \lr{Random Forest} با تنظیم آستانه}
+\begin{tabular}{lc}
+\toprule
+پارامتر & مقدار \\
+\midrule
+\lr{n\_estimators} & \cnum{200} \\
+\lr{max\_depth} & \cnum{28} \\
+\lr{min\_samples\_split} & \cnum{5} \\
+\lr{min\_samples\_leaf} & \cnum{2} \\
+\lr{max\_features} & \lr{log2} \\
+\lr{class\_weight} & \lr{balanced} \\
+\lr{threshold} $\theta$ & \cnum{0.54} \\
+\bottomrule
+\end{tabular}
+\end{table}

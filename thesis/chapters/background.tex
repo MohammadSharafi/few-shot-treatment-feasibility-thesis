@@ -1,0 +1,546 @@
+\chapter{Background and Related Work}
+\label{ch:background}
+
+This chapter reviews the theoretical foundations and prior work underlying our approach. We cover few-shot learning, federated learning, clinical data representation, and the MIMIC-IV dataset. The chapter is organized as follows: we first present few-shot learning (historical development, problem formulation, prototypical and matching networks, MAML, episodic training), then federated learning (motivation, FedAvg, privacy, non-IID), clinical data representation (raw data, normalization, tokens), MIMIC-IV (overview, schema, cohort, labels, disease nodes), related work in clinical prediction, transformers in clinical data, imbalanced learning, interpretability, and a comprehensive literature survey. Each section provides the necessary background for understanding our methodology and results.
+
+%==============================================================================
+\section{Few-Shot Learning}
+%==============================================================================
+
+\subsection{Historical Development}
+
+The field of few-shot learning emerged from meta-learning research in the 2010s. Early work on learning to learn explored how algorithms could improve with experience across tasks. The ImageNet revolution demonstrated that deep networks could learn powerful representations from large datasets; few-shot learning asked whether similar representations could be learned from few examples by leveraging structure across tasks.
+
+\subsection{Problem Formulation}
+
+Few-shot learning addresses the challenge of generalizing from a small number of labeled examples per class~\cite{snell2017prototypical}. In the standard $N$-way $K$-shot setting, we have $N$ classes and $K$ support examples per class. The goal is to classify query examples using only the support set, without additional training.
+
+Formally, let $\mathcal{S} = \{(x_i, y_i)\}_{i=1}^{N \cdot K}$ denote the support set and $\mathcal{Q} = \{(x_j, y_j)\}_{j=1}^{M}$ denote the query set. We seek a classifier $\hat{y} = f(x; \mathcal{S})$ that predicts the label of $x$ given $\mathcal{S}$. The key is to learn a representation and a distance metric that generalize across tasks.
+
+\subsection{Prototypical Networks}
+
+Prototypical networks~\cite{snell2017prototypical} compute a prototype for each class as the mean of support embeddings:
+\begin{equation}
+\mathbf{c}_k = \frac{1}{|\mathcal{S}_k|} \sum_{(x_i, y_i) \in \mathcal{S}_k} f_\theta(x_i)
+\end{equation}
+where $\mathcal{S}_k = \{(x_i, y_i) : y_i = k\}$ and $f_\theta$ is an embedding network. Query $x$ is classified by nearest prototype in embedding space:
+\begin{equation}
+p(y = k \mid x) = \frac{\exp(-d(f_\theta(x), \mathbf{c}_k) / \tau)}{\sum_{k'} \exp(-d(f_\theta(x), \mathbf{c}_{k'}) / \tau)}
+\end{equation}
+where $d$ is Euclidean distance and $\tau$ is a temperature parameter. We use cosine similarity in our implementation.
+
+\subsection{Matching Networks}
+
+Matching networks~\cite{vinyals2016matching} use attention over the support set to compute query labels:
+\begin{equation}
+p(y \mid x, \mathcal{S}) = \sum_{i} a(x, x_i) \, \mathbb{1}[y_i = y]
+\end{equation}
+where $a(x, x_i)$ is an attention weight. This allows different support examples to contribute differently based on similarity to the query.
+
+\subsection{Relation Networks}
+
+Relation networks~\cite{sung2018learning} replace the fixed distance metric (Euclidean, cosine) with a \emph{learned} relation module. For a query embedding $f_\theta(x)$ and a class prototype $\mathbf{c}_k$, the relation score is:
+\begin{equation}
+r_k = g_\phi(f_\theta(x), \mathbf{c}_k)
+\end{equation}
+where $g_\phi: \mathbb{R}^{2d} \to [0,1]$ is a neural network (typically a small MLP with sigmoid output) that learns a task-specific similarity function. The model is trained end-to-end with mean squared error loss:
+\begin{equation}
+\mathcal{L} = \sum_{(x,y) \in \mathcal{Q}} \sum_k (r_k - \mathbb{1}[y=k])^2
+\end{equation}
+
+The advantage of relation networks over prototypical networks is flexibility: the relation module can learn non-linear similarity functions that capture complex decision boundaries. The disadvantage is increased computational cost and potential overfitting with limited meta-training data. For treatment feasibility, where the decision boundary may depend on non-linear feature interactions (e.g., creatinine $\times$ age), relation networks offer a theoretically appealing alternative to prototype-based classification.
+
+We implement relation networks as a comparison point in our ablation study. The relation module consists of two fully connected layers with ReLU activation:
+\begin{equation}
+g_\phi(\mathbf{u}, \mathbf{v}) = \sigma(W_2 \cdot \text{ReLU}(W_1 \cdot [\mathbf{u}; \mathbf{v}; \mathbf{u} \odot \mathbf{v}; |\mathbf{u} - \mathbf{v}|] + b_1) + b_2)
+\end{equation}
+where $[\cdot;\cdot]$ denotes concatenation, $\odot$ element-wise product, and $\sigma$ the sigmoid function. The input includes four interaction features: the two embeddings, their element-wise product (capturing multiplicative interactions), and their absolute difference (capturing distance).
+
+\subsection{Siamese Networks}
+
+Siamese networks~\cite{koch2015siamese} learn a similarity function by processing pairs of inputs through identical (weight-sharing) branches:
+\begin{equation}
+s(x_1, x_2) = \sigma(\|f_\theta(x_1) - f_\theta(x_2)\|_1)
+\end{equation}
+where $\sigma$ is a sigmoid function. The network is trained with contrastive loss on same-class (positive) and different-class (negative) pairs. While foundational for few-shot learning, siamese networks require pairwise comparisons ($\mathcal{O}(NK)$ per query), making them less efficient than prototypical networks ($\mathcal{O}(N)$ per query after prototype computation). We do not implement siamese networks but note their historical importance.
+
+\subsection{Model-Agnostic Meta-Learning (MAML)}
+
+MAML~\cite{finn2017model} learns an initialization $\theta$ such that a few gradient steps on a new task yield good performance. The meta-objective is:
+\begin{equation}
+\min_\theta \sum_{\mathcal{T}_i} \mathcal{L}_{\mathcal{T}_i}(f_{\theta_i'})
+\end{equation}
+where $\theta_i' = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(f_\theta)$ is the task-specific update. MAML is more flexible but computationally expensive; we use prototypical networks for efficiency.
+
+MAML requires computing second-order gradients (gradients of gradients), which increases memory and computation by a factor of 2--3$\times$ compared to first-order methods. First-order approximations (FOMAML, Reptile~\cite{nichol2018reptile}) avoid this cost by dropping the second-order term:
+\begin{equation}
+\theta \gets \theta - \beta \frac{1}{|\mathcal{T}|} \sum_{\mathcal{T}_i} (\theta - \theta_i')
+\end{equation}
+Reptile averages the direction from the initial parameters to the task-adapted parameters, providing a simple and scalable alternative. For our problem (binary classification with limited tasks), the computational overhead of MAML is not prohibitive, but the limited diversity of meta-training episodes (5 disease nodes) may not justify the additional complexity. We therefore use prototypical networks as the primary few-shot method and note MAML as a candidate for future work with larger meta-training sets.
+
+\subsection{Episodic Training}
+
+Episodic training simulates few-shot tasks during meta-training. Each episode samples a task $\mathcal{T}_i$ with support $\mathcal{S}_i$ and query $\mathcal{Q}_i$. The model is trained to minimize loss on $\mathcal{Q}_i$ given $\mathcal{S}_i$. This matches the inference scenario and improves generalization.
+
+\subsection{Theoretical Guarantees}
+
+Under certain assumptions (e.g., data from a mixture of Gaussians, well-separated classes), prototypical networks can be shown to converge to the Bayes-optimal classifier as $K \to \infty$. In practice, finite $K$ and non-Gaussian distributions limit performance. Metric learning theory suggests that the embedding space should satisfy: similar examples (same class) are close, dissimilar examples (different classes) are far. The temperature $\tau$ controls the sharpness of the softmax; larger $\tau$ yields softer predictions.
+
+\subsection{Applications to Healthcare}
+
+Few-shot learning has been applied to medical image classification (e.g., X-ray, histopathology), drug response prediction, and clinical outcome prediction. Most work focuses on imaging, where convolutional backbones and transfer from ImageNet provide strong representations. Tabular clinical data---labs, vitals, demographics---remain underexplored in the few-shot setting. Challenges include: (1) no natural spatial structure for convolutions; (2) heterogeneous feature types and units; (3) missingness and irregular sampling; (4) smaller datasets than vision benchmarks. Our work extends the paradigm to treatment feasibility from labs and vitals, using a token-based representation and transformer encoder.
+
+%==============================================================================
+\section{Federated Learning}
+%==============================================================================
+
+\subsection{Motivation}
+
+Healthcare data are distributed across hospitals, clinics, and regions. Centralizing data violates privacy regulations and poses security risks. Federated learning trains models across distributed data without moving raw samples to a central server~\cite{mcmahan2017communication}.
+
+\subsection{Federated Averaging (FedAvg)}
+
+FedAvg aggregates local model updates. Let $K$ clients hold datasets $\mathcal{D}_1, \ldots, \mathcal{D}_K$. In round $t$:
+\begin{enumerate}
+\item Server broadcasts global model $\theta_t$ to clients.
+\item Each client $k$ computes local update: $\theta_{t+1}^{(k)} = \theta_t - \eta \nabla \mathcal{L}_k(\theta_t)$.
+\item Server aggregates: $\theta_{t+1} = \sum_k \frac{n_k}{n} \theta_{t+1}^{(k)}$.
+\end{enumerate}
+where $n_k = |\mathcal{D}_k|$ and $n = \sum_k n_k$.
+
+\subsection{Privacy and Security}
+
+Federated learning reduces data exposure: only model updates (not raw data) are transmitted. Differential privacy can be added by clipping gradients and adding noise. Secure aggregation can hide individual updates from the server. We use standard FedAvg without differential privacy in this thesis.
+
+\subsection{Convergence and Communication}
+
+FedAvg converges under standard assumptions (bounded gradients, Lipschitz loss). The number of communication rounds required depends on data heterogeneity: more heterogeneous data may require more rounds or adaptive methods (e.g., FedProx, SCAFFOLD). We use 20 rounds; validation AUROC plateaus by round 15--20 in our experiments.
+
+\subsection{FedProx: Handling Heterogeneity}
+
+FedProx~\cite{li2020federated} addresses the challenge of heterogeneous (non-IID) data across clients by adding a proximal regularization term to each client's local objective:
+\begin{equation}
+\min_\theta \mathcal{L}_k(\theta) + \frac{\mu}{2} \|\theta - \theta_t\|^2
+\end{equation}
+where $\theta_t$ is the current global model and $\mu > 0$ controls the strength of the proximal term. This prevents individual clients from drifting too far from the global model during local training, which is particularly important when local data distributions differ substantially (as in our disease-based partitioning). The proximal term acts as an implicit regularizer that balances local adaptation with global consistency.
+
+In our setting, the five disease nodes (sepsis, cardiac, respiratory, renal, diabetes) have naturally different feature distributions and class ratios. For example, renal patients may have systematically higher creatinine values than cardiac patients, creating distributional shift across nodes. FedProx mitigates this by constraining local updates. We use FedAvg as the primary baseline and note FedProx as a candidate for future work, particularly if performance degrades with more heterogeneous node compositions.
+
+\subsection{SCAFFOLD: Variance Reduction}
+
+SCAFFOLD~\cite{karimireddy2020scaffold} uses control variates to correct for client drift. Each client maintains a control variate $c_k$ that estimates the gradient difference between local and global objectives:
+\begin{equation}
+\theta_{t+1}^{(k)} = \theta_t - \eta (\nabla \mathcal{L}_k(\theta_t) - c_k + c)
+\end{equation}
+where $c = \frac{1}{N}\sum_k c_k$ is the global control variate. SCAFFOLD achieves faster convergence than FedAvg and FedProx, particularly under high data heterogeneity, by reducing the variance of gradient updates. The cost is additional communication (each round transmits both model updates and control variate updates). For our 5-node setting with moderate heterogeneity, SCAFFOLD may offer marginal improvement; we consider it for future multi-site experiments where heterogeneity is expected to be higher.
+
+\subsection{Communication Efficiency}
+
+Communication cost is a practical bottleneck in federated learning. Several strategies have been proposed to reduce bandwidth:
+
+\begin{enumerate}
+\item \textbf{Gradient compression}: Top-$k$ sparsification transmits only the $k$ largest gradient components~\cite{alistarh2017qsgd}. With $k = 1\%$ of parameters, compression ratios of 100$\times$ are achievable with modest accuracy loss.
+\item \textbf{Gradient quantization}: Represent gradient values with fewer bits (e.g., 8-bit or 1-bit). SignSGD~\cite{bernstein2018signsgd} transmits only the sign of each gradient component.
+\item \textbf{Local SGD}: Increase local training epochs between communication rounds. We use 3 local epochs per round; increasing this reduces communication but may increase client drift.
+\item \textbf{Partial model updates}: Transmit only the updated layers (e.g., only the classification head while freezing the encoder). In our architecture, the encoder ($\approx$1.8M parameters) dominates; transmitting only the 0.2M head parameters would reduce bandwidth by $\approx$90\%.
+\end{enumerate}
+
+For our experiments, we use standard FedAvg with full model transmission. With 5 nodes and 20 rounds, total communication is $5 \times 20 \times 2 \approx 200$ model transmissions (each $\approx$8 MB for 2M float32 parameters), totaling $\approx$1.6 GB. This is tractable for a research setting but may require optimization for real-time deployment over constrained networks.
+
+\subsection{Non-IID Data}
+
+Federated data are often non-IID: each node may have different class distributions or feature distributions. This can hurt convergence. We partition MIMIC-IV by disease group (ICD-10), yielding naturally non-IID nodes. The degree of heterogeneity can be quantified by the earth mover's distance (EMD) between local and global label distributions, or by the KL divergence between local and global feature distributions. In our partitioning, the feasibility rate varies from 35\% (renal node) to 48\% (respiratory node), creating moderate label heterogeneity.
+
+Non-IID data create a tension: local models overfit to local distributions, while the global model must generalize. FedAvg handles this through weighted averaging, which implicitly regularizes toward the data-weighted center. More sophisticated approaches (FedProx, SCAFFOLD, personalized federated learning~\cite{smith2017federated}) offer alternatives when heterogeneity is severe. Our experiments demonstrate that FedAvg suffices for our 5-node setting, with negligible performance loss compared to centralized training.
+
+\subsection{Applications to Healthcare}
+
+Federated learning has been applied to EHR-based prediction, medical imaging, and clinical trials. Notable healthcare FL projects include:
+\begin{itemize}
+\item \textbf{Intel--Penn Medicine collaboration}: Federated brain tumor segmentation across 30 institutions, demonstrating that FL achieves 99\% of centralized performance~\cite{sheller2020federated}.
+\item \textbf{NVIDIA Clara}: Federated learning platform for medical imaging used across multiple hospital networks.
+\item \textbf{HealthChain}: EU-funded project for federated clinical trial analysis across European hospitals.
+\item \textbf{FedHealth}: Federated transfer learning for wearable health monitoring~\cite{chen2020fedhealth}.
+\end{itemize}
+Our work combines federated learning with few-shot meta-learning for treatment feasibility---a combination not explored in prior healthcare FL applications.
+
+%==============================================================================
+\section{Clinical Data Representation}
+%==============================================================================
+
+\subsection{Raw Clinical Data}
+
+ICU data typically include:
+\begin{itemize}
+\item \textbf{Laboratory values}: creatinine, potassium, sodium, glucose, hemoglobin, platelets, WBC, lactate, etc.
+\item \textbf{Vital signs}: heart rate, blood pressure, temperature, SpO$_2$, respiratory rate.
+\item \textbf{Demographics}: age, sex, admission type.
+\item \textbf{Outcomes}: discharge location, length of stay, mortality, readmission.
+\end{itemize}
+
+Raw values are heterogeneous: different units, ranges, and missingness patterns. Normalization and imputation are critical.
+
+\subsection{Normalization Strategies}
+
+Common approaches:
+\begin{enumerate}
+\item \textbf{Min-max scaling}: $x' = (x - x_{\min}) / (x_{\max} - x_{\min})$. We clip to clinical ranges before scaling.
+\item \textbf{Z-score}: $x' = (x - \mu) / \sigma$. Sensitive to outliers.
+\item \textbf{Rank-based}: Map to percentiles. Robust but loses scale information.
+\end{enumerate}
+We use min-max scaling with clinical range clipping to [0,1].
+
+\subsection{Token-Based Representations}
+
+Transformers expect sequences of tokens. In NLP, tokens are word pieces. For clinical data, we define \emph{Symptom Tokens}: each token encodes [symptom\_id, intensity, time\_delta, modality]. This allows the model to attend over different measurements and their relationships.
+
+\subsection{Tabular vs Sequential}
+
+Tabular models (e.g., Random Forest, XGBoost) use fixed-length feature vectors. Sequential models (e.g., transformers) use variable-length token sequences. We support both: tabular features for baselines, token sequences for ETHOS.
+
+%==============================================================================
+\section{MIMIC-IV Dataset}
+%==============================================================================
+
+\subsection{Overview}
+
+MIMIC-IV v3.1~\cite{johnson2023mimic} is a large, freely accessible ICU database from Beth Israel Deaconess Medical Center (BIDMC). It succeeds MIMIC-III~\cite{johnson2016mimic} with updated data structure and expanded coverage. The database contains de-identified data for over 250,000 ICU stays, including laboratory measurements (from \texttt{labevents}), vital signs and charted data (from \texttt{chartevents}), ICD-9 and ICD-10 diagnoses, procedures, and outcomes (discharge location, mortality, length of stay). Access requires completion of a credentialing process (CITI training, data use agreement) via PhysioNet. Our cohort of 2,000 patients is a stratified sample designed for reproducible experiments while remaining computationally tractable.
+
+\subsection{Data Structure}
+
+Key tables and their roles:
+\begin{itemize}
+\item \texttt{patients}: Demographics (age, sex, anchor year). Used for age filtering and cohort definition.
+\item \texttt{admissions}: Admission type (elective, emergency), discharge location, admission and discharge times. Critical for defining the feasibility label.
+\item \texttt{icustays}: ICU stay identifiers (stay\_id), subject\_id, hadm\_id, intime, outtime, length of stay. Primary table for cohort extraction.
+\item \texttt{labevents}: Laboratory measurements with itemid (from \texttt{d\_labitems}), valuenum, charttime. We extract 15 lab types (creatinine, potassium, sodium, etc.) from the first 24 hours.
+\item \texttt{chartevents}: Vital signs and other charted data. We extract 7 vitals (heart rate, blood pressure, temperature, SpO2, respiratory rate) from \texttt{d\_items}.
+\item \texttt{diagnoses\_icd}: ICD-9/ICD-10 diagnoses. Used for primary diagnosis assignment and disease node partitioning.
+\end{itemize}
+Joins are performed via subject\_id, hadm\_id, and stay\_id. See Appendix~\ref{app:sql} for SQL queries.
+
+\subsection{Cohort Definition}
+
+We extract a 2,000-patient cohort with:
+\begin{itemize}
+\item First ICU stay only.
+\item Minimum 4 hours length of stay.
+\item Age $\geq$ 18.
+\item Primary ICD-10 available for disease node assignment.
+\end{itemize}
+
+\subsection{Label Definition}
+
+Treatment feasibility is binary: 1 if discharge location is in \{HOME, HOME HEALTH CARE, HOME WITH HOME IV PROVIDR, REHAB/DISTINCT PART HOSP, REHAB\} within 30 days of ICU stay, and no readmission within 30 days; 0 otherwise. This follows clinical definitions of ``feasible'' discharge destinations.
+
+\subsection{Disease Nodes}
+
+We partition by primary ICD-10 into five nodes:
+\begin{itemize}
+\item Node 1 (Sepsis): A40, A41, R652.
+\item Node 2 (Cardiac): I21, I22, I25, I50, I47, I48, I49.
+\item Node 3 (Respiratory): J18, J44, J96, J80, J15.
+\item Node 4 (Renal): N17, N18, N19.
+\item Node 5 (Diabetes): E10, E11, E13.
+\end{itemize}
+This enables federated training with disease-specific local data.
+
+%==============================================================================
+\section{Related Work: Clinical Prediction}
+%==============================================================================
+
+\subsection{EHR-Based Prediction}
+
+Electronic health records (EHRs) have been used for mortality prediction, readmission risk, and length-of-stay forecasting. Classical approaches use logistic regression, random forests, or gradient boosting on hand-crafted features. Deep learning methods include recurrent networks for temporal sequences and transformers for structured data. Our work differs by focusing on few-shot and federated settings.
+
+\subsection{Discharge Prediction}
+
+Predicting discharge destination is a well-studied problem. Factors include functional status, comorbidities, social support, and early ICU trajectory. Most prior work uses centralized data and standard supervised learning. We investigate whether few-shot meta-learning can match or approach classical performance when data are limited and distributed.
+
+\subsection{Tabular vs Deep Learning}
+
+On tabular data, gradient boosting (XGBoost, LightGBM, CatBoost) often outperforms deep learning. Neural networks may require more data or careful architecture design. Our results align: Random Forest (AUROC 0.760) outperforms ETHOS+FewShot (0.619). The gap suggests that for this task and dataset size, tabular models remain the preferred choice when centralized training is feasible.
+
+\subsection{Few-Shot Learning on Tabular Data}
+
+Few-shot learning has been extensively studied for image classification (miniImageNet, CUB, Omniglot) and natural language processing, but its application to tabular data remains underexplored. Tabular data present unique challenges for meta-learning:
+
+\begin{enumerate}
+\item \textbf{Feature heterogeneity}: Unlike images (where all pixels share a common representation space), tabular features have diverse types (continuous, categorical, binary) and scales (e.g., creatinine in mg/dL vs.\ heart rate in bpm). Tokenization schemes must handle this diversity.
+\item \textbf{Feature interactions}: Tree-based models naturally capture feature interactions through splits; prototypical networks rely on the embedding space to encode these interactions, which may require substantial training data.
+\item \textbf{Small sample regime}: When the total dataset is small (e.g., 2,000 patients), the meta-training set may not contain enough diversity to learn generalizable embeddings across episodes.
+\item \textbf{Lack of spatial structure}: Images have spatial locality (nearby pixels are correlated); tabular features lack this inductive bias. Transformers applied to tabular data must learn feature relationships from scratch.
+\end{enumerate}
+
+Recent work by Iwata and Kumagai (2020) applied meta-learning to tabular regression, and Hegselmann et al.\ (2023) explored TabLLM for few-shot tabular classification using language model embeddings. These approaches suggest that effective tabular few-shot learning may require either (a) very large pretraining datasets, (b) task-specific tokenization, or (c) hybrid architectures that combine learned representations with classical features. Our ETHOS\_RF\_Hybrid architecture aligns with direction (c).
+
+\subsection{Attention Mechanisms for Clinical Data}
+
+Self-attention~\cite{vaswani2017attention} enables each token to attend to all other tokens, capturing long-range dependencies. In clinical data, this allows the model to learn relationships between labs and vitals (e.g., creatinine and BUN for renal function; lactate and blood pressure for hemodynamic status). The ETHOS encoder adds domain-specific modifications: (1) a learnable co-occurrence bias matrix that encodes prior knowledge of symptom co-occurrence; (2) intensity weighting that scales attention by the magnitude of clinical values; (3) temporal decay that reduces the influence of older measurements. These modifications distinguish ETHOS from generic transformers and constitute part of the novelty of our approach.
+
+\subsection{ETHOS Architecture in Detail}
+
+The ETHOS (Efficient Transformer for Health Outcome prediction using Symptom tokens) encoder~\cite{sharafi2023ethos} extends the standard transformer architecture with three domain-specific mechanisms designed for clinical data:
+
+\paragraph{Co-occurrence Bias.} A learnable bias matrix $B \in \mathbb{R}^{V \times V}$ (where $V$ is the symptom vocabulary size) is added to the attention logits before the softmax:
+\begin{equation}
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}} + B_{\text{co-occur}}\right) V
+\end{equation}
+The entry $B_{ij}$ encodes the prior co-occurrence strength between symptom $i$ and symptom $j$. This can be initialized from clinical knowledge (e.g., creatinine and BUN co-occur in renal panels) or learned from data. The bias encourages the model to attend to clinically related measurements, providing an inductive bias that compensates for the lack of spatial structure in tabular data.
+
+\paragraph{Intensity Weighting.} Standard attention treats all tokens equally regardless of their clinical magnitude. ETHOS modulates attention by the intensity (normalized value) of each token:
+\begin{equation}
+\alpha_{ij}^{\text{intensity}} = \alpha_{ij} \cdot \sigma(w_I \cdot \text{intensity}_j + b_I)
+\end{equation}
+where $\alpha_{ij}$ is the standard attention weight and $\sigma(w_I \cdot \text{intensity}_j + b_I)$ is a learned gating function of the token's intensity value. Extreme values (very high creatinine, very low platelets) receive amplified attention, reflecting clinical practice where abnormal values carry disproportionate diagnostic importance.
+
+\paragraph{Temporal Decay.} When multiple measurements are available at different time points, ETHOS applies an exponential temporal decay to reduce the influence of older observations:
+\begin{equation}
+w_{\text{time}}(t) = \exp(-\lambda \cdot |t - t_{\text{ref}}|)
+\end{equation}
+where $\lambda$ is a learnable decay rate and $t_{\text{ref}}$ is the reference time (typically the most recent observation or the prediction time). This reflects clinical intuition: a creatinine measured 2 hours ago is more informative than one measured 20 hours ago. In our implementation with first-24h aggregated data, the temporal decay has limited effect (all measurements are from the same window), but the mechanism is included for generalization to time-series inputs.
+
+\paragraph{Comparison with Generic Transformers.} Table~\ref{tab:ethos_vs_generic} compares ETHOS with a generic transformer encoder on key design choices.
+
+\begin{table}[htbp]
+\centering
+\caption{ETHOS vs.\ Generic Transformer Encoder}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Feature} & \textbf{Generic Transformer} & \textbf{ETHOS} \\
+\midrule
+Attention bias & None & Learnable co-occurrence \\
+Value weighting & Uniform & Intensity-gated \\
+Temporal modeling & Positional encoding only & Exponential decay \\
+Input & Word pieces / embeddings & Symptom tokens \\
+Pretraining & Large corpus (BERT-style) & From scratch (episodic) \\
+Parameters & $\sim$100M (BERT) & $\sim$2M \\
+\bottomrule
+\end{tabular}
+\label{tab:ethos_vs_generic}
+\end{table}
+
+\subsection{Symptom Tokenization Approaches in the Literature}
+
+The concept of tokenizing clinical measurements for transformer processing has emerged from several research directions:
+
+\begin{enumerate}
+\item \textbf{Clinical BERT variants}: ClinicalBERT~\cite{alsentzer2019publicly} and BioBERT~\cite{lee2020biobert} tokenize clinical \emph{text} (notes, reports) using wordpiece tokenization. These models operate on natural language, not structured measurements.
+\item \textbf{Medical code embeddings}: BEHRT~\cite{li2020behrt} and Med-BERT~\cite{rasmy2021med} embed diagnostic codes (ICD-9/10) as tokens in a BERT-like architecture. These models handle categorical codes, not continuous lab values.
+\item \textbf{TabTransformer}~\cite{huang2020tabtransformer}: Embeds categorical features as tokens and applies transformer attention, while treating numerical features as scalars concatenated after the transformer. Our approach differs by tokenizing \emph{both} categorical (symptom ID) and numerical (intensity) information within a unified token.
+\item \textbf{SAINT}~\cite{somepalli2021saint}: Applies inter-sample and inter-feature attention for tabular data. Unlike our approach, SAINT does not use a token-based representation but rather treats each feature as an attention dimension.
+\item \textbf{FT-Transformer}~\cite{gorishniy2024revisiting}: Converts all features (numerical and categorical) to embeddings and applies standard transformer layers. Closest to our approach but lacks clinical-domain modifications (co-occurrence bias, intensity weighting, temporal decay).
+\end{enumerate}
+
+Our symptom token scheme is distinguished by: (1) clinical range normalization with domain-specific clipping bounds; (2) explicit modality encoding (lab vs.\ vital); (3) four-dimensional token structure encoding identity, magnitude, time, and type; and (4) compatibility with episodic few-shot training through fixed-length sequences.
+
+%==============================================================================
+\section{Summary}
+%==============================================================================
+
+This chapter reviewed few-shot learning (prototypical networks, matching networks, MAML), federated learning (FedAvg, privacy, non-IID), clinical data representation (normalization, tokens), and MIMIC-IV. We also discussed related work in clinical prediction. The next chapter describes our methodology in detail.
+
+%==============================================================================
+\section{Prior Work Comparison Table}
+%==============================================================================
+
+Table~\ref{tab:prior_work_comparison} situates our work relative to key prior publications. Our combination of few-shot meta-learning, federated training, and token-based representation on tabular clinical data is unique. Most prior work uses either centralized data, standard supervised learning, or focuses on imaging rather than labs and vitals.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of Prior Work on Clinical Prediction}
+\small
+\begin{tabular}{p{2.2cm}p{1.8cm}p{1.8cm}p{1cm}p{1cm}p{1cm}p{2.5cm}}
+\toprule
+\textbf{Work} & \textbf{Task} & \textbf{Method} & \textbf{FSL} & \textbf{FL} & \textbf{Tokens} & \textbf{Key Difference} \\
+\midrule
+Awad et al.\ 2017 & Discharge & RF, LR & \texttimes & \texttimes & \texttimes & Centralized supervised \\
+Purushotham 2018 & Mortality & LSTM, RF & \texttimes & \texttimes & \texttimes & Centralized; no FL \\
+Rajkomar 2018 & Readmission & DNN & \texttimes & \texttimes & \texttimes & Large-scale DNN \\
+BEHRT 2020 & EHR codes & Transformer & \texttimes & \texttimes & \checkmark & Pretrained on codes \\
+FedHealth 2020 & Wearable & FedAvg+TL & \texttimes & \checkmark & \texttimes & No few-shot \\
+TabTransformer 2020 & Tabular & Attention & \texttimes & \texttimes & Partial & Categorical only \\
+Sheller 2020 & Brain tumor & U-Net & \texttimes & \checkmark & \texttimes & Imaging, not tabular \\
+Hegselmann 2023 & Tabular FSL & TabLLM & \checkmark & \texttimes & \checkmark & LLM-based; no FL \\
+FT-Transformer 2024 & Tabular & Transformer & \texttimes & \texttimes & \checkmark & No FSL; no FL \\
+\textbf{Ours} & Feasibility & ETHOS+Proto+Fed & \checkmark & \checkmark & \checkmark & All three combined \\
+\bottomrule
+\end{tabular}
+\label{tab:prior_work_comparison}
+\vspace{0.3em}
+\footnotesize{FSL = Few-Shot Learning, FL = Federated Learning. \checkmark = present, \texttimes = absent.}
+\end{table}
+
+%==============================================================================
+\section{Detailed Literature: Key Papers}
+%==============================================================================
+
+We summarize key papers that inform our work. \textbf{Snell et al. (2017)} introduced prototypical networks for few-shot learning; we adopt this architecture for the few-shot head. \textbf{McMahan et al. (2017)} proposed FedAvg for federated learning; we use the standard protocol. \textbf{Vinyals et al. (2016)} proposed matching networks with attention over the support set; we use prototypical for efficiency. \textbf{Finn et al. (2017)} introduced MAML for meta-learning; we use prototypical for computational tractability. \textbf{Johnson et al. (2023)} released MIMIC-IV; we use the v3.1 schema. \textbf{Sharafi \& Aminian (2023)} proposed ETHOS for health outcome prediction; we adapt it for few-shot. \textbf{Lin et al. (2017)} proposed focal loss for imbalanced data; we use it for the few-shot head. \textbf{Lundberg \& Lee (2017)} introduced SHAP for interpretability; we use it for model explanation. These references provide the theoretical and empirical foundation for our approach.
+
+%==============================================================================
+\section{Summary of Theoretical Foundations}
+%==============================================================================
+
+This chapter established the theoretical foundations: (1) Few-shot learning addresses data scarcity via meta-learning; prototypical networks use class centroids; (2) Federated learning enables training without data centralization; FedAvg aggregates model updates; (3) Clinical data require normalization and tokenization for neural models; (4) MIMIC-IV provides ICU data with structured schema; (5) Prior work on clinical prediction uses centralized data and standard supervised learning; our combination of few-shot, federated, and token-based representation is novel for treatment feasibility. The next chapter describes our methodology in detail, including the ETHOS encoder architecture, symptom tokenization, and evaluation protocol.
+
+%==============================================================================
+\section{Extended Literature Review}
+%==============================================================================
+
+\subsection{Meta-Learning Foundations}
+
+Meta-learning, or ``learning to learn,'' has roots in cognitive science and early AI research. The key insight is that learning itself can be optimized: rather than training a model from scratch on each new task, we can learn an initialization, a prior, or a learning algorithm that generalizes across tasks. This is particularly relevant when tasks share structure (e.g., all involve classifying clinical phenotypes) but each task has limited data.
+
+\subsection{Transfer Learning and Domain Adaptation}
+
+Transfer learning uses a model pretrained on a source domain and fine-tunes it on a target domain. Few-shot learning can be viewed as extreme transfer: the target domain has very few labeled examples. Domain adaptation addresses distribution shift between source and target; in our setting, different disease nodes may have different distributions. Federated learning adds the constraint that source and target data cannot be pooled.
+
+\subsection{Contrastive and Metric Learning}
+
+Metric learning learns embeddings where similar examples are close and dissimilar examples are far. Prototypical networks implicitly use metric learning: the embedding space is trained so that class prototypes separate well. Contrastive learning (e.g., SimCLR, MoCo) has been applied to medical imaging; extending these to tabular clinical data is an open direction.
+
+\subsection{Healthcare-Specific Challenges}
+
+Healthcare ML faces unique challenges: (1) regulatory (FDA, CE marking), (2) interpretability (clinicians need to understand predictions), (3) fairness (avoiding bias against subgroups), (4) temporal validity (models may degrade as practice evolves). Our work does not address these in depth but provides a baseline for future investigation.
+
+%==============================================================================
+\section{Transformers in Clinical Data}
+%==============================================================================
+
+\subsection{Attention Mechanisms}
+
+The transformer architecture~\cite{vaswani2017attention,devlin2019bert} revolutionized NLP and has been adapted for clinical data. Self-attention allows the model to weigh different input tokens (e.g., lab values, vitals) when computing representations. For tabular clinical data, token-based encoders like ETHOS apply attention over symptom tokens to capture interactions.
+
+\subsection{Positional Encoding}
+
+Unlike sequential text, clinical tokens may have implicit order (e.g., time of measurement). We use positional encoding to inject order information. Sinusoidal and learned encodings are common; we follow the standard transformer formulation.
+
+\subsection{Clinical Transformers}
+
+BEHRT~\cite{li2020behrt} and other clinical BERT variants pretrain on EHR sequences. G-BERT~\cite{shang2020gbert} incorporates graph structure. TabTransformer~\cite{huang2020tabtransformer} and SAINT~\cite{somepalli2021saint} apply transformers to tabular data. Our ETHOS encoder is lighter-weight, designed for few-shot episodic training rather than large-scale pretraining.
+
+%==============================================================================
+\section{Imbalanced Learning}
+%==============================================================================
+
+\subsection{Class Imbalance in Clinical Data}
+
+ICU cohorts often have imbalanced outcomes: e.g., 42\% feasible vs.\ 58\% infeasible in our cohort. Standard cross-entropy may bias toward the majority class. We use focal loss~\cite{lin2017focal} to down-weight easy examples and class weights for baselines. For evaluation, AUROC~\cite{hanley1982meaning} and F1-macro are standard; we also report Matthews correlation coefficient~\cite{matthews1975comparison}.
+
+\subsection{SMOTE and Resampling}
+
+SMOTE synthesizes minority examples by interpolating between nearest neighbors. We optionally apply SMOTE in ablation; for our task, class weighting and threshold tuning suffice.
+
+\subsection{Evaluation Metrics}
+
+For imbalanced data, AUROC is threshold-invariant. F1-macro averages per-class F1. We report both; AUROC is primary for model comparison.
+
+%==============================================================================
+\section{Interpretability in Healthcare ML}
+%==============================================================================
+
+\subsection{Feature Importance}
+
+Tree-based models (Random Forest, XGBoost) provide native feature importance. We use Gini importance and permutation importance. SHAP~\cite{lundberg2017unified} offers model-agnostic explanations; we apply it for local interpretability. LIME~\cite{ribeiro2016should} is an alternative; we use SHAP for consistency with tree-based models.
+
+\subsection{Attention Visualization}
+
+For transformer models, attention weights show which tokens the model attends to. In Chapter~\ref{ch:results}, we analyze attention via SHAP feature attributions for individual predictions.
+
+\subsection{Clinical Validation}
+
+Interpretability must align with clinical knowledge. Top features (creatinine, glucose, hemoglobin) match known discharge determinants. We discuss clinical interpretation in Chapter~\ref{ch:results}.
+
+%==============================================================================
+\section{Comprehensive Literature Survey}
+%==============================================================================
+
+\subsection{Few-Shot Learning: Evolution and Benchmarks}
+
+Few-shot learning has evolved from early siamese networks~\cite{koch2015siamese} and matching networks~\cite{vinyals2016matching} to modern prototypical~\cite{snell2017prototypical} and meta-learning approaches~\cite{finn2017model,ravi2017optimization}. The field has been surveyed extensively~\cite{wang2020generalizing}; key benchmarks include Omniglot~\cite{lake2015human}, mini-ImageNet, and Meta-Dataset~\cite{triantafillou2020meta}. Recent work has questioned whether simple baselines~\cite{dhillon2019baseline} can match complex meta-learners. Our work extends this debate to tabular clinical data.
+
+\subsection{Federated Learning: Systems and Theory}
+
+Federated learning systems~\cite{bonawitz2019towards,he2020fedml} handle scale, heterogeneity, and privacy. Theoretical analysis~\cite{karimireddy2020scaffold,reddi2020fedopt} addresses non-IID convergence. Healthcare applications~\cite{rieke2020future,kaissis2021secure,zhang2021federated} demonstrate feasibility. Our FedAvg implementation follows the standard protocol~\cite{mcmahan2017communication}; we do not add differential privacy or secure aggregation in this thesis.
+
+\subsection{Clinical Prediction: State of the Art}
+
+EHR-based prediction has progressed from logistic regression~\cite{awad2017random} to deep learning~\cite{rajkomar2019scalable,choi2016doctor,pham2016deepcare}. Multitask learning~\cite{harutyunyan2019multitask} improves sample efficiency. Benchmarking studies~\cite{purushotham2018benchmarking} show that gradient boosting often outperforms deep learning on tabular EHR data. Our results align: Random Forest (AUROC 0.76) exceeds ETHOS+FewShot (0.62). The hybrid (0.72) suggests a middle ground.
+
+\subsection{Tabular Deep Learning}
+
+Recent work on tabular deep learning includes TabNet~\cite{arik2021tabnet}, TabTransformer~\cite{huang2020tabtransformer}, SAINT~\cite{somepalli2021saint}, and FT-Transformer~\cite{gorishniy2024revisiting}. TabNet uses sequential attention for feature selection; TabTransformer applies self-attention to embeddings of categorical and numerical features; SAINT uses attention over both rows and columns. Our ETHOS encoder is conceptually similar to TabTransformer but operates on symptom tokens (discrete IDs + intensity) rather than raw tabular columns. We do not pretrain on large corpora; our encoder is trained from scratch for the few-shot task.
+
+\subsection{Benchmark Datasets in Clinical ML}
+
+Beyond MIMIC, clinical ML benchmarks include: eICU (multi-center ICU data), UK Biobank (population health), and proprietary EHR datasets. Table~\ref{tab:benchmark_datasets} compares key datasets. MIMIC-IV offers ICU focus, free access, and strong documentation; eICU adds multi-center diversity; UK Biobank offers longitudinal population data. Our choice of MIMIC-IV is motivated by: (1) alignment with treatment feasibility (ICU discharge); (2) availability for academic research; (3) established preprocessing pipelines and community benchmarks.
+
+\begin{table}[htbp]
+\centering
+\caption{Clinical ML Benchmark Datasets}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Dataset} & \textbf{Size} & \textbf{Focus} & \textbf{Access} \\
+\midrule
+MIMIC-IV & 250K+ stays & ICU, single center & Free (credentialed) \\
+eICU & 200K+ stays & ICU, multi-center & Free (credentialed) \\
+UK Biobank & 500K+ & Population, longitudinal & Application \\
+EHR (proprietary) & Variable & General & Institutional \\
+\bottomrule
+\end{tabular}
+\label{tab:benchmark_datasets}
+\end{table} MIMIC-IV is widely used due to free access (with credentialing), comprehensive documentation, and community adoption. Our 2,000-patient sample is a stratified subset designed for reproducibility; full MIMIC-IV experiments would require substantial compute and may yield different conclusions. Surveys~\cite{borisov2022deep} conclude that tree-based models remain strong; neural approaches need careful tuning. Our ETHOS encoder is a lightweight transformer for token sequences; we do not pretrain on large corpora.
+
+\subsection{Discharge Prediction: Prior Results}
+
+Prior work on discharge prediction reports varied results. Awad et al. (2017) used Random Forest and Logistic Regression on MIMIC-III for discharge destination, achieving AUROC 0.78. Caruana et al. (2015) reported AUROC 0.88 for mortality prediction on EHR data. Purushotham et al. (2018) benchmarked LSTM and gradient boosting on MIMIC-III mortality (AUROC 0.85). Rajkomar et al. (2018) achieved AUROC 0.76 for readmission prediction. Our treatment feasibility task is related but distinct: we predict binary feasibility (discharge to home/rehab without readmission) from first-24h data. Our AUROC 0.76 is comparable to prior discharge and readmission results. The novelty lies in the few-shot and federated setting, not in surpassing centralized benchmarks.
+
+\subsection{Ethical AI in Healthcare}
+
+Ethical considerations~\cite{floridi2018ai4people,jobin2019global,gerke2020ethical} and fairness~\cite{obermeyer2019dissecting,chouldechova2017fairness,rajkomar2019ensuring} are critical for healthcare AI. Key principles include: (1) \textbf{Beneficence}: Models should improve patient outcomes; we report both positive and negative results to avoid overclaiming. (2) \textbf{Non-maleficence}: Avoid harm; we recommend human-in-the-loop for deployment. (3) \textbf{Autonomy}: Patients and clinicians retain decision authority; models are decision support. (4) \textbf{Justice}: Fairness across demographics; we report age-stratified performance. (5) \textbf{Transparency}: Interpretability via SHAP and feature importance. Regulatory frameworks (FDA for software as medical device, GDPR for EU) govern deployment; our work uses research data and does not constitute a regulated product.
+
+Regulatory frameworks (FDA, GDPR~\cite{voigt2019eu}) govern deployment. Our work uses de-identified MIMIC-IV data; we discuss ethics in Appendix~\ref{app:ethics}.
+
+%==============================================================================
+\section{Transformer Architecture Details}
+%==============================================================================
+
+The transformer encoder consists of alternating multi-head self-attention and feed-forward layers. Each attention head computes $\text{head}_i = \text{Softmax}(Q_i K_i^\top / \sqrt{d_k}) V_i$ where $Q_i, K_i, V_i$ are learned projections. The outputs of all heads are concatenated and projected. Layer normalization is applied before and after each sublayer (Pre-LN configuration). The feed-forward layer: $\text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2$ with $d_{\text{ff}} = 512$. Dropout (0.2) is applied after attention and FFN. TabNet, TabTransformer, SAINT, and FT-Transformer apply transformers to tabular data; our ETHOS encoder operates on symptom tokens (discrete IDs + intensity) and is trained from scratch for few-shot rather than large-scale pretraining.
+
+%==============================================================================
+\section{Evaluation Protocol and K-Shot Variance}
+%==============================================================================
+
+For few-shot evaluation, we sample 100 episodes from the test set. Each episode has $K$ support and $Q$ query per class. We report mean AUROC and standard deviation across episodes. For classical models, we use the full test set in a single evaluation. The different protocols explain why K-shot experiment AUROC (0.51--0.55) is lower than main ETHOS+FewShot AUROC (0.619): the main evaluation uses the full test set with a single trained model; the K-shot experiment uses episodic sampling which introduces variance. Prior work on MIMIC-III reported AUROC 0.78 for discharge (Awad et al. 2017) and 0.85 for mortality (Purushotham 2018); our MIMIC-IV treatment feasibility AUROC 0.76 is in a comparable range.
+
+%==============================================================================
+\section{Few-Shot Learning Benchmarks}
+%==============================================================================
+
+Few-shot learning has been benchmarked on Omniglot (handwritten characters), mini-ImageNet, and Meta-Dataset. These benchmarks use image data with natural spatial structure. Tabular clinical data lack this structure; each feature is a scalar with potentially different semantics. Our work extends the few-shot paradigm to tabular clinical prediction. Key differences: (1) no pretrained backbone (ImageNet); (2) smaller meta-training set (2,000 vs.\ millions); (3) binary classification (2-way) vs.\ multi-class; (4) episodic evaluation with varying $K$. The moderate AUROC (0.62) suggests that tabular few-shot may require different architectures or larger meta-training sets to match vision benchmarks.
+
+%==============================================================================
+\section{Federated Learning: Communication and Privacy}
+%==============================================================================
+
+FedAvg requires multiple rounds of communication: each round, the server broadcasts the global model to clients, clients train locally and send updates back. With 5 nodes and 20 rounds, we perform 100 communication steps. Each step transmits the full model ($\approx$2M parameters for our architecture). In real deployment, gradient compression (e.g., top-$k$ sparsification) or partial updates could reduce bandwidth. Differential privacy can be added by clipping gradients and adding Gaussian noise; we do not implement this in the current thesis. Secure aggregation (e.g., via homomorphic encryption or secure multi-party computation) can hide individual updates from the server; we use standard FedAvg as the baseline. The negligible performance cost ($-0.5\%$ AUROC) suggests that federated learning is practical for this task when data cannot be centralized.
+
+%==============================================================================
+\section{Clinical Prediction: Task Formulation}
+%==============================================================================
+
+Treatment feasibility is a binary classification task: given early ICU data (first 24h), predict whether the patient will achieve feasible discharge. The label is derived from discharge location and 30-day readmission. This formulation has limitations: (1) discharge destination may depend on social factors (e.g., family support, insurance) not captured in labs and vitals; (2) 30-day readmission is a proxy for recovery; (3) the binary label loses nuance (e.g., rehabilitation vs.\ skilled nursing). Despite these limitations, the formulation is clinically meaningful and tractable. Alternative formulations include: regression (time to discharge), multi-class (discharge destination), or survival analysis (time-to-event). We focus on binary classification for simplicity and alignment with prior discharge prediction literature.
+
+%==============================================================================
+\section{Imputation and Missing Data Handling}
+%==============================================================================
+
+Clinical data often contain missing values. We use the following strategy: (1) For time-series (labs, vitals within the first 24h): forward-fill within patient, then population median for still-missing. (2) For completely missing features: population median. (3) No backward-fill (we use only past data relative to prediction time). (4) We do not use sophisticated imputation (e.g., MICE, KNN) to avoid data leakage and computational cost; median imputation is conservative. Missingness rates vary by feature: routine labs (creatinine, sodium) 5--12\%; specialty labs (lactate, troponin) 18--35\%; vitals 2--8\%. Features with $>$30\% missingness may have reduced predictive value; we retain them for completeness and let the model learn. In deployment, real-time data may have different missingness patterns; monitoring and retraining may be needed.
+
+%==============================================================================
+\section{Chapter Summary}
+%==============================================================================
+
+This chapter reviewed the theoretical foundations for our work. We covered few-shot learning (prototypical networks, matching networks, MAML, episodic training), federated learning (FedAvg, privacy, non-IID data, communication), clinical data representation (normalization, tokens, tabular vs.\ sequential), and the MIMIC-IV dataset (schema, cohort, labels, disease nodes). We discussed related work in clinical prediction, transformers for clinical data, imbalanced learning, interpretability, and ethical AI. We also presented a prior work comparison table, transformer architecture details, evaluation protocol variance, few-shot benchmarks, federated communication and privacy, clinical task formulation, and imputation strategies. The next chapter describes our methodology in detail.

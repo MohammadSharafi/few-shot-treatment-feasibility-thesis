@@ -1,0 +1,97 @@
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+This thesis addressed treatment feasibility prediction from limited, aggregated clinical data (MIMIC-IV) using Symptom Tokens, the ETHOS encoder, and few-shot meta-learning. We designed and evaluated a pipeline combining token-based representation, prototypical meta-learning, federated training, and advanced techniques (Proto-MAML, knowledge distillation, supervised contrastive learning, gated feature attention, cross-attention prototypes, ensembles, and stacking). The \textbf{submission-frozen} quantitative story is anchored on repository outputs; an extended V1--V6 narrative in Chapter~\ref{ch:results} documents methodological evolution. Our main findings:
+
+\begin{itemize}
+\item \textbf{Tabular SOTA (frozen):} The dedicated tabular pipeline achieves test AUROC \textbf{0.748} (Chapter~\ref{ch:results}, Table~\ref{tab:baselines}).
+\item \textbf{Stacked few-shot + classical (frozen):} \texttt{exp\_fewshot\_best} stacked BEST achieves AUROC \textbf{0.746} [0.699, 0.797]---within $\approx$0.002 of the SOTA point estimate.
+\item \textbf{Few-shot-only (frozen):} BEST few-shot (GFA+CrossAttn) achieves AUROC \textbf{0.670} [0.612, 0.726].
+\item \textbf{Exp1 script comparison (fixed split):} \texttt{Proposed\_FewShot} \textbf{0.611} vs.\ Random Forest \textbf{0.762} on the same evaluation harness.
+\item \textbf{V-campaign (historical):} Table~\ref{tab:improved_strategies} reports progressive improvements (e.g., stacked V4 at 0.732, best V5 seed at 0.737, RF threshold-tuned at 0.760) for reproducibility; cite primary tables first for executive claims.
+\item \textbf{Federated learning:} Centralized vs.\ federated AUROC gap $\approx$ \textbf{0.005} on the reported experiment---privacy-preserving training is viable at small cost on this simulation.
+\item \textbf{Conformal prediction (exploratory):} V6-style analyses provide calibrated prediction sets in development runs; not re-asserted here as submission KPIs.
+\item \textbf{Empirical ceiling:} Strong tabular models sit at AUROC $\approx$ \textbf{0.75--0.76} on this cohort depending on pipeline (SOTA script vs.\ threshold-tuned RF in the V-table).
+\end{itemize}
+
+We contribute a tabular few-shot treatment-feasibility study on MIMIC-IV with honest baselines, Symptom Tokens as a clinical representation, federated evaluation, and a reproducible results bundle (\texttt{results/}, generated LaTeX tables). Near-SOTA stacked performance (\textbf{0.746} vs.\ \textbf{0.748}) shows that engineered few-shot pipelines can approach classical ceilings when fusion and training recipes are aligned with the task.
+
+\subsection{Summary of Contributions (Table)}
+
+Table~\ref{tab:contributions_summary} consolidates our contributions for quick reference.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Contributions}
+\small
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Contribution} & \textbf{Description} \\
+\midrule
+1 & Tabular few-shot feasibility study with frozen metrics: stacked \textbf{0.746} vs.\ SOTA \textbf{0.748}; Exp1 gap \textbf{0.611} vs.\ \textbf{0.762} \\
+2 & Symptom Tokens as compact clinical representation for episodic and transformer-based learning \\
+3 & Empirical ceiling $\approx$ 0.75--0.76 AUROC on this cohort; primary tables in Chapter~\ref{ch:results} \\
+4 & Federated vs.\ centralized comparison with $\approx$0.005 AUROC gap (simulated nodes) \\
+5 & Ablation, K-shot, and cross-node analyses \\
+6 & Proto-MAML-style test-time adaptation explored in the V-campaign \\
+7 & Stacking meta-learners fusing few-shot and classical signals; \texttt{exp\_fewshot\_best} as frozen reference \\
+8 & Knowledge distillation and contrastive pre-training in the improvement roadmap \\
+9 & Gated Feature Attention and cross-attention prototypes (V-campaign; best seed 0.737) \\
+10 & Heterogeneous ensembles and conformal-style analyses (exploratory) \\
+11 & Automated table generation from CSV/JSON into the thesis (Appendix~\ref{app:pipeline_tables}) \\
+12 & Progressive training roadmap (V1--V6) documented alongside frozen submission numbers \\
+\bottomrule
+\end{tabular}
+\label{tab:contributions_summary}
+\end{table}
+
+\subsection{Implications for Clinical Deployment}
+
+For clinicians and healthcare administrators, our findings are \textbf{research-stage}:
+
+\begin{enumerate}
+\item \textbf{Performance:} The frozen stacked model reaches AUROC \textbf{0.746}; local validation is mandatory before any decision support use.
+\item \textbf{Privacy-preserving training:} Federated training incurs a small AUROC cost in our simulation; real multi-site deployment needs operational testing.
+\item \textbf{Adaptation:} Proto-MAML-style adaptation remains promising but should be evaluated on prospective, site-specific data.
+\item \textbf{Transparency:} Stacking allows comparing few-shot vs.\ classical components when both are available.
+\item \textbf{Deployment recommendations:} Use confidence thresholds, fairness checks, drift monitoring, and human oversight---do not replace clinical judgment.
+\end{enumerate}
+
+\subsection{Recommendations for Practitioners}
+
+\begin{enumerate}
+\item \textbf{For maximum accuracy on this cohort:} Prefer the frozen tabular SOTA pipeline (AUROC \textbf{0.748}) or equivalent strong baselines; report few-shot stacks alongside.
+\item \textbf{For few-shot + classical fusion:} Use the \texttt{exp\_fewshot\_best} configuration as the documented reference (\textbf{0.746}).
+\item \textbf{For federated settings:} Expect small performance deltas vs.\ centralized training in our setup; validate communication and data heterogeneity separately.
+\item \textbf{For new sites:} Plan calibration, threshold tuning, and prospective evaluation.
+\item \textbf{For claims of non-inferiority:} Run paired statistical tests on aligned prediction vectors; do not rely on historical example $p$-values from earlier drafts.
+\end{enumerate}
+
+\subsection{Significance for the Field}
+
+This work contributes to clinical informatics and meta-learning by: (1) reporting both strong tabular ceilings and a few-shot pipeline that approaches them (\textbf{0.746} vs.\ \textbf{0.748}); (2) combining federated and few-shot perspectives on a structured ICU task; (3) documenting a multi-stage improvement roadmap (V1--V6) with explicit separation between frozen and historical numbers. Symptom Tokens and the ETHOS+few-shot stack provide a template for privacy-aware, data-scarce settings subject to external validation.
+
+\subsection{Closing Remarks}
+
+The gap between na\"{\i}ve few-shot configurations and strong tabular models is real (e.g., Exp1 \textbf{0.611} vs.\ \textbf{0.762}), but systematic engineering---representation, training phases, distillation, adaptation, and stacking---can bring a unified pipeline to the neighborhood of the tabular SOTA point estimate. Further gains likely require larger pretraining, multi-site data, and prospective validation.
+
+\subsection{Answers to Research Questions}
+
+Table~\ref{tab:rq_answers} summarizes how each research question is answered by our experiments.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Answers to Research Questions}
+\begin{tabular}{p{1.2cm}p{5.5cm}p{6.5cm}}
+\toprule
+\textbf{RQ} & \textbf{Question} & \textbf{Answer} \\
+\midrule
+RQ1 & Can few-shot meta-learning match classical baselines? & On the frozen harness, stacked few-shot+classical reaches \textbf{0.746} vs.\ tabular SOTA \textbf{0.748} ($\approx$0.002). Few-shot-only BEST is \textbf{0.670}. Exp1 on a fixed split: \texttt{Proposed\_FewShot} \textbf{0.611} vs.\ RF \textbf{0.762}. Statistical parity requires paired tests on aligned outputs. \\
+RQ2 & How does support shot $K$ affect performance? & K-shot sensitivity experiment: AUROC roughly 0.51--0.55; best at $K{=}20$ (0.554). Distinct protocol from full-model AUROC. \\
+RQ3 & What is the federated learning cost? & Small: $\approx$\textbf{0.005} AUROC gap vs.\ centralized in the reported experiment. \\
+RQ4 & Which components contribute most? & Ablations show intensity weighting matters; raw-feature LR can exceed na\"{\i}ve token pipelines---see Chapter~\ref{ch:results}. \\
+RQ5 & Does the model generalize across disease groups? & Partially; proposed model can lag LR/XGBoost on held-out nodes---see cross-node results. \\
+\bottomrule
+\end{tabular}
+\label{tab:rq_answers}
+\end{table}

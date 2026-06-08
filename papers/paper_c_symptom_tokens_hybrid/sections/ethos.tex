@@ -1,0 +1,14 @@
+\section{ETHOS encoder and few-shot head}
+\label{sec:ethos}
+
+\subsection{Architecture sketch}
+Tokens are embedded into $d_{\mathrm{model}}$-dimensional vectors; positional or temporal encodings are added; $L$ layers of multi-head self-attention and feed-forward blocks follow the transformer template~\citep{vaswani2017attention}. The final representation $\mathbf{z} \in \mathbb{R}^{128}$ is obtained by pooling (e.g., [CLS]-style or mean pool) over token states. Full layer widths, heads, dropout, and depth match the open-source thesis configuration~\citep{sharafi2023ethos}.
+
+\subsection{Prototypical few-shot classifier}
+Given an episode, class prototypes are means of embedded supports~\citep{snell2017prototypical}; queries are classified by softmax over negative distances, with temperature and optional focal loss as in the thesis.
+
+\subsection{Training phases}
+\textbf{Phase 1:} supervised contrastive learning to cluster same-label patients in embedding space~\citep{khosla2020supervised}. \textbf{Phase 2:} supervised cross-entropy with a linear head. \textbf{Phase 3:} episodic meta-training. Between phases, \textbf{knowledge distillation} aligns student logits to a tuned Random Forest teacher~\citep{hinton2015distilling}.
+
+\subsection{Architectural refinements}
+\textbf{Gated feature attention} learns patient-specific masks over input channels; \textbf{cross-attention prototypes} replace Euclidean prototype means with context-dependent aggregation. These correspond to strategies \texttt{BEST\_FewShot\_GFA\_CrossAttn} in exports.

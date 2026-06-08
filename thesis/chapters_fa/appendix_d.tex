@@ -1,0 +1,89 @@
+\chapter{جداول کامل نتایج}
+\label{app:tables}
+
+این پیوست جداول تفصیلی نتایج را ارائه می‌کند.
+
+%==============================================================================
+\section{سقف مدل‌های جدولی: همه‌ی مدل‌ها}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{سقف مدل‌های جدولی: مدل‌های تکی در مجموعه‌ی آزمون}
+\begin{tabular}{rcccc}
+\toprule
+مدل & \lr{AUROC} & \lr{F1} & \lr{Accuracy} & \lr{MCC} \\
+\midrule
+\lr{XGBoost} & \cnum{0.743} & \cnum{0.672} & \cnum{0.680} & \cnum{0.356} \\
+\lr{Random Forest} & \cnum{0.760} & \cnum{0.669} & \cnum{0.705} & \cnum{0.347} \\
+\lr{LightGBM} & \cnum{0.727} & \cnum{0.641} & \cnum{0.678} & \cnum{0.289} \\
+\lr{CatBoost} & \cnum{0.731} & \cnum{0.664} & \cnum{0.683} & \cnum{0.329} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{نتایج مدل‌های تجمیعی}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{مدل‌های تجمیعی در مجموعه‌ی آزمون}
+\begin{tabular}{rccccc}
+\toprule
+مدل & \lr{Threshold} & \lr{AUROC} & \lr{F1} & \lr{Accuracy} & \lr{MCC} \\
+\midrule
+\lr{SoftVoting} & \cnum{0.51} & \cnum{0.743} & \cnum{0.654} & \cnum{0.675} & \cnum{0.309} \\
+\lr{Stacking} & \cnum{0.45} & \cnum{0.742} & \cnum{0.656} & \cnum{0.678} & \cnum{0.311} \\
+\lr{Random Forest} تنظیم آستانه & \cnum{0.54} & \textbf{\cnum{0.760}} & \textbf{\cnum{0.682}} & \textbf{\cnum{0.703}} & \textbf{\cnum{0.364}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{شناسه‌های آیتم آزمایشگاه و علائم حیاتی}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{شناسه‌های آیتم آزمایشگاه \lr{MIMIC\text{-}IV}}
+\begin{tabular}{c>{\raggedleft\arraybackslash}p{3.2cm}>{\raggedleft\arraybackslash}p{3.8cm}}
+\toprule
+شناسه آیتم & نام & بازه (حداقل-حداکثر) \\
+\midrule
+\cnum{50912} & \lr{Creatinine} & \cnum{0.1-30 mg/dL} \\
+\cnum{50971} & \lr{Potassium} & \cnum{1.5-10 mEq/L} \\
+\cnum{50983} & \lr{Sodium} & \cnum{100-180 mEq/L} \\
+\cnum{50902} & \lr{Chloride} & \cnum{70-130 mEq/L} \\
+\cnum{50931} & \lr{Glucose} & \cnum{20-600 mg/dL} \\
+\cnum{50893} & \lr{Calcium} & \cnum{4-16 mg/dL} \\
+\cnum{50960} & \lr{Magnesium} & \cnum{0.5-6 mEq/L} \\
+\cnum{50811} & \lr{Hemoglobin} & \cnum{3-25 g/dL} \\
+\cnum{51265} & \lr{Platelets} & \cnum{5-1000 K/uL} \\
+\cnum{51300} & \lr{WBC} & \cnum{0.5-50 K/uL} \\
+\cnum{50813} & \lr{Lactate} & \cnum{0.5-25 mmol/L} \\
+\cnum{50861} & \lr{ALT} & \cnum{5-2000 U/L} \\
+\cnum{50878} & \lr{AST} & \cnum{5-2000 U/L} \\
+\cnum{51006} & \lr{BUN} & \cnum{5-300 mg/dL} \\
+\cnum{50882} & \lr{Bicarbonate} & \cnum{5-50 mEq/L} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{شناسه‌های آیتم علائم حیاتی \lr{MIMIC\text{-}IV}}
+\begin{tabular}{c>{\raggedleft\arraybackslash}p{4cm}>{\raggedleft\arraybackslash}p{3.5cm}}
+\toprule
+شناسه آیتم & نام & بازه \\
+\midrule
+\cnum{220045} & ضربان قلب & \cnum{20-250 bpm} \\
+\cnum{220050} & فشار سیستولیک & \cnum{40-250 mmHg} \\
+\cnum{220051} & فشار دیاستولیک & \cnum{20-180 mmHg} \\
+\cnum{220052} & فشار میانگین & \cnum{30-200 mmHg} \\
+\cnum{223761} & دما & \cnum{90-110 F} \\
+\cnum{220277} & \lr{SpO2} & \cnum{50-100 \%} \\
+\cnum{220210} & نرخ تنفس & \cnum{1-60 /min} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,31 @@
+{
+  "fewshot_best": {
+    "auroc": 0.6698307441375437,
+    "auprc": 0.7565056314295187,
+    "f1_macro": 0.38556067588325654,
+    "precision": 0.31375,
+    "recall": 0.5,
+    "accuracy": 0.6275,
+    "mcc": 0.0,
+    "threshold": 0.25,
+    "auroc_ci_lo": 0.612299733098897,
+    "auroc_ci_hi": 0.725906945168045,
+    "strategy": "BEST_FewShot_GFA_CrossAttn"
+  },
+  "stacked_best": {
+    "auroc": 0.7461696836813819,
+    "auprc": 0.8244958831370308,
+    "f1_macro": 0.6870777327359363,
+    "precision": 0.6857222390930255,
+    "recall": 0.6962351934543705,
+    "accuracy": 0.6975,
+    "mcc": 0.3818127264363969,
+    "threshold": 0.63,
+    "auroc_ci_lo": 0.6992969949243024,
+    "auroc_ci_hi": 0.7965571377452332,
+    "strategy": "BEST_Stacked"
+  },
+  "seeds": [
+    42
+  ]
+}

@@ -1,0 +1,70 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Finn et~al.(2017)Finn, Abbeel, and Levine]{finn2017model}
+Chelsea Finn, Pieter Abbeel, and Sergey Levine.
+\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+\newblock In \emph{ICML}, pages 1126--1135, 2017.
+
+\bibitem[Ghassemi et~al.(2021)Ghassemi, Oakden-Rayner, and
+  Beam]{ghassemi2021practical}
+Marzyeh Ghassemi, Luke Oakden-Rayner, and Andrew~L Beam.
+\newblock Practical guidance on artificial intelligence for health-care data.
+\newblock \emph{The Lancet Digital Health}, 3\penalty0 (9):\penalty0
+  e599--e604, 2021.
+
+\bibitem[Johnson et~al.(2023)Johnson, Bulgarelli, Pollard, Horng, Celi, and
+  Mark]{johnson2023mimic}
+Alistair Johnson, Lucas Bulgarelli, Tom Pollard, Steven Horng, Leo~Anthony
+  Celi, and Roger Mark.
+\newblock Mimic-iv, a freely accessible electronic health record dataset.
+\newblock \emph{Scientific Data}, 10\penalty0 (1):\penalty0 1, 2023.
+
+\bibitem[Kairouz et~al.(2021)Kairouz, McMahan, Avent,
+  et~al.]{kairouz2021advances}
+Peter Kairouz, H~Brendan McMahan, Brendan Avent, et~al.
+\newblock Advances and open problems in federated learning.
+\newblock \emph{Foundations and Trends in Machine Learning}, 14\penalty0
+  (1-2):\penalty0 1--210, 2021.
+
+\bibitem[Li et~al.(2020)Li, Sahu, Talwalkar, and Smith]{li2020federated}
+Tian Li, Anit~Kumar Sahu, Ameet Talwalkar, and Virginia Smith.
+\newblock Federated optimization in heterogeneous networks.
+\newblock In \emph{Proceedings of Machine Learning and Systems}, 2020.
+
+\bibitem[McMahan et~al.(2017)McMahan, Moore, Ramage, Hampson, and
+  y~Arcas]{mcmahan2017communication}
+Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise~Aguera
+  y~Arcas.
+\newblock Communication-efficient learning of deep networks from decentralized
+  data.
+\newblock \emph{AISTATS}, pages 1273--1282, 2017.
+
+\bibitem[Rieke et~al.(2020)Rieke, Hanen, Jaderberg, et~al.]{rieke2020future}
+Nicola Rieke, Jonny Hanen, Matt Jaderberg, et~al.
+\newblock The future of digital health with federated learning.
+\newblock \emph{NPJ Digital Medicine}, 3\penalty0 (1):\penalty0 1--7, 2020.
+
+\bibitem[Sharafi and Aminian(2023)]{sharafi2023ethos}
+Mohammad Sharafi and Gholamreza Aminian.
+\newblock {ETHOS}: Efficient transformer for health outcome prediction using
+  symptom tokens.
+\newblock Technical report, 2023.
+
+\bibitem[Sheller et~al.(2020)Sheller, Edwards, Reina,
+  et~al.]{sheller2020federated}
+Micah~J Sheller, Brandon Edwards, G~Anthony Reina, et~al.
+\newblock Federated learning in medicine: Facilitating multi-institutional
+  collaborations without sharing patient data.
+\newblock \emph{Scientific Reports}, 10\penalty0 (1):\penalty0 12598, 2020.
+
+\bibitem[Snell et~al.(2017)Snell, Swersky, and Zemel]{snell2017prototypical}
+Jake Snell, Kevin Swersky, and Richard Zemel.
+\newblock Prototypical networks for few-shot learning.
+\newblock In \emph{NeurIPS}, volume~30, 2017.
+
+\end{thebibliography}

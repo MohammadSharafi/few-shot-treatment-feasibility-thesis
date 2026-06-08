@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# CatBoost artifacts (generated at runtime)
+catboost_info/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.toc
+*.lot
+*.lof
+*.out
+*.nav
+*.snm
+*.fls
+*.fdb_latexmk
+*.blg
+*.synctex.gz
+missfont.log
+
+# LaTeX build output — comment these out if you want to track compiled PDFs
+# thesis/*.pdf
+# papers/**/main.pdf
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Data (raw MIMIC-IV data; processed data is tracked)
+data/3.1/
+
+# Model checkpoints (tracked explicitly — do not add *.pt or *.joblib here)
+# models/*.pt and models/*.joblib ARE tracked (they are final trained models)
+
+# Local backup archives (not source)
+Thesis-curser*.zip
+Thesis-curser*.textClipping
+
+# Temporary and cache
+*.tmp
+*.bak
+*.swp
+*~
+.cache/
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage

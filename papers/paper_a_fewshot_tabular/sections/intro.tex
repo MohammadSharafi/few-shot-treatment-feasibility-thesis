@@ -1,0 +1,28 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Clinical motivation}
+ICU capacity, readmission penalties, and bundled payment models make \emph{early} prediction of whether a patient is on a trajectory toward a safe, timely discharge clinically and economically relevant. Machine learning on structured labs and vitals supports such decision support~\citep{awad2017random,purushotham2018benchmarking,ghassemi2021practical}, but hospital data are often moderate in scale (hundreds to a few thousand labeled stays per site), heterogeneous across institutions, and subject to strict privacy rules. These constraints motivate both \textbf{strong tabular baselines} and \textbf{data-efficient} neural approaches.
+
+\subsection{Few-shot learning in tabular clinical settings}
+Few-shot classification aims to generalize from a small labeled support set per class at meta-test time~\citep{wang2020generalizing}. Prototypical networks~\citep{snell2017prototypical} embed examples and classify by distance to class prototypes; matching networks~\citep{vinyals2016matching} use attention over supports; MAML~\citep{finn2017model} learns initial parameters for fast gradient adaptation. In vision, benchmarks assume large meta-training sets and often pretrained convolutional backbones~\citep{chen2019closer,triantafillou2020meta}. For \emph{tabular} data, recent work explores language-model bridges (e.g., TabLLM~\citep{hegselmann2023tabllm}), but there is no universal ``ImageNet'' for ICU tables. It remains scientifically important to report \textbf{when and why} meta-learning underperforms classical models on real tasks~\citep{makel2012replications}.
+
+\subsection{Research questions}
+We address:
+\begin{enumerate}[label=(\textbf{Q\arabic*})]
+  \item Under a fixed MIMIC-IV feasibility benchmark, how large is the gap between (a)~episodic few-shot training as in the main comparison script and (b)~strong Random Forest / boosting baselines on the \emph{same} split?
+  \item Can a multi-stage pipeline (representation, contrastive pre-training, distillation, adaptation, stacking) reduce the gap to the tabular ceiling?
+  \item How sensitive are conclusions to $K$-shot protocol, federated partitioning, component ablations, and held-out disease nodes?
+\end{enumerate}
+
+\subsection{Contributions}
+This manuscript synthesizes and extends a doctoral thesis into a journal-ready artifact with the following contributions:
+\begin{itemize}
+  \item \textbf{Reporting hierarchy.} We explicitly separate (i)~tabular tuned baselines, (ii)~repository \texttt{exp\_fewshot\_best} stacked and few-shot-only metrics, (iii)~Exp1 script metrics, and (iv)~federated sensitivity---reducing ambiguity common in clinical ML papers.
+  \item \textbf{Symptom Tokens + ETHOS + prototypical head}~\citep{sharafi2023ethos,vaswani2017attention,snell2017prototypical}, with a documented roadmap (contrastive pre-training, Random Forest distillation, Proto-MAML-style adaptation, gated feature attention, cross-attention prototypes, stacking).
+  \item \textbf{Empirical evidence} on $n{=}2{,}000$ stays: stacked hybrid \textbf{0.746} AUROC vs.\ best tabular export \textbf{0.747} and RF grid \textbf{0.744}; honest gap for \texttt{Proposed\_FewShot} \textbf{0.611} vs.\ RF \textbf{0.762}.
+  \item \textbf{Supplementary rigor:} ablations showing intensity weighting matters; cross-node transfer remains hard on renal/diabetes holdouts; $K$-shot episodic metrics occupy a different numeric range than full-test evaluation (we document both).
+\end{itemize}
+
+\subsection{Article structure}
+Section~\ref{sec:related} reviews related work. Section~\ref{sec:task} defines the outcome and cohort. Section~\ref{sec:methods} formalizes representations and learning. Section~\ref{sec:exp} describes experimental protocols. Section~\ref{sec:results} reports results. Sections~\ref{sec:discuss}--\ref{sec:conc} discuss limitations and conclude.

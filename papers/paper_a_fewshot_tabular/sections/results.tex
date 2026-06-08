@@ -1,0 +1,152 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Tabular baselines and tuned ceiling}
+Table~\ref{tab:tabular_sota} summarizes the tabular tuning ladder (\texttt{exp\_tabular\_sota.csv}). Random Forest achieves the highest AUROC in this export (\textbf{0.744}); the augmented RF pipeline in \texttt{exp\_final\_best\_model.csv} reaches \textbf{0.747} (Table~\ref{tab:final_best}).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tuned tabular models (test set, \texttt{exp\_tabular\_sota.csv}). SMOTE variants duplicate non-SMOTE rows in export.}
+  \label{tab:tabular_sota}
+  \begin{tabular}{lcccc}
+    \toprule
+    Model & AUROC & F1 (macro) & Acc. & MCC \\
+    \midrule
+    RandomForest & 0.744 & 0.663 & 0.690 & 0.327 \\
+    XGBoost & 0.740 & 0.575 & 0.675 & 0.248 \\
+    CatBoost & 0.731 & 0.664 & 0.683 & 0.329 \\
+    LightGBM & 0.727 & 0.641 & 0.678 & 0.288 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Best exported tabular variant (\texttt{exp\_final\_best\_model.csv}).}
+  \label{tab:final_best}
+  \begin{tabular}{lcccc}
+    \toprule
+    Model & AUROC & F1 (macro) & Acc. & MCC \\
+    \midrule
+    aug\_gaussian\_n300\_std0.03 & \textbf{0.747} & 0.673 & 0.700 & 0.348 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Repository few-shot BEST (stacked vs.\ few-shot-only)}
+Table~\ref{tab:fewshot_best} reports \texttt{exp\_fewshot\_best.json} (seed 42). The stacked model matches the tabular best export within $\approx 0.001$ AUROC.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Frozen few-shot pipeline (\texttt{exp\_fewshot\_best.json}).}
+  \label{tab:fewshot_best}
+  \begin{tabular}{lccccc}
+    \toprule
+    Strategy & AUROC & 95\% CI & F1 (macro) & Acc. & MCC \\
+    \midrule
+    BEST\_Stacked & \textbf{0.746} & [0.699, 0.797] & 0.687 & 0.698 & 0.382 \\
+    BEST\_FewShot\_GFA\_CrossAttn & 0.670 & [0.612, 0.726] & 0.386 & 0.628 & 0.000 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Experiment 1: controlled comparison}
+Table~\ref{tab:exp1} shows \texttt{exp1\_results.csv}. \texttt{Proposed\_FewShot} (\textbf{0.611}) trails Random Forest (\textbf{0.762}) by 0.151 AUROC on this harness.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Experiment 1: same-split test metrics (\texttt{exp1\_results.csv}).}
+  \label{tab:exp1}
+  \small
+  \begin{tabular}{lccccc}
+    \toprule
+    Model & AUROC & F1 (macro) & Acc. & AUPRC & MCC \\
+    \midrule
+    RandomForest & 0.762 & 0.679 & 0.718 & 0.843 & 0.372 \\
+    LogisticRegression & 0.724 & 0.682 & 0.700 & 0.777 & 0.364 \\
+    XGBoost & 0.694 & 0.632 & 0.663 & 0.779 & 0.266 \\
+    StandardNN & 0.652 & 0.616 & 0.660 & 0.720 & 0.242 \\
+    FederatedNN\_NoFewShot & 0.662 & 0.618 & 0.643 & 0.732 & 0.236 \\
+    Proposed\_FewShot & 0.611 & 0.572 & 0.583 & 0.687 & 0.155 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Experiment 2: $K$-shot sensitivity (episodic)}
+Table~\ref{tab:exp2} (\texttt{exp2\_results.csv}). AUROC is stable $\approx 0.557$--$0.564$ across $K$; this protocol is \emph{not} comparable to Exp1 AUROC.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Episodic AUROC vs.\ $K$ (\texttt{exp2\_results.csv}).}
+  \label{tab:exp2}
+  \begin{tabular}{ccccc}
+    \toprule
+    $K$ & AUROC & std & 95\% CI & F1 (macro) \\
+    \midrule
+    1 & 0.564 & 0.022 & [0.543, 0.585] & 0.554 \\
+    3 & 0.564 & 0.025 & [0.541, 0.588] & 0.548 \\
+    5 & 0.560 & 0.029 & [0.533, 0.588] & 0.539 \\
+    10 & 0.557 & 0.021 & [0.538, 0.577] & 0.534 \\
+    15 & 0.557 & 0.021 & [0.538, 0.577] & 0.534 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Experiment 3: federated vs.\ centralized}
+Table~\ref{tab:exp3}: federated AUROC is \textbf{0.547} vs.\ centralized \textbf{0.552} (gap \textbf{0.005}).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Federated simulation (\texttt{exp3\_results.csv}).}
+  \label{tab:exp3}
+  \begin{tabular}{lcc}
+    \toprule
+    Setting & AUROC & F1 (macro) \\
+    \midrule
+    Centralized & 0.552 & 0.543 \\
+    Federated & 0.547 & 0.540 \\
+    Gap & 0.005 & 0.003 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Experiment 4: ablations}
+Table~\ref{tab:exp4} (\texttt{exp4\_results.csv}). Removing \textbf{intensity weighting} reduces AUROC to 0.577. Removing \textbf{symptom tokens} (raw-feature baseline path) yields \textbf{0.724}, highlighting representation trade-offs.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Ablations (\texttt{exp4\_results.csv}).}
+  \label{tab:exp4}
+  \begin{tabular}{lcc}
+    \toprule
+    Variant & AUROC & F1 (macro) \\
+    \midrule
+    full\_model & 0.583 & 0.554 \\
+    no\_intensity\_weighting & 0.577 & 0.570 \\
+    no\_clinical\_bias & 0.584 & 0.557 \\
+    no\_temporal\_decay & 0.583 & 0.554 \\
+    no\_few\_shot & 0.645 & 0.584 \\
+    no\_symptom\_tokens & 0.724 & 0.628 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Experiment 5: cross-node generalization}
+Table~\ref{tab:exp5}: on held-out renal (node\_4) and diabetes (node\_5) test nodes, \texttt{Proposed\_FewShot} underperforms LR and XGBoost.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Held-out nodes (\texttt{exp5\_results.csv}).}
+  \label{tab:exp5}
+  \begin{tabular}{lccccc}
+    \toprule
+    Node & Proposed & LR & XGBoost & NN & $\Delta$ vs LR \\
+    \midrule
+    node\_4 & 0.602 & 0.668 & 0.704 & 0.572 & $-0.066$ \\
+    node\_5 & 0.478 & 0.658 & 0.700 & 0.643 & $-0.180$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Synthesis}
+The \textbf{stacked} few-shot pipeline (\textbf{0.746}) aligns with the strongest tabular export (\textbf{0.747}), while the \textbf{Exp1} episodic model (\textbf{0.611}) illustrates the cost of a simpler harness. Manuscripts must specify \emph{which} pipeline they report.

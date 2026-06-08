@@ -1,0 +1,32 @@
+[
+  {
+    "variant": "full_model",
+    "auroc": 0.5834950297023792,
+    "f1_macro": 0.5540319342783904
+  },
+  {
+    "variant": "no_symptom_tokens",
+    "auroc": 0.7238161448167064,
+    "f1_macro": 0.627765064836003
+  },
+  {
+    "variant": "no_clinical_bias",
+    "auroc": 0.5843756530045673,
+    "f1_macro": 0.5568218285991594
+  },
+  {
+    "variant": "no_intensity_weighting",
+    "auroc": 0.577494850592555,
+    "f1_macro": 0.5696001812209763
+  },
+  {
+    "variant": "no_temporal_decay",
+    "auroc": 0.5834950297023792,
+    "f1_macro": 0.5540319342783904
+  },
+  {
+    "variant": "no_few_shot",
+    "auroc": 0.6446696435733575,
+    "f1_macro": 0.5844061977684419
+  }
+]

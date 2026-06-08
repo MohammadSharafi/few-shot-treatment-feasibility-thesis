@@ -1,0 +1,148 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\title[Therapeutic Few-Shot]{Therapeutic Few-Shot: Intelligent Prediction of Treatment Feasibility with Symptom Tokens from Aggregated Data}
+\author[Sharafi]{Mohammad Sharafi}
+\institute[IAU Tehran North]{Islamic Azad University, Tehran North Unit \\ Computer Engineering --- Software \\ Supervised by: Dr. Alimohammadzadeh}
+\date{Thesis Defense}
+\setbeamertemplate{navigation symbols}{}
+
+\begin{document}
+
+\frame{\titlepage}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Outline}
+\begin{itemize}
+\item Problem \& Motivation
+\item Approach: Symptom Tokens + ETHOS + Few-Shot + Federated
+\item Experiments \& Results
+\item Key Findings
+\item Future Work
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Problem}
+\begin{itemize}
+\item \textbf{Task:} Predict treatment feasibility as an early ICU outcome proxy.
+\item \textbf{Boundary:} Not autonomous treatment recommendation or replacement of physician judgment.
+\item \textbf{Challenges:}
+  \begin{itemize}
+  \item Data scarcity (few labeled examples per disease group)
+  \item Privacy (data cannot be centralized)
+  \item Heterogeneous representation (labs, vitals, demographics)
+  \end{itemize}
+\item \textbf{Data:} MIMIC-IV v3.1, 2,000 patients, 5 disease nodes
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Motivation}
+\begin{itemize}
+\item Mayo Clinic experience: restricted data access (IDs and codes only)
+\item Question: How to build intelligent prediction when data cannot be centralized?
+\item \textbf{Our approach:} Federated learning + few-shot + compact representations (Symptom Tokens)
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Pipeline}
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{
+MIMIC-IV $\to$ Feature Engineering (22$\to$132-D) $\to$ \\
+\textbf{Training:} SupCon $\to$ KD $\to$ Episodic Training $\to$ \\
+\textbf{Fusion:} Proto-MAML Encoder + RF $\to$ Stacking Meta-Learner $\to$ Prediction
+}}
+\end{center}
+\begin{itemize}
+\item \textbf{Multi-phase training:} SupCon pretraining $\to$ KD from RF $\to$ episodic meta-training
+\item \textbf{Encoder variants:} Grouped-Feature Transformer (V4), GFA-Transformer (V5), FT-Transformer / MLP-Mixer (V6)
+\item \textbf{Stacking:} Calibrated logistic regression fuses few-shot + RF + embeddings
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Main Results}
+\begin{table}
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+Model / Protocol & AUROC & F1 & 95\% CI \\
+\midrule
+Tabular SOTA ceiling & \textbf{0.748} & 0.673 & -- \\
+Stacked BEST (few-shot + RF + ETHOS) & 0.746 & \textbf{0.687} & [0.699, 0.797] \\
+Few-shot-only BEST & 0.670 & 0.386 & [0.612, 0.726] \\
+Strict Exp1 Random Forest & 0.762 & 0.679 & -- \\
+Strict Exp1 Proposed FewShot & 0.611 & 0.572 & -- \\
+Federated centralized $\to$ federated & 0.552 $\to$ 0.547 & -- & gap 0.005 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{itemize}
+\item \textbf{Honest strict result:} Proposed FewShot alone is weaker than RF in Exp1.
+\item \textbf{Final deliverable:} stacked fusion reaches AUROC 0.746, close to the tabular ceiling 0.748.
+\item \textbf{Federated result:} privacy-preserving training costs only about 0.005 AUROC in this simulation.
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Answers to Research Questions}
+\begin{itemize}
+\item \textbf{RQ1:} Few-shot vs classical? Few-shot alone does not beat RF; stacked fusion closes most of the gap to the tabular ceiling.
+\item \textbf{RQ2:} Optimal K? K=20 best in episodic eval (0.554); main model uses K=5
+\item \textbf{RQ3:} Federated cost? Small in this simulation: AUROC gap about 0.005.
+\item \textbf{RQ4:} Key components? SupCon pretraining, KD, Proto-MAML, GFA, stacking each contribute; intensity weighting critical in ablation
+\item \textbf{RQ5:} Cross-disease? Partially --- underperforms on node\_4, node\_5
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Key Innovations (V0--V6)}
+\begin{enumerate}
+\item \textbf{SupCon pretraining}: Creates clustered embeddings for prototypical networks
+\item \textbf{Knowledge distillation}: Transfers RF decision boundaries to encoder
+\item \textbf{Proto-MAML}: Test-time adaptation to local patient populations
+\item \textbf{Gated Feature Attention (V5)}: Adaptive per-sample feature selection
+\item \textbf{Cross-Attention Prototypes (V5)}: Context-dependent similarity
+\item \textbf{Stacking meta-learner}: Fuses few-shot + classical predictions
+\item \textbf{Conformal prediction (V6)}: Calibrated uncertainty at 90\% coverage
+\end{enumerate}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Contributions}
+\begin{enumerate}
+\item Reproducible treatment-feasibility benchmark on a 2,000-patient MIMIC-IV cohort
+\item Symptom Tokens as clinical representation for episodic learning
+\item Honest model hierarchy: RF is stronger than raw few-shot; stacked fusion reaches AUROC 0.746
+\item Federated-ready with small observed cost (AUROC gap about 0.005)
+\item Proto-MAML for hospital-specific adaptation without retraining
+\item GFA and Cross-Attention Prototypes for tabular few-shot learning
+\end{enumerate}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}{Future Work}
+\begin{itemize}
+\item Larger pretraining (full MIMIC-IV, external EHR)
+\item Combine V5 GFA encoder with V4 stacking
+\item Cross-institutional federated evaluation
+\item Conformal prediction for deployment-ready uncertainty
+\item Prospective clinical validation with clinician feedback
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+\begin{frame}
+\centering
+\Large Thank you\\
+\vspace{1em}
+Questions?
+\end{frame}
+
+\end{document}

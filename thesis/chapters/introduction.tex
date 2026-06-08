@@ -1,0 +1,235 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+%==============================================================================
+\section{Clinical Context}
+%==============================================================================
+
+\subsection{The ICU Environment and Decision-Making}
+
+The intensive care unit (ICU) is a high-stakes environment where clinicians make time-sensitive decisions about patient care. ICUs typically serve the most critically ill patients, with continuous monitoring of vital signs, frequent laboratory testing, and multidisciplinary care teams. Decisions made in the first 24--48 hours of an ICU stay often set the trajectory for the entire hospitalization: early mobilization, weaning from mechanical ventilation, and discharge planning all depend on accurate assessment of patient stability and recovery potential.
+
+\subsection{Clinical Workflow and Decision Points}
+
+A typical ICU workflow involves: (1) admission and initial assessment; (2) stabilization (first 24--48 hours); (3) ongoing monitoring and treatment; (4) discharge planning. Treatment feasibility assessment typically occurs during the stabilization phase, when early lab and vital trends become available. Clinicians integrate multiple data streams: lab panels (creatinine, lactate, glucose), vital signs (heart rate, blood pressure, SpO$_2$), and clinical notes. A predictive model that synthesizes these data could support discharge planning by identifying patients likely to achieve safe discharge early in their stay.
+
+\subsection{Discharge Planning and Treatment Feasibility}
+
+Discharge planning begins early in the ICU stay. Clinicians must continuously assess whether a patient can be safely discharged to home, rehabilitation, or another facility. This assessment---\emph{treatment feasibility}---integrates lab trends (e.g., improving creatinine in renal failure), vital stability (e.g., weaning from vasopressors), functional status, and social determinants. Premature discharge increases readmission risk; delayed discharge strains ICU capacity and increases costs.
+
+Modern healthcare increasingly relies on \emph{aggregated data}---hospital databases, ICU records, wearable devices, and symptom reports from multiple sources---to support personalized health prediction. Treatment feasibility, defined as the binary assessment of whether safe discharge is achievable within a reasonable timeframe, is a key decision point. Machine learning models that predict feasibility from early ICU data could support clinicians in discharge planning, provided they are accurate, interpretable, and deployable in real-world settings.
+
+%==============================================================================
+\section{The Digital Health Transformation}
+%==============================================================================
+
+Healthcare is undergoing a profound digital transformation, driven by the proliferation of electronic health records (EHRs), wearable monitoring devices, telemedicine platforms, and interoperable data exchange standards such as HL7 FHIR. The global digital health market is projected to exceed \$500 billion by 2028, reflecting widespread adoption of data-driven clinical decision support systems. This transformation presents both unprecedented opportunities and fundamental challenges for machine learning research.
+
+\subsection{From Data Silos to Aggregated Intelligence}
+
+Historically, clinical data resided in institutional silos---each hospital maintained its own EHR system with proprietary schemas, coding conventions, and access controls. The emergence of health information exchanges (HIEs) and federated data networks has begun to break down these barriers, enabling multi-institutional research without full data centralization. Initiatives such as PCORnet, OHDSI (Observational Health Data Sciences and Informatics), and the UK NHS Digital programme demonstrate the potential of aggregated clinical intelligence. However, these networks face persistent challenges: heterogeneous data formats, variable data quality, institutional reluctance to share sensitive records, and regulatory constraints that differ across jurisdictions.
+
+Our thesis directly addresses this landscape. By combining federated learning with few-shot adaptation, we propose a framework that can learn from distributed clinical data without requiring centralization. The ``symptom token'' representation provides a standardized interface between heterogeneous data sources and the prediction model, enabling cross-institutional deployment where raw data formats may differ.
+
+\subsection{The Promise and Peril of Clinical AI}
+
+Artificial intelligence in healthcare has achieved remarkable results in specific domains: radiology (e.g., diabetic retinopathy screening), pathology (e.g., tumor detection), and natural language processing (e.g., clinical note summarization). However, the translation of AI research into clinical practice remains slow. Key barriers include: (1) \emph{validation gaps}---models trained on retrospective data may not generalize to prospective deployment; (2) \emph{regulatory uncertainty}---the FDA's evolving framework for Software as a Medical Device (SaMD) creates ambiguity; (3) \emph{clinician trust}---opaque models face resistance from practitioners who bear responsibility for patient outcomes; and (4) \emph{data access}---privacy regulations limit the data available for model development.
+
+This thesis confronts barrier (4) directly through federated learning and barrier (1) through rigorous evaluation. We honestly report the initial negative result (few-shot baseline underperforming classical models) and then systematically close the gap through eight improvement rounds, contributing to the literature on responsible AI evaluation in healthcare---a critical step toward building warranted clinician trust.
+
+\subsection{Treatment Feasibility in the Era of Value-Based Care}
+
+The shift from fee-for-service to value-based care models has made discharge planning a financial and clinical priority. Under bundled payment programs (e.g., CMS Bundled Payments for Care Improvement), hospitals bear financial responsibility for readmissions within 30 days. Accurate prediction of treatment feasibility---whether a patient can achieve safe discharge within a clinically appropriate timeframe---directly impacts resource allocation, bed management, and reimbursement. Early identification of patients likely to achieve feasible discharge enables proactive care coordination: arranging home health services, scheduling rehabilitation evaluations, and communicating with families about expected timelines.
+
+The ICU setting is particularly consequential: ICU bed-days cost 3--5$\times$ more than general ward bed-days, and ICU capacity is a binding constraint during surges (as demonstrated during the COVID-19 pandemic). A decision support tool that improves discharge timing by even one day could yield significant cost savings and improved patient flow.
+
+%==============================================================================
+\section{Motivation}
+%==============================================================================
+
+The origin of this work lies in a practical experience: while engaging with the Mayo Clinic platform, I found that access to health data was tightly restricted. I could retrieve only identifiers and codes---not the underlying clinical records. That limitation underscored a broader challenge: how can we build intelligent prediction systems when data cannot be centralized or freely shared? This thesis is motivated by that question. We explore federated learning, few-shot adaptation, and compact representations (Symptom Tokens) as a path toward learning from distributed, privacy-sensitive clinical data.
+
+The intensive care unit (ICU) represents one of the most data-rich yet decision-critical environments in modern healthcare. Clinicians must continuously assess patient stability, predict outcomes, and determine appropriate discharge destinations based on limited early observations. Treatment feasibility---the binary question of whether a patient can be safely discharged to home, rehabilitation, or other non-acute settings---depends on lab values, vital signs, and clinical trajectories observed during the first hours of ICU stay.
+
+Despite advances in electronic health records (EHRs) and machine learning, several fundamental challenges persist. First, \emph{data scarcity}: many disease subgroups have few labeled examples, making standard supervised learning difficult. Second, \emph{privacy}: healthcare data cannot be centralized across institutions due to regulatory constraints (e.g., HIPAA, GDPR). Third, \emph{representation}: raw clinical data are heterogeneous (labs, vitals, demographics) and require careful preprocessing for downstream models. Fourth, \emph{generalization}: models trained on one disease group may fail to transfer to others.
+
+Few-shot learning~\cite{snell2017prototypical,vinyals2016matching} offers a promising paradigm: learn from a small number of support examples per class and generalize to unseen query patients. Federated learning~\cite{mcmahan2017communication} enables training across distributed data without centralizing raw samples. Combining these approaches could yield a model that (1) learns from limited data, (2) respects privacy, and (3) generalizes across disease groups. This thesis investigates whether such a combination is viable for treatment feasibility prediction on MIMIC-IV~\cite{johnson2023mimic}.
+
+%==============================================================================
+\section{Problem Statement}
+%==============================================================================
+
+We formulate treatment feasibility prediction as a binary classification task. Given a patient's clinical observations from the first 24 hours of ICU stay, we predict whether the patient will achieve a \emph{feasible} discharge---defined as discharge to home, home health care, or rehabilitation within 30 days of ICU admission, without readmission within 30 days. The label is derived from MIMIC-IV discharge and readmission records.
+
+Formally, let $\mathcal{X}$ denote the space of patient representations (e.g., symptom token sequences or tabular feature vectors) and $\mathcal{Y} = \{0, 1\}$ denote the binary label (0 = infeasible, 1 = feasible). We seek a function $f: \mathcal{X} \to \mathcal{Y}$ that minimizes prediction error on a held-out test set, under the constraint that $f$ may be trained in a few-shot, federated setting.
+
+The key challenges are:
+\begin{enumerate}
+\item \textbf{Few-shot setting}: At inference, we may have only $K$ labeled examples per class (e.g., $K=5$). The model must generalize from these support examples to classify query patients.
+\item \textbf{Federated setting}: Training data are partitioned across $N$ nodes (e.g., disease groups); raw data cannot leave each node. The model must be trained via federated aggregation.
+\item \textbf{Representation}: We must design a compact, informative representation of labs and vitals that supports both classical baselines and neural few-shot models.
+\end{enumerate}
+
+\paragraph{Why few-shot?} In real-world deployment, new disease subgroups or institutions may have limited labeled data. Few-shot learning allows the model to adapt using only $K$ examples per class, reducing the need for large annotated datasets at each site. This is particularly relevant for rare diseases or emerging conditions.
+
+\paragraph{Why federated?} Healthcare data cannot be centralized due to privacy regulations (HIPAA, GDPR). Federated learning trains models across distributed data without moving raw records, enabling cross-institutional collaboration while preserving data sovereignty.
+
+\paragraph{Why Symptom Tokens?} Raw clinical data are heterogeneous: labs have different units (mg/dL, mmol/L), vitals have different ranges, and measurements are irregularly sampled. A token-based representation standardizes this into a sequence that transformer encoders can process. Each token encodes symptom identity, intensity (normalized value), temporal offset, and modality (lab vs.\ vital). This compact representation supports both few-shot episodic learning and classical tabular baselines when flattened to a feature vector.
+
+%==============================================================================
+\section{Research Gap}
+%==============================================================================
+
+Despite significant progress in clinical prediction and machine learning, a clear gap exists at the intersection of few-shot learning, federated training, and tabular clinical data. We identify the following specific gaps that motivate this thesis:
+
+\subsection{Gap 1: Few-Shot Learning on Tabular Clinical Data}
+
+The vast majority of few-shot learning research targets computer vision (miniImageNet, CUB-200, Omniglot) or natural language processing tasks. Tabular data---the dominant modality in EHR-based clinical prediction---remain severely underexplored in the few-shot setting. Unlike images, tabular features lack spatial structure that convolutional inductive biases can exploit. Unlike text, tabular features have heterogeneous types and scales that resist standard tokenization. The question of whether metric-based meta-learning (prototypical networks) can learn effective representations from heterogeneous clinical features with limited examples remains open. Our thesis provides the first empirical investigation of this question on MIMIC-IV treatment feasibility data.
+
+\subsection{Gap 2: Federated Few-Shot Learning for Healthcare}
+
+While federated learning has been applied to healthcare (e.g., FedHealth, FL-QSAR for drug discovery), and few-shot learning has been applied to medical imaging, the combination of federated training with few-shot meta-learning on structured clinical data has not been explored. This combination is practically important: real-world deployment scenarios often involve both data scarcity (few labeled examples at a new institution) and privacy constraints (data cannot leave the institution). Our thesis addresses whether these two paradigms can be effectively combined without catastrophic performance loss.
+
+\subsection{Gap 3: Honest Evaluation of Neural Methods on Small Clinical Datasets}
+
+Publication bias in machine learning favors positive results. Many clinical ML papers report only favorable comparisons, omitting baselines or conditions where simpler methods outperform. There is a recognized need for rigorous, honest evaluation that includes both initial negative results and systematic improvement~\cite{makel2012replications}. Our thesis fills this gap by establishing a strong tabular ceiling (SOTA test AUROC \textbf{0.748} in the frozen pipeline), reporting the Exp1 script gap (\texttt{Proposed\_FewShot} \textbf{0.611} vs.\ RF \textbf{0.762} on the same split), analyzing \emph{why} few-shot can lag, and documenting both a unified best stacked few-shot pipeline (\textbf{0.746} vs.\ 0.748) and an extended V1--V6 development campaign (historical table in Chapter~\ref{ch:results}).
+
+\subsection{Gap 4: Token-Based Clinical Representations}
+
+Existing work on clinical transformers (BEHRT, Med-BERT, ClinicalBERT) operates on clinical notes (free text) or diagnostic codes. Applying transformer architectures to quantitative clinical measurements (labs, vitals) requires a representation bridge---converting continuous, heterogeneous measurements into a token sequence. Our symptom token scheme addresses this gap, providing a principled mapping from clinical measurements to transformer-compatible inputs. While conceptually related to TabTransformer and FT-Transformer, our approach incorporates domain-specific elements (symptom identity, clinical range normalization, modality encoding) tailored to the ICU prediction context.
+
+%==============================================================================
+\section{Terminology and Definitions}
+%==============================================================================
+
+We use the following terms throughout: \textbf{Treatment feasibility} denotes the binary outcome of whether a patient achieves a safe discharge to home, rehabilitation, or home health within 30 days without readmission. \textbf{Symptom Tokens} are compact representations of lab and vital measurements, each encoding symptom ID, intensity, time, and modality. \textbf{Few-shot learning} refers to meta-learning from $K$ support examples per class. \textbf{Federated learning} trains models across distributed data without centralizing raw samples. \textbf{ETHOS} is the Efficient Transformer for Health Outcome prediction encoder~\cite{sharafi2023ethos}.
+
+%==============================================================================
+\section{Research Methodology Overview}
+%==============================================================================
+
+Our research follows a design-science approach: we design a novel pipeline (Symptom Tokens + ETHOS + few-shot + federated), implement it, and evaluate it empirically. We use a 2,000-patient MIMIC-IV cohort with fixed splits for reproducibility. Evaluation includes: (1) comparison with classical baselines (RF, XGBoost, etc.); (2) ablation studies to identify critical components; (3) sensitivity analysis (K-shot, hyperparameters); (4) federated vs.\ centralized comparison; (5) cross-disease generalization. We report both positive results (strong baseline, viable federated) and negative results (few-shot underperforms) to advance scientific understanding.
+
+%==============================================================================
+\section{Research Objectives and Assumptions}
+%==============================================================================
+
+The main objective of this thesis is to design and develop an intelligent framework for predicting treatment feasibility from limited, aggregated clinical data. The framework must identify effective treatment patterns without direct access to raw patient data. Specific objectives are: (1) to present an innovative model based on few-shot learning for treatment feasibility prediction; (2) to use Symptom Tokens as standard data units for effective learning; (3) to combine the ETHOS architecture with few-shot and federated learning principles for improved accuracy in multi-source environments; and (4) to provide a platform for personalized health analysis without violating user privacy.
+
+Based on the literature and theoretical framework, we adopt the following assumptions: (1) Few-shot models can predict treatment feasibility with reasonable accuracy even with limited data; (2) Federated learning increases data security and reduces the need for centralized data; (3) Combining Symptom Tokens with the ETHOS architecture improves model performance and generalization; (4) The proposed model can identify hidden treatment patterns across different patients; and (5) Multimodal data improve prediction accuracy compared to single-modal data.
+
+%==============================================================================
+\section{Research Questions}
+%==============================================================================
+
+This thesis addresses the following research questions:
+
+\begin{enumerate}
+\item \textbf{RQ1:} Can few-shot meta-learning match or outperform classical tabular baselines on treatment feasibility prediction from MIMIC-IV?
+
+\item \textbf{RQ2:} How does the number of support shots $K$ affect few-shot performance? Is there an optimal $K$?
+
+\item \textbf{RQ3:} What is the performance cost of federated learning compared to centralized training? Is the cost negligible?
+
+\item \textbf{RQ4:} Which architectural components (symptom tokens, intensity weighting, temporal decay, etc.) contribute most to the proposed model?
+
+\item \textbf{RQ5:} Does the model generalize across disease groups? How does it perform on unseen nodes (e.g., renal, diabetes) when trained on others (sepsis, cardiac, respiratory)?
+\end{enumerate}
+
+We answer these questions empirically using a 2,000-patient sample from MIMIC-IV v3.1, with fixed train/validation/test splits and rigorous evaluation protocols.
+
+%==============================================================================
+\section{Contributions}
+%==============================================================================
+
+This thesis makes the following contributions:
+
+\begin{enumerate}
+\item \textbf{First real-world tabular few-shot treatment feasibility model on MIMIC-IV.} We combine symptom tokenization with prototypical meta-learning and federated training. To our knowledge, no prior work has applied few-shot learning to treatment feasibility prediction on MIMIC-IV with this architecture. This contribution bridges the gap between the few-shot learning community (primarily focused on vision and NLP) and the clinical informatics community (primarily focused on centralized supervised learning). The architecture is designed to be modular: the encoder, few-shot head, and federated protocol can each be replaced independently, facilitating future ablation and extension.
+
+\item \textbf{Symptom Tokens as a clinical representation.} We introduce a compact token-based representation: 15 lab items and 7 vitals, normalized to [0,1], augmented with shock index, SOFA proxy, and abnormal lab count. Each token encodes [symptom\_id, intensity, time\_delta, modality]. This representation supports both transformer-style encoders and classical tabular models. Unlike prior clinical tokenization approaches that operate on free-text notes or diagnostic codes, our scheme converts \emph{quantitative} measurements into a discrete token vocabulary with continuous intensity values, preserving both the categorical identity and the numeric magnitude of each clinical observation.
+
+\item \textbf{Empirical ceiling and progressive closure.} We report a strong tabular ceiling (\textbf{AUROC 0.748} in the frozen SOTA pipeline; RF threshold-tuned \textbf{0.760} in the V-campaign table) and a na\"{\i}ve few-shot starting point near \textbf{0.619} in that same roadmap. The repository-frozen stacked few-shot+classical pipeline reaches \textbf{0.746} [0.699, 0.797], within $\approx$0.002 of the SOTA point estimate. V5 best-seed (\textbf{0.737}) and V4 stacked (\textbf{0.732}) remain documented as development milestones. Formal non-inferiority requires paired tests on aligned predictions.
+
+\item \textbf{Federated-ready architecture with small simulated cost.} On the reported federated vs.\ centralized experiment, the AUROC gap is $\approx$ \textbf{0.005}---privacy-preserving training is viable at small cost in this simulation. Real multi-site deployment still requires operational validation.
+
+\item \textbf{Comprehensive ablation and sensitivity analysis.} We systematically ablate components (symptom tokens, intensity weighting, temporal decay, few-shot head) and vary $K \in \{1,3,5,7,10,15,20\}$. We provide detailed tables and interpretations for future work. The ablation reveals that intensity weighting is the most critical component ($\Delta$AUROC $= -0.075$ when removed), while the few-shot head can be replaced by a supervised head with minimal loss ($\Delta$AUROC $= -0.009$), suggesting that the episodic training protocol is not the primary driver of performance.
+
+\item \textbf{Stacking meta-learner and advanced training pipeline.} The V-campaign V4 stacker reaches AUROC 0.732; the frozen \texttt{exp\_fewshot\_best} configuration reaches \textbf{0.746}. Combined with Proto-MAML-style adaptation, knowledge distillation, supervised contrastive pre-training, and feature engineering (22$\to$132 features), the work shows how few-shot pipelines can approach tabular SOTA on this cohort.
+
+\item \textbf{Architectural innovations for tabular few-shot learning.} V5 introduces Gated Feature Attention (adaptive per-sample feature selection inspired by TabNet) and Cross-Attention Prototypical Networks (context-dependent similarity). V6 evaluates heterogeneous deep ensembles combining FT-Transformer, GFA-Transformer, and MLP-Mixer, with conformal prediction for uncertainty quantification. These experiments establish that attention mechanisms are essential for tabular few-shot learning and that simple calibrated stacking outperforms complex meta-learners at small data scale.
+\end{enumerate}
+
+%==============================================================================
+\section{Thesis Structure}
+%==============================================================================
+
+The remainder of this thesis is organized as follows.
+
+\textbf{Chapter~\ref{ch:background}} reviews related work: few-shot learning, federated learning, clinical data representation, and the MIMIC-IV dataset. We discuss prototypical networks, matching networks, MAML, FedAvg, and prior applications to healthcare.
+
+\textbf{Chapter~\ref{ch:methods}} describes our methodology in detail: dataset extraction, symptom tokenization, ETHOS encoder architecture, few-shot protocol, federated training, and evaluation metrics. We provide mathematical formulations for all components.
+
+\textbf{Chapter~\ref{ch:experiments}} presents the experimental setup: data splits, hyperparameters, baseline models (Logistic Regression, Random Forest, XGBoost, LightGBM, CatBoost), and the ETHOS+FewShot configuration. We describe Experiments 1--5 (main comparison, K-shot sensitivity, federated vs centralized, ablation, cross-disease generalization).
+
+\textbf{Chapter~\ref{ch:results}} reports results: frozen tabular SOTA (\textbf{0.748}), frozen stacked few-shot (\textbf{0.746}), Exp1 and Experiments 2--5, the V1--V6 development table (historical milestones including 0.732/0.737/0.760), statistical guidance, interpretability, and additional visualizations.
+
+\textbf{Chapter~\ref{ch:data_analysis}} presents comprehensive data analysis: MIMIC-IV schema, cohort demographics, disease node distribution, lab correlations, SOFA proxy, age-stratified performance, error analysis, t-SNE embeddings, prototype visualization, and patient timelines.
+
+\textbf{Chapter~\ref{ch:discussion}} interprets the results, discusses limitations of few-shot meta-learning, and outlines trade-offs and practical implications. We suggest future directions.
+
+\textbf{Chapter~\ref{ch:conclusion}} summarizes the main findings and contributions.
+
+\textbf{Appendices} provide hyperparameter tables, MIMIC-IV SQL queries, code snippets, full result tables, and mathematical derivations.
+
+%==============================================================================
+\section{Regulatory and Ethical Context}
+%==============================================================================
+
+Healthcare data are subject to strict regulations. In the United States, the Health Insurance Portability and Accountability Act (HIPAA) governs the use and disclosure of protected health information (PHI). In the European Union, the General Data Protection Regulation (GDPR) imposes similar constraints. These regulations limit the ability to centralize data across institutions, motivating federated learning and privacy-preserving approaches. Our work uses de-identified MIMIC-IV data, which has undergone rigorous de-identification procedures. For deployment, any model would need to comply with local regulations and institutional review board (IRB) approval.
+
+%==============================================================================
+\section{Stakeholder Analysis}
+%==============================================================================
+
+Several stakeholders benefit from treatment feasibility prediction:
+
+\begin{itemize}
+\item \textbf{Clinicians}: Decision support for discharge planning; early identification of patients who may require extended stay or transfer.
+\item \textbf{Hospital administrators}: Resource allocation, bed management, and capacity planning.
+\item \textbf{Patients and families}: Transparency about expected discharge trajectory; reduced uncertainty.
+\item \textbf{Payers}: Cost containment through appropriate discharge timing; reduced readmissions.
+\item \textbf{Researchers}: Methodology for few-shot and federated clinical prediction; benchmarks for future work.
+\end{itemize}
+
+Our approach prioritizes interpretability (SHAP, feature importance) and privacy (federated learning) to address clinician and regulatory concerns.
+
+%==============================================================================
+\section{Chapter Summary}
+%==============================================================================
+
+This chapter introduced the thesis: the clinical context of ICU decision-making and discharge planning, the motivation from real-world data access limitations (Mayo Clinic experience), the formal problem statement, research questions, and contributions. We defined treatment feasibility as a binary classification task on first-24h ICU data, identified the key challenges (few-shot, federated, representation), and outlined the thesis structure. The next chapter reviews the theoretical foundations.
+
+%==============================================================================
+\section{Scope and Limitations}
+%==============================================================================
+
+This thesis focuses on a 2,000-patient sample from MIMIC-IV v3.1. Results may not generalize to larger cohorts or other institutions. We use a binary feasibility label derived from discharge location and readmission; alternative definitions (e.g., functional status, time to discharge) could yield different conclusions. We do not address causal inference or interpretability in depth. The federated setup simulates disease-based partitioning; real-world federated learning may face additional challenges (communication costs, node failure, Byzantine clients).
+
+%==============================================================================
+\section{Significance in the Context of Precision Medicine}
+%==============================================================================
+
+This work contributes to the broader agenda of precision medicine---the tailoring of medical treatment to the individual characteristics of each patient. While precision medicine has traditionally focused on genomic profiling and targeted therapies, the concept extends naturally to \emph{precision prognostication}: predicting individual patient trajectories based on their specific clinical profile rather than population-level averages.
+
+\subsection{From Population Averages to Individual Prediction}
+
+Traditional discharge planning relies on clinical heuristics and institutional norms: ``most sepsis patients with improving lactate can be discharged by day 5.'' Such rules are population averages that ignore individual variation. A 45-year-old patient with sepsis, normal renal function, and strong social support has a very different discharge trajectory than a 78-year-old with sepsis, chronic kidney disease, and limited home care. Our model aims to capture these individual differences by learning from the specific constellation of lab values, vital signs, and clinical features observed in the first 24 hours of each patient's ICU stay.
+
+\subsection{Few-Shot Adaptation as Personalization}
+
+The few-shot paradigm offers a natural framework for personalization: given a small number of reference patients (the support set) who are clinically similar to the query patient, the model adapts its predictions. This is analogous to clinical reasoning---a physician assessing a new patient recalls similar cases and uses those experiences to inform the prognosis. Prototypical networks formalize this by computing class prototypes (centroids of similar patients) and classifying query patients by proximity. While our results show that this formalization does not yet match the predictive power of classical models, the conceptual alignment with clinical reasoning suggests that with improved representations and larger reference sets, few-shot personalization could become a powerful clinical tool.
+
+\subsection{Cross-Institutional Generalization}
+
+Precision medicine requires models that generalize across institutions, each with its own patient demographics, clinical practices, and documentation standards. Federated learning enables cross-institutional training without data sharing, but the challenge extends beyond privacy: models must learn representations that are invariant to institutional idiosyncrasies while remaining sensitive to clinically meaningful variation. Our disease-node partitioning simulates institutional heterogeneity by creating non-IID data distributions. The cross-disease generalization experiments (Chapter~\ref{ch:results}) evaluate whether the model can adapt to unseen patient populations---a key requirement for deployment in diverse healthcare settings.

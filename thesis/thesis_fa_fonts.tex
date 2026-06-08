@@ -1,0 +1,211 @@
+% =============================================================================
+% thesis_fa_fonts.tex؛ Persian (B Nazanin) + Latin (Times New Roman)
+% =============================================================================
+% PRIORITY (Iranian-thesis norm: B Nazanin first; optional Vazirmatn if local/system):
+%   1) thesis/fonts/BNazanin.ttf  [+ optional BNazaninBd.ttf]
+%   2) thesis/fontes/BNazanin.ttf [+ optional BNazaninBd.ttf]  (alternate folder)
+%   3) System: IRNazanin → IR Nazanin → B Nazanin → BNazanin
+%   4) System: Vazirmatn / Vazir Matn (same \settextfont + \setdigitfont for Persian digits)
+% Latin: Times New Roman (TeX Gyre Termes fallback). Mono: Courier New (etc.).
+% thesis_fa.tex: xepersian with mathdigits=default (legacy B Nazanin / math glyphs).
+%
+% Persian body is explicitly set via \settextfont[...]{BNazanin} (fontspec family
+% name “BNazanin” from the .ttf file); this is the standard XePersian equivalent of
+% selecting B Nazanin for RTL text.
+% =============================================================================
+
+% Latin text is usually one step smaller than Persian body in Iranian theses.
+\def\thesisLatinTextScale{0.90}
+\def\thesisMonoScale{0.80}
+
+% Some B Nazanin builds omit Arabic math punctuation (٪ ٫); unicode-persianmath
+% would abort. We keep mathdigits=default in thesis_fa.tex and skip this check so
+% the thesis body can use classic BNazanin.ttf for Persian text.
+\ExplSyntaxOn
+\cs_if_exist:NT \__xepersian_mathdigitspec_char_not_exist_error:n
+  { \cs_set_eq:NN \__xepersian_mathdigitspec_char_not_exist_error:n \use_none:n }
+\ExplSyntaxOff
+
+\makeatletter
+
+% --- Load local B Nazanin from Path/ + BNazanin.ttf (explicit fontspec selection) ---
+\def\thesis@load@bn@from@dir#1{%
+  \message{^^Jthesis_fa_fonts: loading B Nazanin from #1^^J}%
+  \IfFileExists{#1BNazaninBd.ttf}{%
+    \settextfont[%
+      Path=#1,%
+      Extension=.ttf,%
+      UprightFont=BNazanin,%
+      BoldFont=BNazaninBd,%
+      ItalicFont=BNazanin,%
+      BoldItalicFont=BNazaninBd,%
+      ItalicFeatures={FakeSlant=0.2},%
+      BoldItalicFeatures={FakeSlant=0.2},%
+      Scale=1.0,%
+    ]{BNazanin}%
+  }{%
+    \IfFileExists{#1B Nazanin Bold.ttf}{%
+      \settextfont[%
+        Path=#1,%
+        Extension=.ttf,%
+        UprightFont=BNazanin,%
+        BoldFont={B Nazanin Bold},%
+        ItalicFont=BNazanin,%
+        BoldItalicFont={B Nazanin Bold},%
+        ItalicFeatures={FakeSlant=0.2},%
+        BoldItalicFeatures={FakeSlant=0.2},%
+        Scale=1.0,%
+      ]{BNazanin}%
+    }{%
+      \PackageWarning{thesis_fa_fonts}{No bold B Nazanin file found; bold uses Regular.}%
+      \settextfont[Path=#1,Extension=.ttf,UprightFont=BNazanin,BoldFont=BNazanin,Scale=1.0]{BNazanin}%
+    }%
+  }%
+  \IfFileExists{#1BNazaninBd.ttf}{%
+    \setdigitfont[%
+      Path=#1,%
+      Extension=.ttf,%
+      UprightFont=BNazanin,%
+      BoldFont=BNazaninBd,%
+      ItalicFont=BNazanin,%
+      BoldItalicFont=BNazaninBd,%
+      ItalicFeatures={FakeSlant=0.2},%
+      BoldItalicFeatures={FakeSlant=0.2},%
+      Scale=1.0,%
+    ]{BNazanin}%
+  }{%
+    \IfFileExists{#1B Nazanin Bold.ttf}{%
+      \setdigitfont[%
+        Path=#1,%
+        Extension=.ttf,%
+        UprightFont=BNazanin,%
+        BoldFont={B Nazanin Bold},%
+        ItalicFont=BNazanin,%
+        BoldItalicFont={B Nazanin Bold},%
+        ItalicFeatures={FakeSlant=0.2},%
+        BoldItalicFeatures={FakeSlant=0.2},%
+        Scale=1.0,%
+      ]{BNazanin}%
+    }{%
+      \setdigitfont[%
+        Path=#1,%
+        Extension=.ttf,%
+        UprightFont=BNazanin,%
+        ItalicFont=BNazanin,%
+        ItalicFeatures={FakeSlant=0.2},%
+        Scale=1.0,%
+      ]{BNazanin}%
+    }%
+  }%
+}%
+
+% --- Stable local fallback used when legacy BNazanin is unavailable/unstable ---
+\def\thesis@load@bm@from@dir#1{%
+  \message{^^Jthesis_fa_fonts: loading B Mitra fallback from #1^^J}%
+  \IfFileExists{#1BMitraBd.ttf}{%
+    \settextfont[%
+      Path=#1,%
+      Extension=.ttf,%
+      UprightFont=BMitra,%
+      BoldFont=BMitraBd,%
+      ItalicFont=BMitra,%
+      BoldItalicFont=BMitraBd,%
+      ItalicFeatures={FakeSlant=0.2},%
+      BoldItalicFeatures={FakeSlant=0.2},%
+      Scale=1.0,%
+    ]{BMitra}%
+    \setdigitfont[%
+      Path=#1,%
+      Extension=.ttf,%
+      UprightFont=BMitra,%
+      BoldFont=BMitraBd,%
+      ItalicFont=BMitra,%
+      BoldItalicFont=BMitraBd,%
+      ItalicFeatures={FakeSlant=0.2},%
+      BoldItalicFeatures={FakeSlant=0.2},%
+      Scale=1.0,%
+    ]{BMitra}%
+  }{%
+    \settextfont[Path=#1,Extension=.ttf,UprightFont=BMitra,BoldFont=BMitra,Scale=1.0]{BMitra}%
+    \setdigitfont[Path=#1,Extension=.ttf,UprightFont=BMitra,BoldFont=BMitra,Scale=1.0]{BMitra}%
+  }%
+}%
+
+\IfFileExists{fonts/BNazanin.ttf}{%
+  \thesis@load@bn@from@dir{fonts/}%
+}{%
+  \IfFileExists{fontes/BNazanin.ttf}{%
+    \thesis@load@bn@from@dir{fontes/}%
+  }{%
+    \IfFileExists{fonts/BMitra.ttf}{%
+      \thesis@load@bm@from@dir{fonts/}%
+    }{%
+    \IfFontExistsTF{IRNazanin}{%
+      \message{^^Jthesis_fa_fonts: IRNazanin (system)؛ install thesis/fonts/BNazanin.ttf for local B Nazanin^^J}%
+      \settextfont[Scale=1.0]{IRNazanin}%
+      \setdigitfont[Scale=1.0]{IRNazanin}%
+    }{%
+      \IfFontExistsTF{IR Nazanin}{%
+        \message{^^Jthesis_fa_fonts: IR Nazanin (system)^^J}%
+        \settextfont[Scale=1.0]{IR Nazanin}%
+        \setdigitfont[Scale=1.0]{IR Nazanin}%
+      }{%
+        \IfFontExistsTF{B Nazanin}{%
+          \message{^^Jthesis_fa_fonts: B Nazanin (system)^^J}%
+          \settextfont[Scale=1.0]{B Nazanin}%
+          \setdigitfont[Scale=1.0]{B Nazanin}%
+        }{%
+          \IfFontExistsTF{BNazanin}{%
+            \message{^^Jthesis_fa_fonts: BNazanin (system)^^J}%
+            \settextfont[Scale=1.0]{BNazanin}%
+            \setdigitfont[Scale=1.0]{BNazanin}%
+          }{%
+            \IfFontExistsTF{Vazirmatn}{%
+              \message{^^Jthesis_fa_fonts: Vazirmatn (system fallback)^^J}%
+              \settextfont[Ligatures=TeX,Scale=1.0]{Vazirmatn}%
+              \setdigitfont[Ligatures=TeX,Scale=1.0]{Vazirmatn}%
+            }{%
+              \IfFontExistsTF{Vazir}{%
+                \message{^^Jthesis_fa_fonts: Vazir (system fallback)^^J}%
+                \settextfont[Ligatures=TeX,Scale=1.0]{Vazir}%
+                \setdigitfont[Ligatures=TeX,Scale=1.0]{Vazir}%
+              }{%
+                \PackageError{thesis_fa_fonts}{%
+                  No Persian body font found. Install BNazanin.ttf in thesis/fonts/\MessageBreak
+                  or install system B~Nazanin / IRNazanin / Vazirmatn.%
+                }{See thesis/fonts/README.md}%
+              }%
+            }%
+          }%
+        }%
+      }%
+    }%
+    }%
+  }%
+}%
+
+\makeatother
+
+% --- Latin (English) text: deterministic macOS/TeX fallback ---
+\message{^^Jthesis_fa_fonts: Latin = Times New Roman (local file path)^^J}%
+\setlatintextfont[
+  Path=/System/Library/Fonts/Supplemental/,
+  UprightFont={Times New Roman.ttf},
+  BoldFont={Times New Roman Bold.ttf},
+  ItalicFont={Times New Roman Italic.ttf},
+  BoldItalicFont={Times New Roman Bold Italic.ttf},
+  Ligatures=TeX,
+  Scale=\thesisLatinTextScale,
+]{Times New Roman}%
+
+% --- Monospace: deterministic macOS file path ---
+\setmonofont[
+  Path=/System/Library/Fonts/Supplemental/,
+  UprightFont={Courier New.ttf},
+  BoldFont={Courier New Bold.ttf},
+  ItalicFont={Courier New Italic.ttf},
+  BoldItalicFont={Courier New Bold Italic.ttf},
+  Scale=\thesisMonoScale,
+]{Courier New}%
+% یادداشت هم‌ترازی با thesis.tex: آنجا بدنه ۱۲pt و newtx (Times) + newtxmath؛ اینجا بدنه ۱۴pt و B Nazanin + لاتین Times New Roman.
+% اگر آیین‌نامه ۱۳pt یا ۱۲pt خواست، کلاس را در thesis_fa.tex عوض کنید و در صورت نیاز Scale را در thesis_fa_fonts.tex تنظیم کنید.

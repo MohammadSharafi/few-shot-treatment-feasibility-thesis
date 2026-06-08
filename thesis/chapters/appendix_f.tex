@@ -1,0 +1,92 @@
+\chapter{Project Timeline (Gantt Chart)}
+\label{app:gantt}
+
+This appendix presents the project timeline as a Gantt-style overview.
+
+%==============================================================================
+\section{12-Month Project Timeline}
+%==============================================================================
+
+The project follows a 12-month schedule aligned with the proposal. Phases 1--9 span literature review, cohort design, tokenization, ETHOS implementation, few-shot and federated training, baseline comparison, experiments, and thesis writing.
+
+%==============================================================================
+\section{Phase Overview}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Project Gantt Overview}
+\begin{tabular}{llrr}
+\toprule
+Phase & Task & Start (Week) & Duration \\
+\midrule
+1 & Literature review & 1 & 4 \\
+2 & MIMIC-IV access \& cohort design & 5 & 2 \\
+3 & Data extraction \& tokenization & 7 & 4 \\
+4 & ETHOS encoder implementation & 11 & 3 \\
+5 & Few-shot meta-learning & 14 & 4 \\
+6 & Federated training & 18 & 2 \\
+7 & Tabular SOTA baseline & 12 & 4 \\
+8 & Experiments \& ablation & 20 & 4 \\
+9 & Writing \& figures & 24 & 8 \\
+\bottomrule
+\end{tabular}
+\label{tab:gantt}
+\end{table}
+
+%==============================================================================
+\section{Key Milestones}
+%==============================================================================
+
+\begin{itemize}
+\item \textbf{Week 4}: Literature review complete; research questions finalized.
+\item \textbf{Week 7}: Cohort extracted; first 2,000 patients processed.
+\item \textbf{Week 14}: ETHOS+FewShot pipeline operational.
+\item \textbf{Week 18}: Federated vs.\ centralized comparison complete.
+\item \textbf{Week 24}: All experiments run; best model (RF) identified.
+\item \textbf{Week 32}: Thesis draft complete; defense preparation.
+\end{itemize}
+
+%==============================================================================
+\section{Roadmap Graphic}
+%==============================================================================
+
+Figure~\ref{fig:roadmap} illustrates the future work roadmap (1--5 years).
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.8\textwidth}{
+\centering
+\textbf{Future Work Roadmap}\\[0.5em]
+Phase 1 (1 yr): Larger cohort, external validation\\
+Phase 2 (2 yr): Multi-site federated trial\\
+Phase 3 (3 yr): Prospective deployment\\
+Phase 4 (4 yr): Regulatory approval path\\
+Phase 5 (5 yr): Clinical decision support integration
+}}
+\caption{Future work phases (1--5 years)}
+\label{fig:roadmap}
+\end{figure}
+
+%==============================================================================
+\section{Risk Management}
+%==============================================================================
+
+Table~\ref{tab:risk} summarizes project risks and mitigation strategies, following the proposal's project management framework.
+
+\begin{table}[htbp]
+\centering
+\caption{Project Risk Management}
+\begin{tabular}{llll}
+\toprule
+Risk & Probability & Impact & Mitigation \\
+\midrule
+Data access delay & Medium & High & Early MIMIC-IV credential application; backup synthetic data \\
+Model underperformance & Low & Low & Achieved near-parity via stacking (0.732), GFA (0.737); classical baseline as fallback \\
+Federated convergence issues & Low & Medium & FedAvg tuning; fallback to centralized \\
+Computational resource limits & Low & Low & Cloud credits; reduced cohort if needed \\
+Timeline slippage & Medium & Medium & Buffer in Gantt; prioritize core experiments \\
+\bottomrule
+\end{tabular}
+\label{tab:risk}
+\end{table}

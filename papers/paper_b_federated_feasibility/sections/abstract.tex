@@ -1,0 +1,14 @@
+\begin{abstract}
+\noindent\textbf{Background.} Hospital machine learning often cannot pool raw patient rows across sites because of regulation and trust. Federated learning (FL) trains a global model by aggregating locally computed updates~\citep{mcmahan2017communication}, while few-shot meta-learning targets data-scarce adaptation~\citep{snell2017prototypical,finn2017model}. Their combination is underexplored for \emph{tabular} ICU outcomes.
+
+\noindent\textbf{Objective.} Quantify the privacy--utility trade-off when training a prototypical few-shot model under FedAvg-style aggregation on a reproducible MIMIC-IV v3.1 cohort, using diagnosis-based nodes as a proxy for institutional heterogeneity.
+
+\noindent\textbf{Methods.} We use $n{=}2{,}000$ first ICU stays with five disease strata (sepsis, cardiac, respiratory, renal, diabetes). Training patients are partitioned into five nodes by primary ICD-10 group. Local training uses episodic few-shot updates; the server averages model weights each round. We compare \textbf{centralized} training (same data, no partition) vs.\ \textbf{federated} training (\texttt{exp3\_results.csv}).
+
+\noindent\textbf{Results.} Centralized few-shot AUROC \textbf{0.552} vs.\ federated \textbf{0.547} --- absolute gap \textbf{0.005} (0.5 percentage points), with similar F1-macro (\textbf{0.543} vs.\ \textbf{0.540}).
+
+\noindent\textbf{Conclusions.} In this simulation, FL incurs minimal accuracy loss relative to centralized few-shot training, supporting further research on multi-site clinical FL. However, centralized tabular models reach much higher AUROC ($\approx 0.74$--$0.75$) on the same cohort; FL comparisons should eventually include federated classical baselines and real network effects.
+
+\medskip
+\noindent\textbf{Keywords:} federated learning; few-shot learning; MIMIC-IV; ICU; privacy; electronic health records; FedAvg
+\end{abstract}

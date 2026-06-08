@@ -1,0 +1,16 @@
+{
+  "model_family": "aug_gaussian_n300_std0.03",
+  "threshold": 0.5,
+  "test_auroc": 0.747453140458301,
+  "test_f1_macro": 0.6734782727000626,
+  "test_accuracy": 0.7,
+  "test_mcc": 0.3483377260258236,
+  "hyperparameters": {
+    "n_estimators": 200,
+    "min_samples_split": 5,
+    "min_samples_leaf": 4,
+    "max_features": 0.5,
+    "max_depth": 24,
+    "class_weight": "balanced"
+  }
+}

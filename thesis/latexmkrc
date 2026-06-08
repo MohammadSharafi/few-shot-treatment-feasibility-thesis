@@ -1,0 +1,31 @@
+# =============================================================================
+# thesis/latexmkrc — Persian thesis built with XeLaTeX
+# =============================================================================
+# Build from the thesis/ folder:
+#     latexmk -xelatex thesis_fa.tex
+#
+# latexmk will: xelatex -> bibtex -> xelatex -> xelatex (until refs converge).
+# =============================================================================
+
+# Use XeLaTeX -> PDF (pdf_mode = 5 = via xetex).
+$pdf_mode         = 5;
+$postscript_mode  = 0;
+$dvi_mode         = 0;
+
+# XeLaTeX command (matches Makefile invocation).
+$xelatex          = 'xelatex -synctex=1 -interaction=nonstopmode -file-line-error %O %S';
+
+# Force bibtex to run even when its rerun heuristic is uncertain.
+$bibtex_use       = 2;
+$bibtex           = 'bibtex %O %S';
+
+# Allow enough passes for hyperref/bookmarks/longtable to fully converge.
+# (Default is 5; bumping to 7 makes the first build from a clean state robust.)
+$max_repeat       = 7;
+
+# Treat undefined references as warnings, not errors, so the build proceeds
+# and the user gets a complete PDF + a complete log to act on.
+$warnings_as_errors = 0;
+
+# Files to also clean with `latexmk -C` / `latexmk -c`.
+$clean_ext        = 'synctex.gz acn acr alg glg glo gls ist nlo nls run.xml';

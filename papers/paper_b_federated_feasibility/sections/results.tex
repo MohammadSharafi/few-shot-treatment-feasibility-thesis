@@ -1,0 +1,44 @@
+\section{Results}
+\label{sec:results}
+
+Table~\ref{tab:fedmain} summarizes \texttt{exp3\_results.csv}. The federated global model loses \textbf{0.005} AUROC relative to centralized few-shot training.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Centralized vs.\ federated few-shot (Experiment 3, repository export).}
+  \label{tab:fedmain}
+  \begin{tabular}{lccc}
+    \toprule
+    Setting & AUROC & F1 (macro) & Rel.\ to centralized \\
+    \midrule
+    Centralized & 0.552 & 0.543 & --- \\
+    Federated (5 nodes) & 0.547 & 0.540 & $-0.005$ AUROC \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Interpretation}
+The small gap suggests that, for this architecture and partition, FedAvg does not catastrophically harm few-shot training. However, \textbf{absolute} performance remains far below tuned Random Forest (\textbf{0.762} AUROC in Exp1), so FL should be viewed as a \textbf{training modality} comparison, not a claim of clinical optimality.
+
+\subsection{Node imbalance}
+Stratified sampling balances nodes at cohort creation; real hospitals would exhibit uneven volumes. Extending the simulation with power-law client sizes is future work.
+
+\subsection{Context: centralized tabular and stacked hybrids (same cohort)}
+For the \emph{same} MIMIC-IV benchmark, centralized \textbf{tabular} models reach substantially higher AUROC than the few-shot models used in Exp3. Table~\ref{tab:context} (repository exports; see companion manuscript for full analysis) prevents misreading ``small FL gap'' as ``clinical-grade accuracy.''
+
+\begin{table}[htbp]
+  \centering
+  \caption{Illustrative centralized ceilings vs.\ Exp3 few-shot (same cohort, different model classes).}
+  \label{tab:context}
+  \begin{tabular}{lc}
+    \toprule
+    Pipeline & Test AUROC \\
+    \midrule
+    Best tabular export (\texttt{exp\_final\_best\_model}) & 0.747 \\
+    Tuned RandomForest (\texttt{exp\_tabular\_sota}) & 0.744 \\
+    Stacked few-shot + classical (\texttt{exp\_fewshot\_best}) & 0.746 \\
+    Exp3 centralized few-shot & 0.552 \\
+    Exp3 federated few-shot & 0.547 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

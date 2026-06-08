@@ -1,0 +1,84 @@
+% MIMIC-IV extraction schema — monochrome, publication-style (TikZ)
+% Preamble (once per document): \usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,calc}
+\begin{tikzpicture}[
+  scale=0.88,
+  transform shape,
+  font=\footnotesize,
+  >=Stealth,
+  tbl/.style={
+    rectangle,
+    draw=black!55,
+    line width=0.4pt,
+    fill=black!3,
+    minimum height=8mm,
+    inner xsep=4pt,
+    inner ysep=3pt,
+    align=center,
+    rounded corners=1.5pt,
+  },
+  code/.style={tbl, font=\footnotesize\ttfamily},
+  proc/.style={
+    rectangle,
+    draw=black!55,
+    line width=0.45pt,
+    fill=black!6,
+    inner sep=6pt,
+    align=center,
+    rounded corners=2pt,
+    font=\footnotesize,
+  },
+  outbox/.style={
+    rectangle,
+    draw=black!55,
+    line width=0.45pt,
+    fill=black!10,
+    inner sep=6pt,
+    align=center,
+    rounded corners=2pt,
+    font=\footnotesize\bfseries,
+  },
+  ed/.style={black!50, line width=0.35pt},
+  el/.style={font=\footnotesize, text=black!65, inner sep=1pt, fill=white},
+]
+
+% --- Core hospital tables ---
+\node[code] (pat) {patients};
+\node[code, right=9mm of pat] (adm) {admissions};
+\node[code, right=9mm of adm] (icu) {icustays};
+\node[code, above=9mm of icu, xshift=-6mm] (dx) {diagnoses\_icd};
+
+\draw[ed, ->] (pat) -- node[el, above=0.5pt] {\texttt{subject\_id}} (adm);
+\draw[ed, ->] (adm) -- node[el, above=0.5pt] {\texttt{hadm\_id}} (icu);
+\draw[ed, ->] (adm.north) |- node[el, pos=0.28, left=1pt] {\texttt{hadm\_id}} (dx.west);
+
+% --- Labs / chart (second row) ---
+\node[code, below left=12mm and 2mm of icu] (dlab) {d\_labitems};
+\node[code, right=5mm of dlab] (lab) {labevents};
+\node[code, right=7mm of lab] (chart) {chartevents};
+\node[code, right=5mm of chart] (dit) {d\_items};
+
+\draw[ed, ->] (dlab) -- node[el, above=0.5pt] {\texttt{itemid}} (lab);
+\draw[ed, ->] (dit) -- node[el, above=0.5pt] {\texttt{itemid}} (chart);
+
+\coordinate (hub) at ($(icu.south)+(0,-2.5mm)$);
+\draw[ed, ->] (icu.south) -- (hub);
+\draw[ed, ->] (hub) -| node[el, pos=0.18, below=1pt] {\texttt{stay\_id}} (lab.north);
+\draw[ed, ->] (hub) -| (chart.north);
+
+% --- Preprocessing ---
+\node[proc, below=11mm of lab, anchor=north, xshift=16mm] (prep) {%
+  \textbf{Preprocessing pipeline}\\[0.35em]
+  {\footnotesize 15 labs + 7 vitals $\rightarrow$ clip / min--max $[0,1]$ $\rightarrow$ feature engineering}\\[0.2em]
+  {\footnotesize $\rightarrow$ \textbf{25-D tabular} $\;|\;$ \textbf{token sequence} $\rightarrow$ ETHOS $\rightarrow$ \textbf{128-D}}%
+};
+
+\coordinate (merge) at ($(prep.north)+(0,4.5mm)$);
+\draw[ed, ->] (lab.south) |- (merge);
+\draw[ed, ->] (chart.south) |- (merge);
+\draw[ed, ->] (merge) -- (prep.north);
+
+% --- Cohort output ---
+\node[outbox, below=6mm of prep] (cohort) {$2{,}000$ patients $\times$ $25$ features + labels};
+\draw[ed, ->] (prep) -- (cohort);
+
+\end{tikzpicture}

@@ -1,0 +1,78 @@
+\chapter{Summary of Key Equations}
+\label{app:equations}
+
+This appendix collects the main equations used throughout the thesis for quick reference.
+
+%==============================================================================
+\section{Data Preprocessing}
+%==============================================================================
+
+Min-max normalization with clinical range clipping:
+\begin{equation}
+x' = \frac{\text{clip}(x, x_{\min}, x_{\max}) - x_{\min}}{x_{\max} - x_{\min}}
+\end{equation}
+
+%==============================================================================
+\section{Symptom Token}
+%==============================================================================
+
+Each token: $\text{token} = [\text{symptom\_id}, \text{intensity}, \text{time\_delta}, \text{modality}]$
+
+%==============================================================================
+\section{Prototypical Networks}
+%==============================================================================
+
+Class prototype:
+\begin{equation}
+\mathbf{c}_k = \frac{1}{|\mathcal{S}_k|} \sum_{(x_i, y_i) \in \mathcal{S}_k} f_\theta(x_i)
+\end{equation}
+
+Query probability:
+\begin{equation}
+p(y = k \mid x) = \frac{\exp(-\langle f_\theta(x), \mathbf{c}_k \rangle / \tau)}{\sum_{k'} \exp(-\langle f_\theta(x), \mathbf{c}_{k'} \rangle / \tau)}
+\end{equation}
+
+%==============================================================================
+\section{Focal Loss}
+%==============================================================================
+
+\begin{equation}
+\mathcal{L} = -\alpha (1-p_t)^\gamma \log(p_t)
+\end{equation}
+with $\gamma = 2$, $\alpha$ from class weights.
+
+%==============================================================================
+\section{FedAvg}
+%==============================================================================
+
+\begin{equation}
+\theta_{t+1} = \sum_{k=1}^{K} \frac{n_k}{n} \theta_{t+1}^{(k)}
+\end{equation}
+
+%==============================================================================
+\section{Metrics}
+%==============================================================================
+
+AUROC: $\int_0^1 \text{TPR}(t) \, d(\text{FPR}(t))$
+
+F1-macro: $\frac{F1_0 + F1_1}{2}$ where $F1_k = \frac{2 \cdot P_k \cdot R_k}{P_k + R_k}$
+
+MCC: $\frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$
+
+%==============================================================================
+\section{Engineered Features}
+%==============================================================================
+
+Shock index: $\text{SI} = \text{HR} / \text{SBP}$ (normalized)
+
+SOFA proxy: $\sum_{j} w_j (1 - x_j)$ for creatinine, platelets, SpO2, lactate
+
+Abnormal lab count: $\frac{1}{n} \sum_{i} \mathbb{1}[|x_i - 0.5| > 0.35]$
+
+%==============================================================================
+\section{Self-Attention}
+%==============================================================================
+
+$\text{Attention}(Q,K,V) = \text{softmax}(QK^\top / \sqrt{d_k}) V$
+
+Multi-head: $\text{MultiHead} = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W^O$

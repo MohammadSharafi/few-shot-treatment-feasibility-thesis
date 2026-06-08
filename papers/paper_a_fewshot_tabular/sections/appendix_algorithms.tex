@@ -1,0 +1,23 @@
+\section{Episodic training loop (pseudocode)}
+\label{app:algo}
+
+\begin{algorithm}[htbp]
+\caption{Episodic meta-training step (simplified)}
+\label{alg:episodic}
+\begin{algorithmic}[1]
+\State Initialize encoder parameters $\theta$
+\For{epoch $= 1$ to $E_{\max}$}
+  \For{episode $= 1$ to $N_{\mathrm{ep}}$}
+    \State Sample support $\mathcal{S}$ and query $\mathcal{Q}$ from training patients (balanced classes)
+    \State Embed supports: $\mathbf{z}_j = f_\theta(\cdot)$ for each token sequence
+    \State Compute prototypes $\mathbf{c}_0, \mathbf{c}_1$
+    \State Loss $\leftarrow$ cross-entropy of query predictions via distances to prototypes (optionally focal)
+    \State Update $\theta$ by backpropagation
+  \EndFor
+  \State Evaluate on validation episodes; early stop if no improvement
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\section{Supplementary tables}
+Full hyperparameter grids and SQL extraction queries are provided in the doctoral thesis appendices and repository (\texttt{thesis/chapters/appendix\_*.tex}, \texttt{extraction/}).

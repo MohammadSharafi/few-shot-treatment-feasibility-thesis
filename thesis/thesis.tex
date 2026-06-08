@@ -1,0 +1,123 @@
+% English thesis master (pdfLaTeX). Build from thesis/: pdflatex + bibtex.
+% جفت فارسی: thesis_fa.tex (XeLaTeX + XePersian) — همان فصل‌ها و پیوست‌ها با chapters_fa/.
+\documentclass[12pt,a4paper,twoside]{report}
+% Shared table snippets: identity on English; Persian thesis redefines as \lr{...}.
+\providecommand{\maybeLr}[1]{#1}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% Shared with tables_extended.tex: no-op in English; Persian thesis redefines as latin.
+\newenvironment{englishblock}{}{}
+\usepackage{amsmath,amssymb,amsthm}
+% Times-like serif + matching math (standard for many theses)
+\usepackage{newtxtext,newtxmath}
+\usepackage{graphicx,subcaption,float}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+% Figures are generated under repo-root results/figures/ (see scripts/build_thesis_assets.py)
+\graphicspath{{../results/figures/}{./results/figures/}{../results/}{./results/}{./}{../}}
+\usepackage{booktabs,multirow,longtable,tabularx,array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{geometry}
+% Typical thesis margins (binding margin can be increased locally if required)
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\usepackage{enumitem}
+\setlist{itemsep=0.2em,parsep=0.15em}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{1.5em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\ttfamily,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=colon}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{appendix}
+\usepackage[hidelinks,unicode]{hyperref}
+\hypersetup{pdftitle={Therapeutic Few-Shot: Treatment Feasibility with Symptom Tokens},pdfauthor={Mohammad Sharafi}}
+\setlength{\headheight}{15pt}
+
+\newenvironment{acknowledgments}
+  {\chapter*{Acknowledgments}\addcontentsline{toc}{chapter}{Acknowledgments}\itshape}
+  {\par\vspace{1em}}
+
+\title{Therapeutic Few-Shot: Intelligent Prediction of Treatment Feasibility \\
+with Symptom Tokens from Aggregated Data}
+\author{Mohammad Sharafi \\[0.5em]
+\normalsize Computer Engineering --- Software \\
+\normalsize Islamic Azad University, Tehran North Branch \\[0.5em]
+\normalsize Supervisor: Dr.\ Alimohammadzadeh}
+\date{March 2026}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\begin{document}
+\maketitle
+
+\begin{acknowledgments}
+This work was inspired by my experience with the Mayo Clinic platform, where I encountered firsthand the tension between the need for intelligent health prediction and the strict constraints on data access. At the time, I could obtain only identifiers and codes---not the underlying clinical data---which highlighted how often patients and researchers face barriers to using health information for good. That experience motivated me to explore methods that can learn from distributed, privacy-sensitive data without centralization: federated learning, few-shot adaptation, and compact representations such as Symptom Tokens. I thank my supervisor, Dr. Alimohammadzadeh, for his guidance, and all those who supported this journey.
+\end{acknowledgments}
+
+\begin{abstract}
+Predicting treatment feasibility from limited, aggregated clinical data is a critical challenge in personalized healthcare decision support. We address this using a novel pipeline combining \emph{Symptom Tokens}---a compact representation of labs and vitals---with the ETHOS encoder, few-shot meta-learning, and federated training. Experiments use a 2,000-patient MIMIC-IV v3.1 sample, split into five disease nodes (sepsis, cardiac, respiratory, renal, diabetes).
+
+We establish a strong \textbf{tabular ceiling}: the SOTA pipeline (\texttt{exp\_tabular\_sota.py}) reaches \textbf{test AUROC 0.748} (F1 0.674, accuracy 0.700). The unified best few-shot pipeline (\texttt{exp\_fewshot\_best.py}) with stacking achieves \textbf{AUROC 0.746} (95\% bootstrap CI [0.699, 0.797])---\emph{matching the ceiling within sampling noise}---while the few-shot sub-model alone reaches AUROC 0.670. Under the separate Exp1 comparison script (\texttt{exp1\_main.py}), \texttt{Proposed\_FewShot} attains \textbf{AUROC 0.611} on the test split, illustrating that episodic Exp1 metrics and the stacked ``best'' pipeline are not interchangeable. Federated training costs about \textbf{0.5 percentage points} AUROC vs.\ centralized on our setup.
+
+Key innovations include Proto-MAML-style adaptation, knowledge distillation from a Random Forest teacher, supervised contrastive pre-training, engineered tabular features, gated feature attention, cross-attention prototypes, and a stacking meta-learner fusing few-shot and classical predictions.
+
+We contribute: (1)~a reproducible MIMIC-IV feasibility benchmark with a clear reporting hierarchy (ceiling $\rightarrow$ hybrid $\rightarrow$ stacked few-shot $\rightarrow$ federated); (2)~Symptom Tokens plus ETHOS for few-shot learning; (3)~evidence that stacking closes most of the gap to the tabular ceiling; and (4)~open code and auto-exported tables for replication.
+\end{abstract}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\input{chapters/introduction}
+\input{chapters/background}
+\input{chapters/methods}
+\input{chapters/experiments}
+\input{chapters/results}
+\input{chapters/data_analysis}
+\input{chapters/discussion}
+\input{chapters/conclusion}
+
+\begin{appendices}
+\input{chapters/appendix_a}
+\input{chapters/appendix_b}
+\input{chapters/appendix_c}
+\input{chapters/appendix_d}
+\input{chapters/appendix_e}
+\input{chapters/appendix_f}
+\input{chapters/appendix_g}
+\input{chapters/appendix_h}
+\input{chapters/appendix_i}
+\input{chapters/appendix_tables_generated}
+\input{chapters/appendix_j}
+\input{chapters/appendix_k}
+\input{chapters/appendix_l}
+\input{chapters/appendix_m}
+\input{chapters/appendix_n}
+\input{chapters/appendix_o}
+\input{chapters/appendix_p}
+\input{chapters/appendix_q}
+\input{chapters/appendix_r}
+\end{appendices}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

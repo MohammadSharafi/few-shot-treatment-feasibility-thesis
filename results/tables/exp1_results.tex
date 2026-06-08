@@ -1,0 +1,12 @@
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}*{15}{>{\centering\arraybackslash}X}@{}}
+\toprule
+model & accuracy & accuracy\_ci\_lo & accuracy\_ci\_hi & f1\_macro & f1\_macro\_ci\_lo & f1\_macro\_ci\_hi & auroc & auroc\_ci\_lo & auroc\_ci\_hi & auprc & auprc\_ci\_lo & auprc\_ci\_hi & mcc & mcc\_ci\_lo & mcc\_ci\_hi \\
+\midrule
+LogisticRegression & 0.700 & 0.700 & 0.700 & 0.682 & 0.682 & 0.682 & 0.724 & 0.724 & 0.724 & 0.777 & 0.777 & 0.777 & 0.364 & 0.364 & 0.364 \\
+RandomForest & 0.718 & 0.718 & 0.718 & 0.679 & 0.679 & 0.679 & 0.762 & 0.762 & 0.762 & 0.843 & 0.843 & 0.843 & 0.372 & 0.372 & 0.372 \\
+XGBoost & 0.662 & 0.662 & 0.662 & 0.632 & 0.632 & 0.632 & 0.694 & 0.694 & 0.694 & 0.779 & 0.779 & 0.779 & 0.266 & 0.266 & 0.266 \\
+StandardNN & 0.660 & 0.660 & 0.660 & 0.616 & 0.616 & 0.616 & 0.652 & 0.652 & 0.652 & 0.720 & 0.720 & 0.720 & 0.242 & 0.242 & 0.242 \\
+FederatedNN\_NoFewShot & 0.642 & 0.642 & 0.642 & 0.618 & 0.618 & 0.618 & 0.662 & 0.662 & 0.662 & 0.732 & 0.732 & 0.732 & 0.236 & 0.236 & 0.236 \\
+Proposed\_FewShot & 0.583 & 0.583 & 0.583 & 0.572 & 0.572 & 0.572 & 0.611 & 0.611 & 0.611 & 0.687 & 0.687 & 0.687 & 0.155 & 0.155 & 0.155 \\
+\bottomrule
+\end{tabularx}

@@ -1,0 +1,43 @@
+\chapter{Ethical Considerations}
+\label{app:ethics}
+
+This appendix discusses ethical considerations for deploying ML in healthcare.
+
+%==============================================================================
+\section{Ethical Framework}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Ethical Considerations}
+\begin{tabular}{ll}
+\toprule
+Issue & Approach \\
+\midrule
+Bias \& fairness & Stratified evaluation by age, sex; report per-node metrics. \\
+Privacy & Federated learning; no raw data sharing; differential privacy option. \\
+Transparency & SHAP explanations; case studies; interpretable baselines. \\
+Accountability & Model as decision support; clinician retains final say. \\
+Consent & MIMIC de-identified; institutional approval for research use. \\
+\bottomrule
+\end{tabular}
+\label{tab:ethics_full}
+\end{table}
+
+%==============================================================================
+\section{Policy Implications}
+%==============================================================================
+
+\textbf{GDPR-compliant deployment:} Federated learning aligns with data minimization and purpose limitation. Model updates (gradients) can be aggregated without sharing raw records. Local data remains at each site.
+
+\textbf{Cost savings:} A 1\% accuracy gain (e.g., AUROC 0.76 vs.\ 0.75) could reduce unnecessary ICU days or inappropriate discharges. Economic analysis would require site-specific cost data.
+
+%==============================================================================
+\section{Patent-Style Claims}
+%==============================================================================
+
+For reference, a method claim could read:
+
+\begin{quote}
+\emph{``A method for few-shot token-based EHR prediction comprising: (a) extracting lab and vital measurements from a first 24-hour window of an ICU stay; (b) tokenizing said measurements into discrete symptom tokens with intensity weighting; (c) encoding said tokens via a transformer encoder; (d) computing class prototypes from support set embeddings; (e) predicting treatment feasibility for a query patient by distance to said prototypes.''}
+\end{quote}

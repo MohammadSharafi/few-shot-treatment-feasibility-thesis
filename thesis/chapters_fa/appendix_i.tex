@@ -1,0 +1,86 @@
+\chapter{چک‌لیست تکرارپذیری}
+\label{app:repro}
+
+این پیوست چک‌لیست تکرارپذیری برای بازتولید نتایج ما را ارائه می‌کند.
+
+%==============================================================================
+\section{چک‌لیست}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{چک‌لیست تکرارپذیری}
+\begin{tabular}{rl}
+\toprule
+مورد & وضعیت \\
+\midrule
+کد در دسترس & $\checkmark$ (مخزن) \\
+منبع داده & \lr{MIMIC\text{-}IV v3.1} (دسترسی اعتباردار) \\
+بذر تصادفی & \pnum{42} (ثابت) \\
+ابرپارامترها & پیوست~\ref{app:hyperparams} (شبکه‌های کامل) \\
+پرس‌وجوهای \lr{SQL} & پیوست~\ref{app:sql} \\
+محیط & \lr{Python 3.10}، \lr{PyTorch 2.x}، \lr{scikit-learn 1.3+} \\
+سخت‌افزار & \lr{CPU} کافی؛ \lr{GPU} اختیاری برای \lr{ETHOS} \\
+\bottomrule
+\end{tabular}
+\label{tab:repro_checklist}
+\end{table}
+
+%==============================================================================
+\section{فهرست کد}
+%==============================================================================
+
+کد نماینده برای توکن‌سازی (\texttt{\lr{tokenize.py}}):
+
+\begin{latin}\begin{lstlisting}[caption={\rl{توکن‌سازی (گزیده)}}]
+def tokenize_symptom(value: float, bin_edges: np.ndarray) -> int:
+    """Map continuous value to discrete token ID."""
+    bin_id = np.searchsorted(bin_edges, value, side='right') - 1
+    bin_id = np.clip(bin_id, 0, len(bin_edges) - 2)
+    return bin_id + 1  # 0 reserved for mask
+
+def add_intensity(seq: np.ndarray, values: np.ndarray) -> np.ndarray:
+    """Append intensity as extra dimension."""
+    return np.concatenate([seq, values[:, None]], axis=-1)
+\end{lstlisting}\end{latin}
+
+%==============================================================================
+\section{دسترسی به داده}
+%==============================================================================
+
+\lr{MIMIC\text{-}IV} نیاز به دسترسی اعتباردار از \lr{PhysioNet} دارد. اسکریپت‌های استخراج کوهورت ارائه شده‌اند. فایل‌های \lr{parquet} پردازش‌شده را می‌توان از \lr{MIMIC\text{-}IV} خام با خط لوله در \texttt{\lr{scripts/}} بازتولید کرد.
+
+%==============================================================================
+\section{محیط و وابستگی‌ها}
+%==============================================================================
+
+برای بازتولید نتایج، از محیط زیر استفاده کنید:
+
+\begin{latin}\begin{lstlisting}
+Python 3.10+
+torch>=2.0.0
+scikit-learn>=1.3.0
+pandas>=2.0
+numpy>=1.24
+xgboost>=2.0
+lightgbm>=4.0
+catboost>=1.2
+\end{lstlisting}\end{latin}
+
+آزمایش‌ها را از ریشه‌ی مخزن اجرا کنید (برای استخراج، \lr{MIMIC\text{-}IV} زیر \texttt{\lr{data/3.1/}} لازم است).
+
+\textbf{هماهنگ‌کننده‌ها:}
+\begin{itemize}
+  \item \texttt{\lr{python experiments/run\_all.py}}؛ استخراج کامل + آزمایش‌های هسته؛ از \texttt{\lr{--skip-extraction}} اگر \texttt{\lr{data/processed/}} وجود دارد؛ \texttt{\lr{--figures-only}} فقط اشکال‌ها را بازتولید می‌کند؛ \texttt{\lr{--with-fewshot}} کارهای طولانی کم‌نمونه را اضافه می‌کند.
+  \item \texttt{\lr{python scripts/run\_value\_experiments.py --quick --figures --skip-sota --skip-exp1}}؛ اجرای مرتب «ارزش‌بالا» برای \lr{CPU} (آهسته‌ترین تنظیم \lr{SOTA} و \lr{Exp1} کامل را رد می‌کند؛ \texttt{\lr{--skip-exp1}} فقط در صورت نیاز).
+  \item \texttt{\lr{python experiments/exp1\_main.py --quick}}؛ \lr{Exp1} سریع روی \lr{CPU} (قبل از \lr{NumPy}، \lr{BLAS} تک‌نخی برای جلوگیری از بن‌بست \lr{OpenMP} با \lr{PyTorch} پس از \lr{sklearn/XGBoost}). برای پروتکل \emph{کامل} \lr{Exp1}، بدون \texttt{\lr{--quick}} اجرا کنید (\lr{GPU} توصیه می‌شود).
+\end{itemize}
+
+\textbf{خروجی‌ها:} اسکریپت \texttt{\lr{python scripts/build\_thesis\_assets.py}} اشکال‌ها و فایل‌های زیر را بازتولید می‌کند:
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{\lr{ALL\_TABLES.tex}} و \texttt{\lr{ALL\_TABLES\_APPENDIX.tex}} برای جداول اصلی و پیوست~\ref{app:pipeline_tables}.
+  \item \texttt{\lr{KEY\_FINDINGS.md}} از مسیر \texttt{\lr{results/generate\_all\_outputs.py}}.
+\end{itemize}
+پیش از ارسال، \texttt{\lr{python results/validate\_thesis\_readiness.py}} را اجرا کنید.
+
+در \texttt{\lr{config.yaml}}، \texttt{\lr{random\_seed=42}} را ثابت کنید. شبکه‌های ابرپارامتر در پیوست~\ref{app:hyperparams} هستند.

@@ -1,0 +1,21 @@
+\section{Experimental design}
+\label{sec:exp}
+
+\subsection{Overview}
+We run five experiment families aligned with the thesis:
+\begin{itemize}
+  \item \textbf{Exp1} --- Main comparison: classical, neural, and \texttt{Proposed\_FewShot} on the \textbf{same} test split (\texttt{exp1\_main.py}).
+  \item \textbf{Exp2} --- $K$-shot sensitivity: $K \in \{1,3,5,10,15\}$ under episodic evaluation (\texttt{exp2\_results.csv}).
+  \item \textbf{Exp3} --- Federated vs.\ centralized few-shot training (\texttt{exp3\_results.csv}).
+  \item \textbf{Exp4} --- Ablations: remove symptom tokens, intensity weighting, temporal decay, few-shot head, etc.\ (\texttt{exp4\_results.csv}).
+  \item \textbf{Exp5} --- Cross-disease generalization: train excluding renal/diabetes nodes, test on held-out nodes (\texttt{exp5\_results.csv}).
+\end{itemize}
+
+\subsection{Few-shot training hyperparameters (thesis defaults)}
+$K{=}5$ support and $Q{=}15$ queries per class per episode; 500 training episodes per epoch; 100 validation episodes; up to 50 epochs with early stopping (patience 10); Adam optimizer, learning rate $10^{-3}$; temperature $\tau{=}10$.
+
+\subsection{Statistical reporting}
+With 400 test patients ($\approx$168 positive), bootstrap 95\% CIs use 1{,}000 resamples where exported. For comparing two models on the \textbf{same} patients, DeLong's test or paired bootstrap on score vectors is appropriate; we flag that some historical $p$-values in early drafts should not be reused without recomputation.
+
+\subsection{Reproducibility}
+Splits, seeds, and CSV exports live in the companion repository; \texttt{results/generate\_all\_outputs.py} regenerates LaTeX tables for the thesis.

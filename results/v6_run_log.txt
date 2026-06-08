@@ -1,0 +1,157 @@
+V6 Features: 22 -> 132
+Train:1280 Val:320 Test:400 Feat:132
+
+RF teacher...
+  RF test AUROC: 0.7350
+
+=======================================================
+FT-Transformer seed=42 (1/2)
+=======================================================
+  [FT-Transformer] P1: SupCon+KD...
+  [FT-Transformer] P2: Sup+KD...
+    ep0: va=0.6286
+    ep5: va=0.6603
+    ep10: va=0.6871
+    ep15: va=0.6911
+    ep20: va=0.6916
+    ep25: va=0.6907
+    Best: 0.6935
+  [FT-Transformer] P3: Episodic...
+    ep0: 329526.1562
+    ep500: 794386.6250
+    ep1000: 785645.3125
+    ep1500: 59041.8398
+  [FT-Transformer] Evaluating...
+  [FT-Transformer] AUROC: 0.6812
+
+=======================================================
+FT-Transformer seed=49 (2/2)
+=======================================================
+  [FT-Transformer] P1: SupCon+KD...
+  [FT-Transformer] P2: Sup+KD...
+    ep0: va=0.6315
+    ep5: va=0.6861
+    ep10: va=0.7105
+    ep15: va=0.7172
+    ep20: va=0.7178
+    ep25: va=0.7156
+    Best: 0.7180
+  [FT-Transformer] P3: Episodic...
+    ep0: 3260827.7500
+    ep500: 281072.1562
+    ep1000: 817498.4375
+    ep1500: 361628.6250
+  [FT-Transformer] Evaluating...
+  [FT-Transformer] AUROC: 0.6598
+
+=======================================================
+GFA-Transformer seed=55 (1/2)
+=======================================================
+  [GFA-Transformer] P1: SupCon+KD...
+  [GFA-Transformer] P2: Sup+KD...
+    ep0: va=0.5996
+    ep5: va=0.6560
+    ep10: va=0.6775
+    ep15: va=0.6913
+    ep20: va=0.7002
+    ep25: va=0.7016
+    Best: 0.7025
+  [GFA-Transformer] P3: Episodic...
+    ep0: 3130708.5000
+    ep500: 100829.7812
+    ep1000: 270682.2188
+    ep1500: 255517.7969
+  [GFA-Transformer] Evaluating...
+  [GFA-Transformer] AUROC: 0.6344
+
+=======================================================
+GFA-Transformer seed=65 (2/2)
+=======================================================
+  [GFA-Transformer] P1: SupCon+KD...
+  [GFA-Transformer] P2: Sup+KD...
+    ep0: va=0.6114
+    ep5: va=0.6272
+    ep10: va=0.6489
+    ep15: va=0.6796
+    ep20: va=0.6869
+    ep25: va=0.6916
+    Best: 0.6920
+  [GFA-Transformer] P3: Episodic...
+    ep0: 8295166.5000
+    ep500: 1887058.6250
+    ep1000: 13415803.0000
+    ep1500: 25824.3477
+  [GFA-Transformer] Evaluating...
+  [GFA-Transformer] AUROC: 0.6866
+
+=======================================================
+MLP-Mixer seed=79 (1/2)
+=======================================================
+  [MLP-Mixer] P1: SupCon+KD...
+  [MLP-Mixer] P2: Sup+KD...
+    ep0: va=0.6332
+    ep5: va=0.6559
+    ep10: va=0.6710
+    ep15: va=0.6767
+    ep20: va=0.6761
+    Best: 0.6767
+  [MLP-Mixer] P3: Episodic...
+    ep0: 331992.4375
+    ep500: 212827.4688
+    ep1000: 916386.6875
+    ep1500: 742753.4375
+  [MLP-Mixer] Evaluating...
+  [MLP-Mixer] AUROC: 0.5398
+
+=======================================================
+MLP-Mixer seed=83 (2/2)
+=======================================================
+  [MLP-Mixer] P1: SupCon+KD...
+  [MLP-Mixer] P2: Sup+KD...
+    ep0: va=0.6234
+    ep5: va=0.6612
+    ep10: va=0.6713
+    ep15: va=0.6696
+    ep20: va=0.6656
+    Best: 0.6713
+  [MLP-Mixer] P3: Episodic...
+    ep0: 1988438.6250
+    ep500: 637235.0625
+    ep1000: 21947182.0000
+    ep1500: 185038.1562
+  [MLP-Mixer] Evaluating...
+  [MLP-Mixer] AUROC: 0.6283
+
+Simple Ensemble AUROC: 0.7254
+
+XGBoost Stacking...
+  Blend alpha: 0.95, val AUROC: 1.0000
+
+Conformal prediction...
+  qhat: 0.3039, avg set size: 1.40
+
+=======================================================
+FINAL V6 RESULTS
+=======================================================
+
+[A] Heterogeneous Few-Shot Ensemble:
+    AUROC: 0.7254 [0.6761, 0.7729]
+    F1: 0.6550  MCC: 0.3258  Acc: 0.6625
+
+[B] V6 Stacked (XGBoost + LR blend):
+    AUROC: 0.6891 [0.6359, 0.7423]
+    F1: 0.6335  MCC: 0.2681  Acc: 0.6525
+    Brier: 0.2193
+  FT-Transformer: AUROC=0.7067 F1=0.2714
+  GFA-Transformer: AUROC=0.6922 F1=0.2714
+  MLP-Mixer: AUROC=0.6416 F1=0.2714
+  Model 0: AUROC=0.6812
+  Model 1: AUROC=0.6598
+  Model 2: AUROC=0.6344
+  Model 3: AUROC=0.6866
+  Model 4: AUROC=0.5398
+  Model 5: AUROC=0.6283
+
+  Time: 2490s
+Saved to results/exp_fewshot_v6.json
+DONE

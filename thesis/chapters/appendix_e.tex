@@ -1,0 +1,94 @@
+\chapter{Mathematical Derivations}
+\label{app:math}
+
+This appendix provides mathematical derivations for key components.
+
+%==============================================================================
+\section{AUROC Definition}
+%==============================================================================
+
+The Area Under the ROC Curve (AUROC) is defined as:
+\begin{equation}
+\text{AUROC} = \int_0^1 \text{TPR}(t) \, d(\text{FPR}(t)) = \int_0^1 \text{TPR}(\text{FPR}^{-1}(u)) \, du
+\end{equation}
+where TPR (true positive rate) and FPR (false positive rate) are functions of the decision threshold $t$. Equivalently, AUROC equals the probability that a randomly chosen positive example is ranked higher than a randomly chosen negative example:
+\begin{equation}
+\text{AUROC} = P(\text{score}(X^+) > \text{score}(X^-))
+\end{equation}
+AUROC is threshold-invariant and suitable for imbalanced classification.
+
+%==============================================================================
+\section{Macro F1-score}
+%==============================================================================
+
+For binary classification with classes 0 and 1:
+\begin{equation}
+F1_k = \frac{2 \cdot \text{Precision}_k \cdot \text{Recall}_k}{\text{Precision}_k + \text{Recall}_k}
+\end{equation}
+Macro F1-score is the mean over classes:
+\begin{equation}
+F1_{\text{macro}} = \frac{F1_0 + F1_1}{2}
+\end{equation}
+This treats both classes equally, important for imbalanced data.
+
+%==============================================================================
+\section{Matthews Correlation Coefficient}
+%==============================================================================
+
+MCC is defined as:
+\begin{equation}
+\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}
+\end{equation}
+MCC ranges in $[-1, 1]$, with 0 indicating random prediction. It is symmetric and robust to class imbalance.
+
+%==============================================================================
+\section{Prototypical Loss Gradient}
+%==============================================================================
+
+For prototypical networks with cross-entropy loss $\mathcal{L} = -\log p(y|x)$, the gradient with respect to the query embedding $f_\theta(x)$ is:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial f_\theta(x)} = \frac{1}{\tau} \left( \mathbf{c}_{y} - \sum_{k} p(y=k|x) \mathbf{c}_k \right)
+\end{equation}
+where $\mathbf{c}_k$ is the prototype of class $k$. The gradient pulls the query toward its true prototype and pushes it away from others.
+
+%==============================================================================
+\section{Focal Loss}
+%==============================================================================
+
+Focal loss down-weights easy examples:
+\begin{equation}
+\mathcal{L}_{\text{focal}} = -\alpha (1-p_t)^\gamma \log(p_t)
+\end{equation}
+where $p_t = p(y|x)$ is the predicted probability of the true class. For $\gamma > 0$, easy examples ($p_t \approx 1$) contribute less. We use $\gamma = 2$.
+
+%==============================================================================
+\section{FedAvg Update Rule}
+%==============================================================================
+
+Federated Averaging aggregates local updates by weighted average:
+\begin{equation}
+\theta_{t+1} = \sum_{k=1}^{K} \frac{n_k}{n} \theta_{t+1}^{(k)}
+\end{equation}
+where $n_k$ is the number of samples at client $k$, $n = \sum_k n_k$, and $\theta_{t+1}^{(k)}$ is the model after local training on client $k$. This preserves the expected gradient of the global objective when data are IID; under non-IID, convergence may be slower.
+
+%==============================================================================
+\section{Self-Attention}
+%==============================================================================
+
+For input sequence $\mathbf{X} \in \mathbb{R}^{L \times d}$, self-attention computes:
+\begin{equation}
+\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right) \mathbf{V}
+\end{equation}
+where $\mathbf{Q} = \mathbf{X}\mathbf{W}_Q$, $\mathbf{K} = \mathbf{X}\mathbf{W}_K$, $\mathbf{V} = \mathbf{X}\mathbf{W}_V$. Multi-head attention runs $h$ such operations in parallel and concatenates the outputs. We use $h=8$ heads in ETHOS.
+
+%==============================================================================
+\section{Bootstrap Confidence Interval}
+%==============================================================================
+
+For AUROC, we compute 95\% bootstrap CI by resampling the test set $B=1000$ times with replacement. For each bootstrap sample $b$, we compute $\hat{A}_b = \text{AUROC}(y, \hat{y}_b)$. The CI is $[\hat{A}_{(25)}, \hat{A}_{(975)}]$ where subscripts denote percentiles of the bootstrap distribution.
+
+%==============================================================================
+\section{DeLong Test}
+%==============================================================================
+
+DeLong's test~\cite{delong1988comparing} compares two correlated ROC curves. For paired predictions $(s_1, s_2)$ on the same samples, the test statistic is based on the difference in empirical AUC. Under the null (equal AUC), the statistic is asymptotically normal. We report $p < 0.01$ for RF vs.\ ETHOS.

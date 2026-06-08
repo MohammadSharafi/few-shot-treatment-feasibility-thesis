@@ -1,0 +1,113 @@
+\chapter{MIMIC-IV SQL Queries}
+\label{app:sql}
+
+This appendix provides representative SQL queries used for cohort and feature extraction from MIMIC-IV. Actual extraction uses DuckDB for performance.
+
+%==============================================================================
+\section{Cohort Extraction}
+%==============================================================================
+
+\begin{lstlisting}[language=SQL, caption={Cohort: First ICU Stay, Min 4h LOS}]
+SELECT 
+  ie.subject_id, ie.hadm_id, ie.stay_id,
+  ie.intime, ie.outtime,
+  EXTRACT(EPOCH FROM (ie.outtime - ie.intime))/3600 AS los_hours
+FROM icu.icustays ie
+JOIN patients p ON ie.subject_id = p.subject_id
+WHERE EXTRACT(EPOCH FROM (ie.outtime - ie.intime))/3600 >= 4
+  AND p.anchor_age >= 18
+ORDER BY ie.subject_id, ie.intime
+LIMIT 1 PER subject_id;
+\end{lstlisting}
+
+%==============================================================================
+\section{Lab Extraction}
+%==============================================================================
+
+\begin{lstlisting}[language=SQL, caption=Labs from First 24h]
+SELECT 
+  le.subject_id, le.hadm_id, le.stay_id,
+  le.itemid, le.valuenum, le.charttime
+FROM hosp.labevents le
+JOIN cohort c ON le.hadm_id = c.hadm_id
+WHERE le.charttime BETWEEN c.intime AND c.intime + INTERVAL '24 hours'
+  AND le.itemid IN (50912, 50971, 50983, 50902, 50931, ...)
+  AND le.valuenum IS NOT NULL;
+\end{lstlisting}
+
+%==============================================================================
+\section{Vital Extraction}
+%==============================================================================
+
+\begin{lstlisting}[language=SQL, caption=Vitals from First 24h]
+SELECT 
+  ce.subject_id, ce.hadm_id, ce.stay_id,
+  ce.itemid, ce.valuenum, ce.charttime
+FROM icu.chartevents ce
+JOIN cohort c ON ce.stay_id = c.stay_id
+WHERE ce.charttime BETWEEN c.intime AND c.intime + INTERVAL '24 hours'
+  AND ce.itemid IN (220045, 220050, 220051, 220052, ...)
+  AND ce.valuenum IS NOT NULL;
+\end{lstlisting}
+
+%==============================================================================
+\section{Label: Discharge Location}
+%==============================================================================
+
+\begin{lstlisting}[language=SQL, caption=Feasible Discharge]
+SELECT 
+  a.hadm_id,
+  CASE WHEN a.discharge_location IN (
+    'HOME', 'HOME HEALTH CARE', 
+    'REHAB/DISTINCT PART HOSP', 'REHAB'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM admissions readmit 
+    WHERE readmit.subject_id = a.subject_id 
+      AND readmit.admittime BETWEEN 
+        a.discharge_location_time AND 
+        a.discharge_location_time + INTERVAL '30 days'
+  ) THEN 1 ELSE 0 END AS feasible
+FROM admissions a;
+\end{lstlisting}
+
+%==============================================================================
+\section{Primary Diagnosis for Disease Nodes}
+%==============================================================================
+
+\begin{lstlisting}[language=SQL, caption=Assign Primary ICD-10 to Nodes]
+SELECT hadm_id,
+  CASE 
+    WHEN icd_code LIKE 'A40%' OR icd_code LIKE 'A41%' 
+         OR icd_code = 'R652' THEN 1
+    WHEN icd_code LIKE 'I21%' OR icd_code LIKE 'I22%' 
+         OR icd_code LIKE 'I25%' OR icd_code LIKE 'I50%' 
+         OR icd_code LIKE 'I47%' OR icd_code LIKE 'I48%' 
+         OR icd_code LIKE 'I49%' THEN 2
+    WHEN icd_code LIKE 'J18%' OR icd_code LIKE 'J44%' 
+         OR icd_code LIKE 'J96%' OR icd_code LIKE 'J80%' 
+         OR icd_code LIKE 'J15%' THEN 3
+    WHEN icd_code LIKE 'N17%' OR icd_code LIKE 'N18%' 
+         OR icd_code LIKE 'N19%' THEN 4
+    WHEN icd_code LIKE 'E10%' OR icd_code LIKE 'E11%' 
+         OR icd_code LIKE 'E13%' THEN 5
+    ELSE 0
+  END AS node_id
+FROM diagnoses_icd
+WHERE seq_num = 1;
+\end{lstlisting}
+
+%==============================================================================
+\section{Aggregation: First Value per Stay}
+%==============================================================================
+
+For labs and vitals, we aggregate the first 24 hours using median (or first value) per itemid per stay. The following illustrates the aggregation logic (pseudocode):
+
+\begin{lstlisting}[language=Python, caption=Aggregation Logic]
+def aggregate_first_24h(events, intime, window_hours=24):
+    end_time = intime + timedelta(hours=window_hours)
+    mask = (events['charttime'] >= intime) & (events['charttime'] <= end_time)
+    filtered = events.loc[mask]
+    # Per itemid: take median (or first) value
+    agg = filtered.groupby('itemid')['valuenum'].median()
+    return agg
+\end{lstlisting}

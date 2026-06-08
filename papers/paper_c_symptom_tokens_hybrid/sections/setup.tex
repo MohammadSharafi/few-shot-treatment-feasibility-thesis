@@ -1,0 +1,15 @@
+\section{Experimental setup}
+\label{sec:setup}
+
+\subsection{Cohort and label}
+MIMIC-IV v3.1~\citep{johnson2023mimic}; $n{=}2{,}000$; treatment feasibility label as in thesis; 64/16/20 split; seed 42.
+
+\subsection{Metrics}
+Primary: test AUROC; secondary: F1-macro, accuracy, MCC, AUPRC where exported. Bootstrap CIs from \texttt{exp\_fewshot\_best.json}.
+
+\subsection{Comparators}
+\begin{itemize}
+  \item Tuned tabular models (\texttt{exp\_tabular\_sota.csv}, \texttt{exp\_final\_best\_model.csv}).
+  \item Few-shot-only BEST and Stacked BEST (\texttt{exp\_fewshot\_best.json}).
+  \item Exp1 RF and \texttt{Proposed\_FewShot} for controlled gap reporting (\texttt{exp1\_results.csv}).
+\end{itemize}

@@ -1,0 +1,52 @@
+\chapter{Mathematical Derivations and Proofs}
+\label{app:math_derivations}
+
+This appendix provides mathematical derivations supporting our methodology.
+
+%==============================================================================
+\section{Prototypical Loss Gradient}
+%==============================================================================
+
+For prototypical networks with cross-entropy loss, the gradient of the loss with respect to the query embedding $f_\theta(x)$ can be derived as follows. Let $p_k = \exp(z_k) / \sum_{k'} \exp(z_{k'})$ where $z_k = \langle f_\theta(x), \mathbf{c}_k \rangle / \tau$. For true class $y$:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial f_\theta(x)} = \frac{1}{\tau} \sum_k (p_k - \mathbb{1}[y=k]) \mathbf{c}_k
+\end{equation}
+The gradient pushes the query embedding toward the true prototype and away from the false prototype, with magnitude scaled by the temperature $\tau$.
+
+%==============================================================================
+\section{Focal Loss Formulation}
+%==============================================================================
+
+The focal loss~\cite{lin2017focal} is:
+\begin{equation}
+\mathcal{L}_{\text{focal}} = -\alpha (1-p_t)^\gamma \log(p_t)
+\end{equation}
+where $p_t$ is the predicted probability for the true class. For $\gamma = 0$, this reduces to cross-entropy. For $\gamma > 0$, easy examples (high $p_t$) are down-weighted by $(1-p_t)^\gamma$, focusing the loss on hard examples. We use $\gamma = 2$ and $\alpha$ from class weights to handle the 42/58 imbalance.
+
+%==============================================================================
+\section{DeLong's Test for ROC Comparison}
+%==============================================================================
+
+DeLong's test compares two correlated ROC curves by computing the covariance of the AUC estimates. Under the null hypothesis that the two curves have equal AUC, the test statistic is asymptotically normal. We use the implementation in \texttt{scipy.stats} or \texttt{pinguoin} for paired ROC comparison. A $p$-value $< 0.05$ indicates statistically significant difference; we report $p < 0.01$ for RF vs.\ ETHOS.
+
+%==============================================================================
+\section{Bootstrap Confidence Intervals}
+%==============================================================================
+
+For bootstrap CIs, we resample the test set with replacement 1,000 times, compute AUROC for each resample, and take the 2.5th and 97.5th percentiles as the 95\% CI. This assumes the test set is representative; for small test sets, the CI may be wide. Our test set of 400 samples yields CIs of width $\approx$0.10--0.12 for AUROC.
+
+%==============================================================================
+\section{SOFA Proxy Derivation}
+%==============================================================================
+
+The SOFA (Sequential Organ Failure Assessment) score is a clinical tool for quantifying organ dysfunction. We use a simplified proxy:
+\begin{equation}
+\text{SOFA}_{\text{proxy}} = w_1(1 - \text{creatinine}) + w_2(1 - \text{platelets}) + w_3(1 - \text{SpO}_2) + w_4(1 - \text{lactate})
+\end{equation}
+where each component is normalized to [0,1] and $w_i$ are equal weights (0.25). Higher values indicate worse function. We use (1 - value) so that elevated creatinine (bad) maps to low (1 - creatinine). The proxy correlates with feasibility: higher SOFA $\to$ lower feasibility, as expected clinically.
+
+%==============================================================================
+\section{Shock Index}
+%==============================================================================
+
+Shock index = Heart Rate / Systolic Blood Pressure. Normal range: 0.5--0.7. Values $>$1.0 indicate hemodynamic instability. We normalize to [0,1] using clip and min-max. High shock index is associated with infeasible discharge (hemodynamic instability delays safe discharge).

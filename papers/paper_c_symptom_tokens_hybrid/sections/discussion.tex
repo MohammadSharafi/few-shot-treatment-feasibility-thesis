@@ -1,0 +1,14 @@
+\section{Discussion}
+\label{sec:discuss}
+
+\subsection{Representation trade-offs}
+Ablations (thesis Exp4) show intensity weighting matters and that bypassing tokens can increase AUROC in some configurations---honest reporting of such tensions strengthens scientific credibility.
+
+\subsection{Data scale}
+$n{=}2{,}000$ supports method comparison but limits transformer capacity; larger ICU corpora may change relative rankings~\citep{purushotham2018benchmarking}.
+
+\subsection{Limitations}
+Single-center retrospective data; simplified outcome; stacking meta-learner fit on finite validation data; MCC for few-shot-only near zero reflects thresholding in export.
+
+\subsection{Future work}
+Federated training of stacked models, multimodal notes + labs, and prospective validation.

@@ -1,0 +1,20 @@
+\section{Discussion}
+\label{sec:discuss}
+
+\subsection{Why tabular models are strong}
+Tree ensembles partition the feature space with axis-aligned splits, handle heterogeneous scales, and are relatively stable at $n \approx 10^3$~\citep{awad2017random,caruana2015intelligible}. Neural encoders must learn symmetries and interactions from fewer effective samples and may discard information when compressing to embeddings---consistent with ablation~\ref{tab:exp4} where raw-feature paths can exceed full token+episodic configurations on AUROC.
+
+\subsection{Role of stacking}
+Stacking provides a principled way to combine \textbf{complementary} errors: forests emphasize tabular interactions; embeddings capture alternative geometry after contrastive and distillation training. Isotonic calibration mitigates miscalibration of base learners on small validation sets.
+
+\subsection{Federated gap}
+The $\approx 0.5$ percentage-point AUROC cost (Table~\ref{tab:exp3}) is encouraging for privacy-preserving \emph{research} workflows but does not imply production readiness: real FL introduces stragglers, dropouts, and adversarial clients~\citep{kairouz2021advances}.
+
+\subsection{Generalization across disease nodes}
+Table~\ref{tab:exp5} shows poor transfer to renal and diabetes holdouts---groups with distinct lab distributions. Future work: larger $n$, multi-task pretraining, or explicit domain adaptation.
+
+\subsection{Limitations}
+Single-center MIMIC data; simplified binary label; no prospective validation; some metrics (MCC for few-shot-only BEST) near zero reflect thresholding choices in export; multiple experimental scripts mean readers must track \textbf{provenance}.
+
+\subsection{Clinical deployment}
+Models are \textbf{not} validated for clinical decision-making. Deployment would require prospective evaluation, fairness audits, monitoring, and governance~\citep{ghassemi2021practical}.

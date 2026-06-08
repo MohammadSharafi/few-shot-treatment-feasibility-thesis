@@ -1,0 +1,29 @@
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Outcome, features, and cohort}
+We mirror the thesis benchmark: binary treatment feasibility from MIMIC-IV v3.1~\citep{johnson2023mimic}, $n{=}2{,}000$ stratified stays, 25-D tabular features from first 24\,h (15 labs, 7 vitals, 3 engineered), fixed 64/16/20 split. \textbf{Nodes} correspond to primary diagnosis groups (five groups).
+
+\subsection{Client model}
+Each client trains a Symptom Token + ETHOS encoder with prototypical few-shot loss~\citep{sharafi2023ethos,snell2017prototypical} on episodic batches drawn \emph{only} from local patients. Hyperparameters match thesis Experiment~3 (learning rate, local epochs, rounds---see repository \texttt{experiments/}).
+
+\subsection{Centralized baseline}
+The centralized trainer uses the \textbf{union} of all training patients (still no test leakage) with the same architecture and schedule, providing an upper bound within the few-shot model class \emph{without} partition noise.
+
+\subsection{Evaluation}
+We report global test AUROC and F1-macro on the held-out 400 patients for both centralized and federated global models after training completes.
+
+\begin{algorithm}[htbp]
+\caption{Federated few-shot training (outline)}
+\label{alg:fedfs}
+\begin{algorithmic}[1]
+\State Initialize global $\theta_0$
+\For{round $t = 0,1,\ldots,T-1$}
+  \For{each client $i \in \{1,\ldots,m\}$ \textbf{in parallel}}
+    \State $\theta^{(i)} \leftarrow \text{LocalEpisodicTrain}(\theta_t, \mathcal{D}_i, E)$
+  \EndFor
+  \State $\theta_{t+1} \leftarrow \sum_i (|\mathcal{D}_i|/|\mathcal{D}|)\, \theta^{(i)}$
+\EndFor
+\State Evaluate $\theta_T$ on global test set
+\end{algorithmic}
+\end{algorithm}

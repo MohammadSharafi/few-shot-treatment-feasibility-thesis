@@ -1,0 +1,6 @@
+\section{Node definitions}
+\label{app:nodes}
+Nodes follow primary ICD-10 groups: (1)~sepsis (e.g., A40--A41, R65); (2)~cardiac (e.g., I21, I50); (3)~respiratory (e.g., J18, J44); (4)~renal (N17--N19); (5)~diabetes (E10--E13). Exact mapping tables are in thesis \texttt{extraction/} and appendices.
+
+\section{Communication cost sketch}
+Let model size be $|\theta|$ parameters, $T$ rounds. Naive FedAvg uploads/downloads $\mathcal{O}(T \cdot |\theta|)$ per client; compression and partial updates can reduce bandwidth~\citep{kairouz2021advances}.

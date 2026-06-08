@@ -1,0 +1,24 @@
+\section{Task definition and cohort}
+\label{sec:task}
+
+\subsection{Outcome: treatment feasibility}
+We define \textbf{treatment feasibility} as a binary label $y \in \{0,1\}$ derived from MIMIC-IV v3.1~\citep{johnson2023mimic} discharge and readmission logic (thesis and repository code): $y{=}1$ if the patient is discharged to home, home health care, or rehabilitation within 30 days of ICU admission \emph{and} has no all-cause readmission within 30 days; otherwise $y{=}0$. This operationalization aligns with value-based care incentives but simplifies functional status and social determinants.
+
+\subsection{Inclusion criteria}
+We include first ICU stays with: length of stay $\geq 4$\,h, age $\geq 18$, and mappable primary ICD-10 diagnosis for stratification. From eligible stays we draw $n{=}2{,}000$ patients with \textbf{stratified sampling} across five diagnosis groups (sepsis, cardiac, respiratory, renal, diabetes) to preserve rare groups.
+
+\subsection{Features and time window}
+For each stay we aggregate \textbf{15 laboratory} and \textbf{7 vital} channels from the first 24\,h of ICU time. Values are clipped to clinician-defined ranges, then min--max normalized to $[0,1]$. We add three engineered features: shock index (HR/SBP), a four-domain SOFA proxy from normalized creatinine, platelets, SpO$_2$, and lactate, and an abnormal-lab fraction. The \textbf{tabular} vector is $\mathbf{x} \in \mathbb{R}^{25}$.
+
+\subsection{Data split and leakage control}
+Train/validation/test proportions are \textbf{64\%/16\%/20\%} (1{,}280 / 320 / 400 patients) with stratification by label and node. Random seed is fixed (\texttt{seed=42}). Threshold tuning for classical models uses \emph{only} the validation set; test metrics are reported once. Few-shot models use episodic sampling on the training set and episode-based validation for early stopping.
+
+\subsection{Ethics}
+MIMIC-IV is de-identified; use requires PhysioNet credentialing and data use agreement. This secondary analysis does not involve live patient contact.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{\input{../../thesis/latex/mimic_iv_schema.tex}}
+  \caption{MIMIC-IV extraction and preprocessing schema (TikZ; publication-style monochrome). Join keys and dual outputs match the analysis pipeline.}
+  \label{fig:schema}
+\end{figure}

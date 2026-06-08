@@ -1,0 +1,50 @@
+% Full-length draft: Symptom Tokens + ETHOS + neural-classical stacking
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{authblk}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\graphicspath{{../../results/figures/}}
+
+\newtheorem{definition}{Definition}
+
+\title{\textbf{Symptom Tokens, Transformer Encoders, and Calibrated Stacking\\for ICU Treatment Feasibility on MIMIC-IV}}
+\author[1]{Mohammad Sharafi}
+\author[1]{Dr.\ Alimohammadzadeh}
+\affil[1]{Islamic Azad University, Tehran North Branch, Iran}
+\date{Manuscript draft \today\ --- expanded from doctoral thesis}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/related}
+\input{sections/tokens}
+\input{sections/ethos}
+\input{sections/stacking}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/interpretability}
+\input{sections/discussion}
+\input{sections/conclusion}
+\input{sections/backmatter}
+
+\appendix
+\input{sections/appendix}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,74 @@
+\chapter{\texorpdfstring{مشخصات رابط برنامه‌نویسی کاربردی (\lr{API})}{مشخصات رابط برنامه‌نویسی کاربردی (API)}}
+\label{app:api}
+
+این پیوست مشخصات رابط برنامه‌نویسی کاربردی \lr{REST API} برای استقرار مدل پیش‌بینی امکان‌پذیری درمان را ارائه می‌کند.
+
+%==============================================================================
+\section{نمای کلی}
+%==============================================================================
+
+این رابط برنامه‌نویسی سه نقطه‌ی پایانی دارد:
+\begin{itemize}
+\item \texttt{\lr{POST /predict}}؛ پیش‌بینی امکان‌پذیری از ورودی آزمایش/علامت حیاتی
+\item \texttt{\lr{GET /model}}؛ فراداده و نسخه‌ی مدل
+\item \texttt{\lr{POST /explain}}؛ توضیح \lr{SHAP} برای یک پیش‌بینی
+\end{itemize}
+
+آدرس پایه: \texttt{\lr{https://api.example.com/v1}}
+
+%==============================================================================
+\section{نقاط پایانی}
+%==============================================================================
+
+\subsection{\texttt{\lr{POST /predict}}}
+
+\textbf{درخواست:}
+\begin{latin}\begin{lstlisting}
+{
+  "patient_id": "string",
+  "features": {
+    "creatinine": 1.2,
+    "glucose": 120,
+    "hemoglobin": 10.5
+  }
+}
+\end{lstlisting}\end{latin}
+
+\textbf{پاسخ:}
+\begin{latin}\begin{lstlisting}
+{
+  "patient_id": "string",
+  "feasible": true,
+  "probability": 0.72,
+  "model_version": "1.0"
+}
+\end{lstlisting}\end{latin}
+
+\subsection{\texttt{\lr{GET /model}}}
+
+فراداده‌ی مدل را برمی‌گرداند: نسخه، \lr{AUROC}، تاریخ آموزش، فهرست ویژگی‌ها.
+
+\subsection{\texttt{\lr{POST /explain}}}
+
+بدنه‌ی درخواست همان \texttt{\lr{/predict}}. مقادیر \lr{SHAP} به‌ازای هر ویژگی برای پیش‌بینی را برمی‌گرداند.
+
+%==============================================================================
+\section{\texorpdfstring{خلاصه‌ی مشخصات \lr{OpenAPI}}{خلاصه مشخصات OpenAPI}}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{خلاصه‌ی نقاط پایانی رابط برنامه‌نویسی کاربردی}
+\begin{tabular}{llr}
+\toprule
+روش & مسیر & توضیح \\
+\midrule
+\lr{POST} & \lr{/predict} & پیش‌بینی امکان‌پذیری \\
+\lr{GET} & \lr{/model} & فراداده‌ی مدل \\
+\lr{POST} & \lr{/explain} & توضیح \lr{SHAP} \\
+\bottomrule
+\end{tabular}
+\label{tab:api_endpoints}
+\end{table}
+
+احراز هویت: کلید \lr{API} در هدر \texttt{\lr{X-API-Key}}. محدودیت نرخ: \pnum{100} درخواست در دقیقه.

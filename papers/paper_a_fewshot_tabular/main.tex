@@ -1,0 +1,49 @@
+% Full-length Q1-style draft: few-shot vs tabular (MIMIC-IV treatment feasibility)
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{authblk}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\graphicspath{{../../results/figures/}}
+
+\newtheorem{remark}{Remark}
+
+\title{\textbf{Bridging Few-Shot Meta-Learning and Strong Tabular Baselines\\for ICU Treatment Feasibility Prediction on MIMIC-IV}}
+\author[1]{Mohammad Sharafi}
+\author[1]{Dr.\ Alimohammadzadeh}
+\affil[1]{Islamic Azad University, Tehran North Branch, Iran\\\texttt{mohammad.sharafi@student.iau.ac.ir} (update for submission)}
+\date{Manuscript draft \today\ --- expanded from doctoral thesis}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/related}
+\input{sections/task_cohort}
+\input{sections/methods}
+\input{sections/experiments_design}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+\input{sections/backmatter}
+
+\appendix
+\input{sections/appendix_algorithms}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

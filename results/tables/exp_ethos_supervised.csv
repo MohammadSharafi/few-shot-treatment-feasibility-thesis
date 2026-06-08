@@ -1,0 +1,2 @@
+model,auroc,f1_macro,accuracy,mcc,threshold
+ETHOS_Supervised,0.6100965266450974,0.38556067588325654,0.6275,0.0,0.3

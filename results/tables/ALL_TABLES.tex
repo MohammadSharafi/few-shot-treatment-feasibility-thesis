@@ -1,0 +1,113 @@
+
+\begin{table}[htbp]
+\centering
+\caption{آزمایش \pnum{1}: مقایسۀ مدل‌های اصلی (خروجی خودکار مخزن)}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+مدل & \lr{AUROC} & \lr{F1} & دقت & \lr{MCC} \\
+\midrule
+
+\lr{Logistic Regression} & \cnum{0.724} & \cnum{0.682} & \cnum{0.700} & \cnum{0.364} \\
+
+\lr{Random Forest} & \cnum{0.762} & \cnum{0.679} & \cnum{0.718} & \cnum{0.372} \\
+
+\lr{XGBoost} & \cnum{0.694} & \cnum{0.632} & \cnum{0.662} & \cnum{0.266} \\
+
+\lr{Standard NN} & \cnum{0.652} & \cnum{0.616} & \cnum{0.660} & \cnum{0.242} \\
+
+\lr{Federated NN} (بدون کم‌نمونه) & \cnum{0.662} & \cnum{0.618} & \cnum{0.642} & \cnum{0.236} \\
+
+مدل پیشنهادی کم‌نمونه & \cnum{0.611} & \cnum{0.572} & \cnum{0.583} & \cnum{0.155} \\
+
+\bottomrule
+\end{tabular*}
+\label{tab:exp1}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{آزمایش \pnum{2}: حساسیت \lr{K-shot} (خروجی خودکار مخزن)}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}cccc@{}}
+\toprule
+\lr{K} & \lr{AUROC} & انحراف معیار \lr{AUROC} & \lr{F1} \\
+\midrule
+
+1.0 & \cnum{0.564} & \cnum{0.022} & \cnum{0.554} \\
+
+3.0 & \cnum{0.564} & \cnum{0.025} & \cnum{0.548} \\
+
+5.0 & \cnum{0.560} & \cnum{0.029} & \cnum{0.539} \\
+
+10.0 & \cnum{0.557} & \cnum{0.021} & \cnum{0.534} \\
+
+15.0 & \cnum{0.557} & \cnum{0.021} & \cnum{0.534} \\
+
+\bottomrule
+\end{tabular*}
+\label{tab:exp2}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{آزمایش \pnum{3}: فدرال در برابر متمرکز (خروجی خودکار مخزن)}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc@{}}
+\toprule
+چیدمان & \lr{AUROC} & \lr{F1} \\
+\midrule
+
+متمرکز & \cnum{0.552} & \cnum{0.543} \\
+
+فدرال & \cnum{0.547} & \cnum{0.540} \\
+
+شکاف & \cnum{0.005} & \cnum{0.003} \\
+
+\bottomrule
+\end{tabular*}
+\label{tab:exp3}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{آزمایش \pnum{4}: مطالعۀ حذف تدریجی (خروجی خودکار مخزن)}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc@{}}
+\toprule
+گونه & \lr{AUROC} & \lr{F1} \\
+\midrule
+
+مدل کامل & \cnum{0.583} & \cnum{0.554} \\
+
+بدون توکن‌های علائم & \cnum{0.724} & \cnum{0.628} \\
+
+بدون سوگیری بالینی & \cnum{0.584} & \cnum{0.557} \\
+
+بدون وزن‌دهی شدت & \cnum{0.577} & \cnum{0.570} \\
+
+بدون افت زمانی & \cnum{0.583} & \cnum{0.554} \\
+
+بدون سر کم‌نمونه & \cnum{0.645} & \cnum{0.584} \\
+
+\bottomrule
+\end{tabular*}
+\label{tab:exp4}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{آزمایش \pnum{5}: تعمیم بین‌بیماری (خروجی خودکار مخزن)}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+گرۀ آزمون & مدل پیشنهادی & \lr{LR} & \lr{XGBoost} & \lr{NN} \\
+\midrule
+
+گره \pnum{4} (کلیوی) & \cnum{0.602} & \cnum{0.668} & \cnum{0.704} & \cnum{0.572} \\
+
+گره \pnum{5} (دیابت) & \cnum{0.478} & \cnum{0.658} & \cnum{0.700} & \cnum{0.643} \\
+
+\bottomrule
+\end{tabular*}
+\label{tab:exp5}
+\end{table}

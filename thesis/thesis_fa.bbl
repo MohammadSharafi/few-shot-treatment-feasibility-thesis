@@ -1,0 +1,404 @@
+\begin{thebibliography}{}
+
+\bibitem[Alistarh et~al., 2017]{alistarh2017qsgd}
+Alistarh, D., Grubic, D., Li, J., Tomioka, R., and Vojnovic, M. (2017).
+\newblock Qsgd: Communication-efficient sgd via gradient quantization and
+  encoding.
+\newblock {\em Advances in Neural Information Processing Systems}, 30.
+
+\bibitem[Alsentzer et~al., 2019]{alsentzer2019publicly}
+Alsentzer, E., Murphy, J.~R., Boag, W., Weng, W.-H., Jindi, D., Naumann, T.,
+  and McDermott, M.~B. (2019).
+\newblock Publicly available clinical {BERT} embeddings.
+\newblock {\em arXiv preprint arXiv:1904.03323}.
+
+\bibitem[Arik and Pfister, 2021]{arik2021tabnet}
+Arik, S.~{\"O}. and Pfister, T. (2021).
+\newblock Tabnet: Attentive interpretable tabular learning.
+\newblock In {\em AAAI}.
+
+\bibitem[Awad et~al., 2017]{awad2017random}
+Awad, A., Bader-El-Den, M., and McNicholas, J. (2017).
+\newblock Random forest for predicting discharge destination of icu patients.
+\newblock {\em Journal of Biomedical Informatics}, 69:72--79.
+
+\bibitem[Ba et~al., 2016]{ba2016layer}
+Ba, J.~L., Kiros, J.~R., and Hinton, G.~E. (2016).
+\newblock Layer normalization.
+\newblock {\em arXiv preprint}.
+
+\bibitem[Bernstein et~al., 2018]{bernstein2018signsgd}
+Bernstein, J., Wang, Y.-X., Lee, K., and Swersky, K. (2018).
+\newblock signsgd: Compressed optimisation for non-convex problems.
+\newblock {\em International Conference on Machine Learning}, pages 560--569.
+
+\bibitem[Blanchard et~al., 2017]{blanchard2017machine}
+Blanchard, P., El~Mhamdi, E.~M., Guerraoui, R., and Stainer, J. (2017).
+\newblock Machine learning with adversaries: Byzantine tolerant gradient
+  descent.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~30.
+
+\bibitem[Bonawitz et~al., 2019]{bonawitz2019towards}
+Bonawitz, K., Eichner, H., Grieskamp, W., Huba, D., Ingerman, A., Ivanov, V.,
+  Kiddon, C., Kone{\v{c}}n{\'y}, J., Mazzocchi, S., et~al. (2019).
+\newblock Towards federated learning at scale: System design.
+\newblock In {\em MLSys}.
+
+\bibitem[Borisov et~al., 2022]{borisov2022deep}
+Borisov, V., Leemann, T., Se{\ss}ler, K., Haug, J., Pawelczyk, M., and Kasneci,
+  G. (2022).
+\newblock Deep neural networks and tabular data: A survey.
+\newblock {\em IEEE TPAMI}.
+
+\bibitem[Caruana et~al., 2015]{caruana2015intelligible}
+Caruana, R., Lou, Y., Gehrke, J., Koch, P., Sturm, M., and Elhadad, N. (2015).
+\newblock Intelligible models for healthcare: Predicting pneumonia risk and
+  hospital 30-day readmission.
+
+\bibitem[Chen et~al., 2020]{chen2020fedhealth}
+Chen, Y., Qin, X., Wang, J., Yu, C., and Gao, W. (2020).
+\newblock Fedhealth: A federated transfer learning framework for wearable
+  healthcare.
+\newblock {\em IEEE Intelligent Systems}, 35(4):83--93.
+
+\bibitem[Choi et~al., 2016]{choi2016doctor}
+Choi, E., Bahadori, M.~T., Schuetz, A., Stewart, W.~F., and Sun, J. (2016).
+\newblock Doctor ai: Predicting clinical events via recurrent neural networks.
+
+\bibitem[Chouldechova, 2017]{chouldechova2017fairness}
+Chouldechova, A. (2017).
+\newblock Fair prediction with disparate impact: A study of bias in recidivism
+  prediction instruments.
+\newblock {\em Big Data}, 5(2):153--163.
+
+\bibitem[DeLong et~al., 1988]{delong1988comparing}
+DeLong, E.~R., DeLong, D.~M., and Clarke-Pearson, D.~L. (1988).
+\newblock Comparing the areas under two or more correlated receiver operating
+  characteristic curves: A nonparametric approach.
+\newblock {\em Biometrics}, 44(3):837--845.
+
+\bibitem[Devlin et~al., 2019]{devlin2019bert}
+Devlin, J., Chang, M.-W., Lee, K., and Toutanova, K. (2019).
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+
+\bibitem[Dhillon et~al., 2020]{dhillon2019baseline}
+Dhillon, G.~S., Chaudhary, K., Ravichandran, A., and Soatto, S. (2020).
+\newblock A baseline for few-shot image classification.
+\newblock In {\em ICLR}.
+
+\bibitem[Duan et~al., 2022]{duan2020federated}
+Duan, M., Liu, D., Chen, X., Liu, R., Tan, Y., and Liang, L. (2022).
+\newblock Federated learning for healthcare: A survey.
+\newblock {\em ACM Computing Surveys}.
+
+\bibitem[Finn et~al., 2017]{finn2017model}
+Finn, C., Abbeel, P., and Levine, S. (2017).
+\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+\newblock In {\em International Conference on Machine Learning}, pages
+  1126--1135. PMLR.
+
+\bibitem[Floridi et~al., 2018]{floridi2018ai4people}
+Floridi, L., Cowls, J., Beltrametti, M., Chatila, R., Chazerand, P., Dignum,
+  V., Luetge, C., Madelin, R., Pagallo, U., Rossi, F., et~al. (2018).
+\newblock Ai4people—an ethical framework for a good ai society.
+\newblock {\em Minds and Machines}, 28(4):689--707.
+
+\bibitem[Gerke et~al., 2020]{gerke2020ethical}
+Gerke, S., Minssen, T., and Cohen, G. (2020).
+\newblock Ethical and legal challenges of artificial intelligence-driven
+  healthcare.
+\newblock {\em Artificial Intelligence in Healthcare}, pages 295--336.
+
+\bibitem[Gorishniy et~al., 2024]{gorishniy2024revisiting}
+Gorishniy, Y., Rubachev, I., Khruikov, V., and Babenko, A. (2024).
+\newblock Revisiting deep learning models for tabular data.
+\newblock {\em IEEE TPAMI}.
+
+\bibitem[Han et~al., 2018]{han2018fewrel}
+Han, X., Zhu, H., Yu, P., Wang, Z., Yao, Y., Liu, Z., and Sun, M. (2018).
+\newblock Fewrel: A large-scale supervised few-shot relation classification
+  dataset with state-of-the-art evaluation.
+\newblock In {\em Proceedings of the 2018 Conference on Empirical Methods in
+  Natural Language Processing}, pages 4803--4809.
+
+\bibitem[Hanley and McNeil, 1982]{hanley1982meaning}
+Hanley, J.~A. and McNeil, B.~J. (1982).
+\newblock The meaning and use of the area under a receiver operating
+  characteristic (roc) curve.
+\newblock {\em Radiology}, 143(1):29--36.
+
+\bibitem[Harutyunyan et~al., 2019]{harutyunyan2019multitask}
+Harutyunyan, H., Khachatrian, H., Kale, D.~C., Ver~Steeg, G., and Galstyan, A.
+  (2019).
+\newblock Multitask learning and benchmarking with clinical time series data.
+\newblock {\em Scientific Data}, 6(1):1--18.
+
+\bibitem[He et~al., 2020]{he2020fedml}
+He, C., Li, S., So, J., Zhang, M., Wang, H., Wang, X., Vepakomma, P., Singh,
+  A., Qiu, H., Shen, L., et~al. (2020).
+\newblock Fedml: A research library and benchmark for federated machine
+  learning.
+\newblock In {\em NeurIPS}.
+
+\bibitem[Hegselmann et~al., 2023]{hegselmann2023tabllm}
+Hegselmann, S., Buendia, A., Lang, H., Agrawal, M., Ber, X., and Sontag, D.
+  (2023).
+\newblock Tabllm: Few-shot classification of tabular data with large language
+  models.
+\newblock {\em International Conference on Artificial Intelligence and
+  Statistics}, pages 5549--5581.
+
+\bibitem[Huang et~al., 2020]{huang2020tabtransformer}
+Huang, X., Khetan, A., Cvitkovic, M., and Karnin, Z. (2020).
+\newblock Tabtransformer: Tabular data modeling using contextual embeddings.
+\newblock In {\em arXiv preprint}.
+
+\bibitem[Jobin et~al., 2019]{jobin2019global}
+Jobin, A., Ienca, M., and Vayena, E. (2019).
+\newblock The global landscape of ai ethics guidelines.
+\newblock {\em Nature Machine Intelligence}, 1(9):389--399.
+
+\bibitem[Johnson et~al., 2023]{johnson2023mimic}
+Johnson, A., Bulgarelli, L., Pollard, T., Horng, S., Celi, L.~A., and Mark, R.
+  (2023).
+\newblock Mimic-iv, a freely accessible electronic health record dataset.
+\newblock {\em Scientific Data}, 10(1):1.
+
+\bibitem[Johnson et~al., 2016]{johnson2016mimic}
+Johnson, A.~E., Pollard, T.~J., Shen, L., Li-wei, H.~L., Feng, M., Ghassemi,
+  M., Moody, B., Szolovits, P., Celi, L.~A., and Mark, R.~G. (2016).
+\newblock Mimic-iii, a freely accessible critical care database.
+\newblock {\em Scientific Data}, 3(1):1--9.
+
+\bibitem[Kaissis et~al., 2020]{kaissis2021secure}
+Kaissis, G.~A., Makowski, M.~R., R{\"u}ckert, D., and Braren, R.~F. (2020).
+\newblock Secure, privacy-preserving and federated machine learning in medical
+  imaging.
+\newblock {\em Nature Machine Intelligence}, 2(6):305--311.
+
+\bibitem[Karimireddy et~al., 2020]{karimireddy2020scaffold}
+Karimireddy, S.~P., Jaggi, M., Kale, S., Mohri, M., Suresh, A.~T., et~al.
+  (2020).
+\newblock Scaffold: Stochastic controlled averaging for federated learning.
+\newblock In {\em ICML}.
+
+\bibitem[Kingma and Ba, 2015]{kingma2014adam}
+Kingma, D.~P. and Ba, J. (2015).
+\newblock Adam: A method for stochastic optimization.
+
+\bibitem[Koch et~al., 2015]{koch2015siamese}
+Koch, G., Zemel, R., and Salakhutdinov, R. (2015).
+\newblock Siamese neural networks for one-shot image recognition.
+\newblock In {\em ICML Deep Learning Workshop}.
+
+\bibitem[Lake et~al., 2015]{lake2015human}
+Lake, B.~M., Salakhutdinov, R., and Tenenbaum, J.~B. (2015).
+\newblock Human-level concept learning through probabilistic program induction.
+\newblock In {\em Science}, volume 350, pages 1332--1338.
+
+\bibitem[Lee et~al., 2020]{lee2020biobert}
+Lee, J., Yoon, W., Kim, S., Kim, D., Kim, S., So, C.~H., and Kang, J. (2020).
+\newblock Biobert: A pre-trained biomedical language representation model for
+  biomedical text mining.
+\newblock {\em Bioinformatics}, 36(4):1234--1240.
+
+\bibitem[Li et~al., 2020a]{li2020federated}
+Li, T., Sahu, A.~K., Talwalkar, A., and Smith, V. (2020a).
+\newblock Federated optimization in heterogeneous networks.
+\newblock In {\em Proceedings of Machine Learning and Systems}.
+
+\bibitem[Li et~al., 2020b]{li2020behrt}
+Li, Y., Rao, S., Solares, J. R.~A., Hassaine, A., Ramakrishnan, R., Canoy, D.,
+  Zhu, Y., Rahimi, K., and Salimi-Khorshidi, G. (2020b).
+\newblock Behrt: Transformer for electronic health records.
+\newblock {\em IEEE Journal of Biomedical and Health Informatics}.
+
+\bibitem[Lin et~al., 2017]{lin2017focal}
+Lin, T.-Y., Goyal, P., Girshick, R., He, K., and Doll{\'a}r, P. (2017).
+\newblock Focal loss for dense object detection.
+\newblock In {\em ICCV}.
+
+\bibitem[Lundberg and Lee, 2017]{lundberg2017unified}
+Lundberg, S.~M. and Lee, S.-I. (2017).
+\newblock A unified approach to interpreting model predictions.
+
+\bibitem[Makel et~al., 2012]{makel2012replications}
+Makel, M.~C., Plucker, J.~A., and Hegarty, B. (2012).
+\newblock Replications in psychology research: How often do they really occur?
+\newblock {\em Perspectives on Psychological Science}, 7(6):537--542.
+
+\bibitem[Matthews, 1975]{matthews1975comparison}
+Matthews, B.~W. (1975).
+\newblock Comparison of the predicted and observed secondary structure of t4
+  phage lysozyme.
+\newblock {\em Biochimica et Biophysica Acta}, 405(2):442--451.
+
+\bibitem[McMahan et~al., 2017]{mcmahan2017communication}
+McMahan, B., Moore, E., Ramage, D., Hampson, S., and y~Arcas, B.~A. (2017).
+\newblock Communication-efficient learning of deep networks from decentralized
+  data.
+\newblock {\em Artificial Intelligence and Statistics}, pages 1273--1282.
+
+\bibitem[Nichol et~al., 2018]{nichol2018reptile}
+Nichol, A., Achiam, J., and Schulman, J. (2018).
+\newblock On first-order meta-learning algorithms.
+\newblock {\em arXiv preprint arXiv:1803.02999}.
+
+\bibitem[Obermeyer et~al., 2019]{obermeyer2019dissecting}
+Obermeyer, Z., Powers, B., Vogeli, C., and Mullainathan, S. (2019).
+\newblock Dissecting racial bias in an algorithm used to manage the health of
+  populations.
+\newblock {\em Science}, 366(6464):447--453.
+
+\bibitem[Pham et~al., 2016]{pham2016deepcare}
+Pham, T., Tran, T., Phung, D., and Venkatesh, S. (2016).
+\newblock Deepcare: A deep dynamic memory model for predictive medicine.
+\newblock {\em Pacific-Asia Conference on Knowledge Discovery}.
+
+\bibitem[Prabhu et~al., 2019]{prabhu2019few}
+Prabhu, V., Kannan, A., Ravuri, M., Chaplain, M., Sontag, D., and Amatriain, X.
+  (2019).
+\newblock Few-shot learning for dermatological disease diagnosis.
+\newblock In {\em Machine Learning for Healthcare Conference}, pages 532--552.
+
+\bibitem[Purushotham et~al., 2018]{purushotham2018benchmarking}
+Purushotham, S., Meng, C., Zheng, Z., and Liu, Y. (2018).
+\newblock Benchmarking deep learning models on large healthcare datasets.
+\newblock {\em Journal of Biomedical Informatics}, 83:112--134.
+
+\bibitem[Rajkomar et~al., 2019]{rajkomar2019scalable}
+Rajkomar, A., Dean, J., and Kohane, I. (2019).
+\newblock Scalable and accurate deep learning with electronic health records.
+\newblock {\em NPJ Digital Medicine}, 2(1):1--10.
+
+\bibitem[Rajkomar et~al., 2018]{rajkomar2019ensuring}
+Rajkomar, A., Hardt, M., Howell, M.~D., Corrado, G., and Chin, M.~H. (2018).
+\newblock Ensuring fairness in machine learning to advance health equity.
+\newblock {\em Annals of Internal Medicine}, 169(12):866--872.
+
+\bibitem[Rasmy et~al., 2021]{rasmy2021med}
+Rasmy, L., Xiang, Y., Xie, Z., Tao, C., and Zhi, D. (2021).
+\newblock Med-bert: Pretrained contextualized embeddings on large-scale
+  structured electronic health records for disease prediction.
+\newblock {\em NPJ Digital Medicine}, 4(1):86.
+
+\bibitem[Ravi and Larochelle, 2017]{ravi2017optimization}
+Ravi, S. and Larochelle, H. (2017).
+\newblock Optimization as a model for few-shot learning.
+
+\bibitem[Reddi et~al., 2021]{reddi2020fedopt}
+Reddi, S., Charles, Z., Zaheer, M., Garrett, Z., Rush, K., Kone{\v{c}}n{\'y},
+  J., Kumar, S., and McMahan, H.~B. (2021).
+\newblock Adaptive federated optimization.
+\newblock In {\em ICLR}.
+
+\bibitem[Ribeiro et~al., 2016]{ribeiro2016should}
+Ribeiro, M.~T., Singh, S., and Guestrin, C. (2016).
+\newblock Why should i trust you?: Explaining the predictions of any
+  classifier.
+
+\bibitem[Rieke et~al., 2020]{rieke2020future}
+Rieke, N., Hanen, J., Jaderberg, M., et~al. (2020).
+\newblock The future of digital health with federated learning.
+\newblock {\em NPJ Digital Medicine}, 3(1):1--7.
+
+\bibitem[Shang et~al., 2020]{shang2020gbert}
+Shang, J., Ma, T., Xiao, C., and Sun, J. (2020).
+\newblock G-bert: Pre-training of graph augmented transformers for medication
+  recommendation.
+\newblock {\em IJCAI}.
+
+\bibitem[Sharafi and Aminian, 2023]{sharafi2023ethos}
+Sharafi, M. and Aminian, G. (2023).
+\newblock {ETHOS}: Efficient transformer for health outcome prediction using
+  symptom tokens.
+\newblock Technical report (thesis companion), Islamic Azad University, Tehran
+  North Branch.
+\newblock Encoder architecture extended in this thesis for few-shot treatment
+  feasibility on MIMIC-IV.
+
+\bibitem[Sheller et~al., 2020]{sheller2020federated}
+Sheller, M.~J., Edwards, B., Reina, G.~A., Martin, J., Pati, S., Kotrotsou, A.,
+  Milchenko, M., Xu, W., Marcus, D., Colen, R.~R., et~al. (2020).
+\newblock Federated learning in medicine: Facilitating multi-institutional
+  collaborations without sharing patient data.
+\newblock {\em Scientific Reports}, 10(1):12598.
+
+\bibitem[Smith et~al., 2017]{smith2017federated}
+Smith, V., Chiang, C.-K., Sanjabi, M., and Talwalkar, A.~S. (2017).
+\newblock Federated multi-task learning.
+\newblock In {\em NeurIPS}.
+
+\bibitem[Snell et~al., 2017]{snell2017prototypical}
+Snell, J., Swersky, K., and Zemel, R. (2017).
+\newblock Prototypical networks for few-shot learning.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~30.
+
+\bibitem[Somepalli et~al., 2021]{somepalli2021saint}
+Somepalli, G. et~al. (2021).
+\newblock Saint: Improved neural networks for tabular data via row attention
+  and contrastive pre-training.
+\newblock In {\em NeurIPS}.
+
+\bibitem[Srivastava et~al., 2014]{srivastava2014dropout}
+Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., and Salakhutdinov,
+  R. (2014).
+\newblock Dropout: A simple way to prevent neural networks from overfitting.
+\newblock {\em Journal of Machine Learning Research}, 15(1):1929--1958.
+
+\bibitem[Stanley et~al., 2021]{stanley2021fs}
+Stanley, E., Lowet, E., and Garg, N. (2021).
+\newblock Few-shot learning for clinical natural language processing.
+\newblock In {\em Proceedings of the 2021 Conference on Empirical Methods in
+  Natural Language Processing}, pages 1742--1752.
+
+\bibitem[Sung et~al., 2018]{sung2018learning}
+Sung, F., Yang, Y., Zhang, L., Xiang, T., Torr, P.~H., and Hospedales, T.~M.
+  (2018).
+\newblock Learning to compare: Relation network for few-shot learning.
+\newblock In {\em CVPR}.
+
+\bibitem[Triantafillou et~al., 2020]{triantafillou2020meta}
+Triantafillou, E., Zhu, T., Dumoulin, V., Lamblin, P., Evci, U., Xu, K.,
+  Goroshin, R., Gelada, C., Swersky, K., et~al. (2020).
+\newblock Meta-dataset: A dataset of datasets for learning to learn from few
+  examples.
+\newblock In {\em ICLR}.
+
+\bibitem[Vaswani et~al., 2017]{vaswani2017attention}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
+  Kaiser, {\L}., and Polosukhin, I. (2017).
+\newblock Attention is all you need.
+\newblock In {\em NeurIPS}.
+
+\bibitem[Vinyals et~al., 2016]{vinyals2016matching}
+Vinyals, O., Blundell, C., Lillicrap, T., and Wierstra, D. (2016).
+\newblock Matching networks for one shot learning.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~29.
+
+\bibitem[Voigt and Von~dem Bussche, 2017]{voigt2019eu}
+Voigt, P. and Von~dem Bussche, A. (2017).
+\newblock The eu general data protection regulation (gdpr).
+\newblock {\em Springer}.
+
+\bibitem[Wang et~al., 2020]{wang2020generalizing}
+Wang, Y., Yao, Q., Kwok, J.~T., and Ni, L.~M. (2020).
+\newblock Generalizing from a few examples: A survey on few-shot learning.
+\newblock {\em ACM Computing Surveys}, 53(3):1--34.
+
+\bibitem[Ye et~al., 2020]{ye2020few}
+Ye, H.-J., Hu, H., Zhan, D.-C., and Sha, F. (2020).
+\newblock Few-shot learning via saliency-guided hallucination of samples.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 770--779.
+
+\bibitem[Zhang et~al., 2021]{zhang2021federated}
+Zhang, W., Zhou, T., Lu, Q., Wang, X., Zhu, H., et~al. (2021).
+\newblock Federated learning for healthcare informatics.
+\newblock {\em Journal of Healthcare Informatics Research}, 5:1--19.
+
+\end{thebibliography}

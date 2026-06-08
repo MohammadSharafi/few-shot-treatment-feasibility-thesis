@@ -1,0 +1,124 @@
+\chapter{Glossary (50 Terms)}
+\label{app:glossary}
+
+This appendix defines key terms used throughout the thesis.
+
+%==============================================================================
+\section{Core Concepts}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Glossary (Selected Terms)}
+\begin{tabular}{ll}
+\toprule
+Term & Definition \\
+\midrule
+AUROC & Area Under the ROC Curve; threshold-invariant ranking metric. \\
+AUPRC & Area Under the Precision-Recall Curve. \\
+Few-shot & Learning from few labeled examples per class. \\
+FedAvg & Federated Averaging; aggregation of client model updates. \\
+MIMIC-IV & Medical Information Mart for Intensive Care, version 4. \\
+SOFA & Sequential Organ Failure Assessment score. \\
+SHAP & SHapley Additive exPlanations; feature attribution method. \\
+\midrule
+\multicolumn{2}{l}{\textit{Representation}} \\
+\midrule
+Symptom Token & Discrete representation of lab/vital value (bin + intensity). \\
+ETHOS & Encoder for Time-series and Heterogeneous Organ Signals. \\
+Prototype & Class centroid in embedding space (prototypical networks). \\
+\midrule
+\multicolumn{2}{l}{\textit{Learning}} \\
+\midrule
+MAML & Model-Agnostic Meta-Learning. \\
+Episodic & Training regime with support/query splits. \\
+Focal Loss & Loss that down-weights easy examples. \\
+\midrule
+\multicolumn{2}{l}{\textit{Clinical}} \\
+\midrule
+Feasibility & Discharge to home/rehab vs.\ death/SNF. \\
+ICU LOS & Intensive Care Unit Length of Stay. \\
+ICD-10 & International Classification of Diseases, 10th revision. \\
+\midrule
+\multicolumn{2}{l}{\textit{Evaluation}} \\
+\midrule
+MCC & Matthews Correlation Coefficient. \\
+F1-macro & Mean of per-class F1 scores. \\
+Bootstrap CI & Confidence interval from resampling. \\
+Wilcoxon & Non-parametric paired test. \\
+\midrule
+\multicolumn{2}{l}{\textit{Technical}} \\
+\midrule
+ItemID & MIMIC identifier for lab/vital type. \\
+Stay ID & Unique ICU stay identifier. \\
+Parquet & Columnar storage format. \\
+\bottomrule
+\end{tabular}
+\label{tab:glossary_full}
+\end{table}
+
+%==============================================================================
+\section{Extended Glossary (Full List)}
+%==============================================================================
+
+\begin{longtable}{p{2.2cm}p{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+
+Adversarial robustness & Model resilience to perturbed inputs. \\
+Attention mechanism & Weights over input tokens for context-dependent representation. \\
+AUROC & Area Under the ROC Curve; probability that a positive ranks above a negative. \\
+AUPRC & Area Under the Precision-Recall Curve; useful for imbalanced data. \\
+Bootstrap CI & Confidence interval from resampling with replacement. \\
+Calibration & Predicted probabilities match observed frequencies. \\
+Class imbalance & Unequal class distribution (e.g., 42\% vs.\ 58\%). \\
+Cross-validation & K-fold evaluation for robust performance estimates. \\
+Differential privacy & Formal privacy guarantee for aggregated statistics. \\
+Embedding & Dense vector representation of input (e.g., 128-D). \\
+Episodic training & Meta-learning with support/query episode sampling. \\
+ETHOS & Encoder for Time-series and Heterogeneous Organ Signals. \\
+FedAvg & Federated Averaging; weighted average of client updates. \\
+Federated learning & Training across distributed data without centralization. \\
+Feasibility & Binary: discharge to home/rehab (1) vs.\ death/SNF (0). \\
+Focal loss & Cross-entropy with $(1-p)^\gamma$ down-weighting of easy examples. \\
+F1-macro & Mean of per-class F1; treats classes equally. \\
+Gradient descent & Optimization by iteratively moving opposite to gradient. \\
+Hyperparameter & Model/config parameter set before training (e.g., learning rate). \\
+ICD-10 & International Classification of Diseases, 10th revision. \\
+ICU LOS & Intensive Care Unit Length of Stay. \\
+Imputation & Filling missing values (e.g., forward-fill, mean). \\
+ItemID & MIMIC identifier for lab/vital measurement type. \\
+K-shot & Number of support examples per class (e.g., K=5). \\
+Label smoothing & Softening one-hot labels for regularization. \\
+LightGBM & Gradient boosting with leaf-wise growth. \\
+MAML & Model-Agnostic Meta-Learning; learn initialization for fast adaptation. \\
+MCC & Matthews Correlation Coefficient; balanced for binary classification. \\
+Meta-learning & Learning to learn; optimizing across tasks. \\
+MIMIC-IV & Medical Information Mart for Intensive Care, version 4. \\
+Normalization & Scaling inputs to standard range (e.g., [0,1]). \\
+Outlier & Extreme value; we clip to clinical ranges. \\
+Parquet & Columnar storage format for efficient I/O. \\
+Precision & TP / (TP + FP); positive predictive value. \\
+Prototype & Class centroid in embedding space (prototypical networks). \\
+Recall & TP / (TP + FN); sensitivity. \\
+Resampling & Oversampling minority or undersampling majority class. \\
+SHAP & SHapley Additive exPlanations; feature attribution. \\
+SMOTE & Synthetic Minority Over-sampling Technique. \\
+SOFA & Sequential Organ Failure Assessment; organ dysfunction score. \\
+Stay ID & Unique ICU stay identifier in MIMIC. \\
+Symptom Token & Discrete representation: (symptom\_id, intensity, time, modality). \\
+Threshold tuning & Choosing decision cutoff to maximize F1 or other metric. \\
+Tokenization & Mapping continuous values to discrete token IDs. \\
+Transfer learning & Using pretrained model on new task. \\
+Validation set & Held-out data for model selection; not used for final reporting. \\
+XGBoost & Extreme Gradient Boosting; tree ensemble. \\
+Zero-shot & Generalization with zero labeled examples in target class. \\
+\bottomrule
+\end{longtable}

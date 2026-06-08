@@ -1,0 +1,18 @@
+[
+  {
+    "test_node": "node_4",
+    "proposed_auroc": 0.6022140913781779,
+    "lr_auroc": 0.6680528375733855,
+    "xgboost_auroc": 0.70441943900848,
+    "nn_auroc": 0.572284735812133,
+    "improvement_vs_lr": -0.06583874619520758
+  },
+  {
+    "test_node": "node_5",
+    "proposed_auroc": 0.4784787875908594,
+    "lr_auroc": 0.6582403557165795,
+    "xgboost_auroc": 0.6996994524270246,
+    "nn_auroc": 0.642554242661287,
+    "improvement_vs_lr": -0.17976156812572008
+  }
+]

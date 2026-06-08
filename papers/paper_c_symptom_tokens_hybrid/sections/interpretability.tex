@@ -1,0 +1,11 @@
+\section{Interpretability and deployment considerations}
+\label{sec:interp}
+
+\subsection{Tabular explanations}
+Random Forests admit Gini importance; SHAP TreeExplainer provides patient-level attributions on $\mathbf{x}$~\citep{caruana2015intelligible}. These align with clinician expectations (e.g., creatinine, lactate).
+
+\subsection{Neural explanations}
+Attention weights over Symptom Tokens highlight which measurements drive representation; caution: attention is not causal. Few-shot prototypes can be visualized in 2-D projections for pedagogy.
+
+\subsection{Human-in-the-loop}
+We recommend threshold policies on $\hat{p}$, monitoring calibration drift, and subgroup reporting (age, sex, diagnosis node) before any real-world use~\citep{ghassemi2021practical}.

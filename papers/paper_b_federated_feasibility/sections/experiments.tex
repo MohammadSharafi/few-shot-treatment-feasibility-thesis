@@ -1,0 +1,18 @@
+\section{Experimental setup}
+\label{sec:exp}
+
+\subsection{Software and reproducibility}
+Python~3.10+, PyTorch, custom FedAvg loop; seed 42; exports in \texttt{results/tables/exp3\_results.csv}.
+
+\subsection{Threat model (informal)}
+We assume honest-but-curious servers and clients; no differential privacy noise is added in this experiment. Secure aggregation and encryption are important production extensions~\citep{kairouz2021advances}.
+
+\subsection{Baselines beyond Exp3}
+For context, centralized \textbf{tabular} models reach AUROC $\approx 0.74$--$0.75$ on the same cohort (companion paper / thesis). FL research should report both \emph{within few-shot} and \emph{vs.\ clinical ceiling} perspectives.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{0.92\textwidth}{!}{\input{../../thesis/latex/mimic_iv_schema.tex}}
+  \caption{Data pipeline for cohort construction (TikZ schema; same as companion manuscripts).}
+  \label{fig:schema_b}
+\end{figure}

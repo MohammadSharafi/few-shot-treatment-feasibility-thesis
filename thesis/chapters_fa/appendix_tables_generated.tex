@@ -1,0 +1,8 @@
+\chapter{جداول نتایج صادرشده از خط لوله}
+\label{app:pipeline_tables}
+
+این پیوست جداول آزمایش را فهرست می‌کند که \textbf{به‌صورت خودکار} از خروجی‌های \lr{CSV} زیر \texttt{\lr{results/tables/}} هنگام اجرای \texttt{\lr{python results/generate\_all\_outputs.py}} از ریشه‌ی مخزن تولید می‌شوند. آن‌ها برای \emph{بررسی دقیق تکرارپذیری} ارائه شده‌اند و ممکن است اندکی از جداول قالب‌بندی‌شده‌ی دستی در فصل~\ref{ch:results} متفاوت باشند اگر آن‌ها ستون‌های اضافی، اجرای جایگزین (مثلاً فرا-یادگیر \lr{stacked})، یا گرد کردن روایی داشته باشند. تفسیر و سلسله‌مراتب کامل گزارش در فصل نتایج آمده است.
+
+\IfFileExists{../results/tables/ALL_TABLES_APPENDIX.tex}
+  {\begin{latin}\input{../results/tables/ALL_TABLES_APPENDIX}\end{latin}}
+  {\par\textbf{فایل موجود نیست.} \texttt{\lr{python results/generate\_all\_outputs.py}} را اجرا کنید تا \texttt{\lr{results/tables/ALL\_TABLES\_APPENDIX.tex}} ساخته شود، سپس \lr{PDF} را دوباره بسازید.\par}

@@ -1,0 +1,12 @@
+\section{Preliminaries: FedAvg}
+\label{sec:prelim}
+
+Let there be $m$ clients (nodes). Client $i$ holds local dataset $\mathcal{D}_i$. The global loss is
+\begin{equation}
+  \mathcal{L}(\theta) = \sum_{i=1}^{m} \frac{|\mathcal{D}_i|}{\sum_j |\mathcal{D}_j|} \, \mathcal{L}_i(\theta),
+\end{equation}
+where $\mathcal{L}_i$ is the empirical risk on $\mathcal{D}_i$. Each round $t$: (1) broadcast $\theta_t$; (2) each client minimizes $\mathcal{L}_i$ starting from $\theta_t$ for $E$ local epochs, yielding $\theta_{t+1}^{(i)}$; (3) server update
+\begin{equation}
+  \theta_{t+1} = \sum_{i=1}^{m} \frac{|\mathcal{D}_i|}{\sum_j |\mathcal{D}_j|} \, \theta_{t+1}^{(i)}.
+\end{equation}
+In our implementation, clients share the same architecture (ETHOS + prototypical head) but see disjoint patient subsets.

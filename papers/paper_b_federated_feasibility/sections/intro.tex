@@ -1,0 +1,18 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Motivation}
+Learning predictive models from electronic health records (EHRs) is constrained by privacy law and institutional policy~\citep{ghassemi2021practical,rieke2020future}. FL enables collaborative model improvement without sharing raw records~\citep{mcmahan2017communication,kairouz2021advances}. Medical FL case studies include imaging~\citep{sheller2020federated} and growing interest in structured clinical data.
+
+\subsection{Problem setting}
+We study \textbf{treatment feasibility} prediction from early ICU labs and vitals on MIMIC-IV~\citep{johnson2023mimic}. When physical multi-site data are unavailable, \textbf{disease-stratified nodes} provide a pragmatic simulation of non-independent, non-identically distributed (non-IID) partitions: sepsis, cardiac, respiratory, renal, and diabetes cohorts differ in lab distributions and outcome rates.
+
+\subsection{Contributions}
+\begin{itemize}
+  \item A fully specified \textbf{five-node federated few-shot} protocol with fixed splits and open exports (\texttt{exp3\_results.csv}).
+  \item Empirical \textbf{0.005 AUROC gap} between centralized and federated few-shot training in our harness.
+  \item Critical discussion of \textbf{simulation limits} (vs.\ real hospitals) and \textbf{ceiling effects} when comparing to centralized tabular SOTA.
+\end{itemize}
+
+\subsection{Organization}
+Section~\ref{sec:related} reviews FL and clinical applications. Section~\ref{sec:prelim} formalizes FedAvg. Section~\ref{sec:methods} describes the few-shot client objective and server aggregation. Sections~\ref{sec:exp}--\ref{sec:results} give experiments and results. Sections~\ref{sec:discuss}--\ref{sec:conc} discuss limitations and conclude.

@@ -1,0 +1,23 @@
+\section{Symptom Token representation}
+\label{sec:tokens}
+
+\begin{definition}[Symptom Token]
+For each aggregated channel $j$ in $\{1,\ldots,22\}$ (labs + vitals), a \textbf{Symptom Token} is a tuple
+\[
+  \phi_j = \bigl(\texttt{symptom\_id}_j,\; \texttt{intensity}_j \in [0,1],\; \texttt{time\_delta}_j,\; \texttt{modality}_j \in \{\text{lab},\text{vital}\}\bigr),
+\]
+where \texttt{intensity} is min--max normalized after clipping to clinically plausible ranges; \texttt{time\_delta} encodes position within the 24\,h window; missing channels are handled per repository imputation rules.
+\end{definition}
+
+\subsection{Alignment with tabular branch}
+The same raw measurements produce $\mathbf{x} \in \mathbb{R}^{25}$ (with engineered summaries). Thus neural and classical models consume \textbf{mutually consistent} physiology, enabling fair fusion and ablation (see Exp4 in companion tables: removing symptom tokens changes the pathway).
+
+\subsection{Why tokens?}
+Self-attention~\citep{vaswani2017attention} can learn pairwise interactions among channels without hand-specified crosses; tokens also interface with few-shot episodic training that expects sequence-like structure.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{\input{../../thesis/latex/mimic_iv_schema.tex}}
+  \caption{From MIMIC tables to tabular features and token sequences (vector schema, monochrome).}
+  \label{fig:schema_c}
+\end{figure}

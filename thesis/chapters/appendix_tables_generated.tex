@@ -1,0 +1,8 @@
+\chapter{Pipeline-Exported Result Tables}
+\label{app:pipeline_tables}
+
+This appendix lists the experiment tables \textbf{automatically generated} from the CSV outputs under \texttt{results/tables/} when you run \texttt{python results/generate\_all\_outputs.py} from the repository root. They are provided for \emph{exact reproducibility checks} and may differ slightly from manually formatted tables in Chapter~\ref{ch:results} if the latter include additional columns, alternative runs (e.g.\ stacked meta-learner), or narrative rounding. Interpretation and the full reporting hierarchy are given in the Results chapter.
+
+\IfFileExists{../results/tables/ALL_TABLES_APPENDIX.tex}
+  {\input{../results/tables/ALL_TABLES_APPENDIX}}
+  {\par\textbf{Missing file.} Run \texttt{python results/generate\_all\_outputs.py} to create \texttt{results/tables/ALL\_TABLES\_APPENDIX.tex}, then rebuild the PDF.\par}

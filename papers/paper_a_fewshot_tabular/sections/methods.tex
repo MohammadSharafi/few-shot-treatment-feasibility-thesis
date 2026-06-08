@@ -1,0 +1,36 @@
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Notation}
+Patients are indexed by $i$. The tabular feature vector is $\mathbf{x}_i \in \mathbb{R}^{25}$. For the token branch, patient $i$ maps to a sequence of $L$ tokens (fixed length in implementation), each with categorical symptom id, continuous intensity, time offset, and modality. The encoder $f_\theta$ (ETHOS-style transformer~\citep{sharafi2023ethos,vaswani2017attention}) outputs $\mathbf{z}_i = f_\theta(\cdot) \in \mathbb{R}^{128}$.
+
+\subsection{Prototypical few-shot head}
+During meta-training, an episode samples a support set $\mathcal{S} = \{(\mathbf{z}_j, y_j)\}_{j=1}^{2K}$ with $K$ examples per class and a query batch $\mathcal{Q}$. Class prototypes are
+\begin{equation}
+  \mathbf{c}_k = \frac{1}{|\mathcal{S}_k|} \sum_{(\mathbf{z},y)\in \mathcal{S}_k} \mathbf{z}, \qquad k \in \{0,1\}.
+\end{equation}
+Query logits use negative Euclidean (or cosine) distance with temperature $\tau{>}0$:
+\begin{equation}
+  p_\theta(y=k \mid \mathbf{z}) = \frac{\exp\bigl(-d(\mathbf{z}, \mathbf{c}_k)/\tau\bigr)}{\sum_{k'} \exp\bigl(-d(\mathbf{z}, \mathbf{c}_{k'})/\tau\bigr)}.
+\end{equation}
+Training minimizes cross-entropy on queries; focal loss with $\gamma{=}2$ is used in the thesis configuration to address class imbalance in episodes.
+
+\subsection{Training protocol (summary)}
+The thesis implements a \textbf{multi-phase} schedule: (1)~supervised contrastive (SupCon) pre-training to structure embedding geometry~\citep{khosla2020supervised}; (2)~supervised fine-tuning with a dense head; (3)~episodic meta-training with prototypical loss. Between phases, optional \textbf{knowledge distillation} matches soft probabilities of a tuned Random Forest teacher on tabular inputs. \textbf{Proto-MAML-style} test-time adaptation performs a small number of gradient steps on the support batch at inference. Architectural upgrades include \textbf{gated feature attention} (per-sample feature gating) and \textbf{cross-attention prototypes} replacing simple means.
+
+\subsection{Stacking meta-learner}
+Let $p_{\mathrm{FS}}$ be few-shot probabilities, $p_{\mathrm{RF}}$ forest probabilities, and $\mathbf{z}$ the embedding. On the validation fold we fit a \textbf{regularized logistic} meta-model
+\begin{equation}
+  \mathrm{logit}\,\hat{p} = \mathbf{w}^\top [\,p_{\mathrm{FS}},\, p_{\mathrm{RF}},\, \mathbf{z}\,] + b,
+\end{equation}
+followed by \textbf{isotonic calibration}. This ``BEST\_Stacked'' configuration is exported to \texttt{exp\_fewshot\_best.json}.
+
+\subsection{Classical baselines}
+Logistic regression (balanced class weights), Random Forest, XGBoost, LightGBM, and CatBoost train on $\mathbf{x}_i$. Hyperparameters are searched via randomized search with stratified CV on train+validation in the thesis; threshold $\theta$ maximizes F1 on validation.
+
+\subsection{Implementation}
+Python~3.10+, PyTorch~2.x, scikit-learn, XGBoost/LightGBM/CatBoost; fixed seeds; experiments scripted under \texttt{experiments/}. Runtime: forests $\ll$ 1\,h; full few-shot training varies by GPU.
+
+\begin{remark}
+Episodic $K$-shot experiments (Exp2) use a different evaluation protocol than full-test evaluation; AUROC values around $0.56$--$0.56$ \emph{do not} contradict full-test AUROC $0.61$--$0.67$---they measure different estimands.
+\end{remark}

@@ -1,0 +1,175 @@
+\begin{thebibliography}{27}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Awad et~al.(2017)Awad, Bader-El-Den, and McNicholas]{awad2017random}
+Ashraf Awad, Mohamed Bader-El-Den, and James McNicholas.
+\newblock Random forest for predicting discharge destination of icu patients.
+\newblock \emph{Journal of Biomedical Informatics}, 69:\penalty0 72--79, 2017.
+
+\bibitem[Caruana et~al.(2015)Caruana, Lou, Gehrke, Koch, Sturm, and
+  Elhadad]{caruana2015intelligible}
+Rich Caruana, Yin Lou, Johannes Gehrke, Paul Koch, Marc Sturm, and Noemie
+  Elhadad.
+\newblock Intelligible models for healthcare: Predicting pneumonia risk and
+  hospital 30-day readmission.
+\newblock In \emph{KDD}, 2015.
+
+\bibitem[Chen et~al.(2019)Chen, Liu, Kira, Wang, and Huang]{chen2019closer}
+Wei-Yu Chen, Yen-Cheng Liu, Zsolt Kira, Yu-Chiang~Frank Wang, and Jia-Bin
+  Huang.
+\newblock A closer look at few-shot classification.
+\newblock In \emph{ICLR}, 2019.
+
+\bibitem[Finn et~al.(2017)Finn, Abbeel, and Levine]{finn2017model}
+Chelsea Finn, Pieter Abbeel, and Sergey Levine.
+\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+\newblock In \emph{ICML}, pages 1126--1135, 2017.
+
+\bibitem[Ghassemi et~al.(2021)Ghassemi, Oakden-Rayner, and
+  Beam]{ghassemi2021practical}
+Marzyeh Ghassemi, Luke Oakden-Rayner, and Andrew~L Beam.
+\newblock Practical guidance on artificial intelligence for health-care data.
+\newblock \emph{The Lancet Digital Health}, 3\penalty0 (9):\penalty0
+  e599--e604, 2021.
+
+\bibitem[Harutyunyan et~al.(2019)Harutyunyan, Khachatrian, Kale, Ver~Steeg, and
+  Galstyan]{harutyunyan2019multitask}
+Hrayr Harutyunyan, Hrant Khachatrian, David~C Kale, Greg Ver~Steeg, and Aram
+  Galstyan.
+\newblock Multitask learning and benchmarking with clinical time series data.
+\newblock \emph{Scientific Data}, 6\penalty0 (1):\penalty0 1--18, 2019.
+
+\bibitem[Hegselmann et~al.(2023)Hegselmann, Buendia, Lang,
+  et~al.]{hegselmann2023tabllm}
+Stefan Hegselmann, Alejandro Buendia, Hunter Lang, et~al.
+\newblock Tabllm: Few-shot classification of tabular data with large language
+  models.
+\newblock \emph{AISTATS}, pages 5549--5581, 2023.
+
+\bibitem[Hinton et~al.(2015)Hinton, Vinyals, and Dean]{hinton2015distilling}
+Geoffrey Hinton, Oriol Vinyals, and Jeff Dean.
+\newblock Distilling the knowledge in a neural network.
+\newblock \emph{arXiv preprint arXiv:1503.02531}, 2015.
+
+\bibitem[Johnson et~al.(2023)Johnson, Bulgarelli, Pollard, Horng, Celi, and
+  Mark]{johnson2023mimic}
+Alistair Johnson, Lucas Bulgarelli, Tom Pollard, Steven Horng, Leo~Anthony
+  Celi, and Roger Mark.
+\newblock Mimic-iv, a freely accessible electronic health record dataset.
+\newblock \emph{Scientific Data}, 10\penalty0 (1):\penalty0 1, 2023.
+
+\bibitem[Kairouz et~al.(2021)Kairouz, McMahan, Avent,
+  et~al.]{kairouz2021advances}
+Peter Kairouz, H~Brendan McMahan, Brendan Avent, et~al.
+\newblock Advances and open problems in federated learning.
+\newblock \emph{Foundations and Trends in Machine Learning}, 14\penalty0
+  (1-2):\penalty0 1--210, 2021.
+
+\bibitem[Khosla et~al.(2020)Khosla, Teterwak, Wang,
+  et~al.]{khosla2020supervised}
+Prannay Khosla, Piotr Teterwak, Chen Wang, et~al.
+\newblock Supervised contrastive learning.
+\newblock In \emph{NeurIPS}, 2020.
+
+\bibitem[Li et~al.(2020)Li, Rao, Solares, et~al.]{li2020behrt}
+Yikuan Li, Shishir Rao, Jose Roberto~Ayala Solares, et~al.
+\newblock Behrt: Transformer for electronic health records.
+\newblock \emph{IEEE Journal of Biomedical and Health Informatics}, 2020.
+
+\bibitem[Makel et~al.(2012)Makel, Plucker, and Hegarty]{makel2012replications}
+Matthew~C Makel, Jonathan~A Plucker, and Boyd Hegarty.
+\newblock Replications in psychology research: How often do they really occur?
+\newblock \emph{Perspectives on Psychological Science}, 7\penalty0
+  (6):\penalty0 537--542, 2012.
+
+\bibitem[McMahan et~al.(2017)McMahan, Moore, Ramage, Hampson, and
+  y~Arcas]{mcmahan2017communication}
+Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise~Aguera
+  y~Arcas.
+\newblock Communication-efficient learning of deep networks from decentralized
+  data.
+\newblock \emph{AISTATS}, pages 1273--1282, 2017.
+
+\bibitem[Purushotham et~al.(2018)Purushotham, Meng, Zheng, and
+  Liu]{purushotham2018benchmarking}
+Sanjay Purushotham, Chuizheng Meng, Zheng Zheng, and Yan Liu.
+\newblock Benchmarking deep learning models on large healthcare datasets.
+\newblock \emph{Journal of Biomedical Informatics}, 83:\penalty0 112--134,
+  2018.
+
+\bibitem[Rasmy et~al.(2021)Rasmy, Xiang, Xie, Tao, and Zhi]{rasmy2021med}
+Laila Rasmy, Yang Xiang, Ziqian Xie, Cui Tao, and Degui Zhi.
+\newblock Med-bert: Pretrained contextualized embeddings on large-scale
+  structured electronic health records for disease prediction.
+\newblock \emph{NPJ Digital Medicine}, 4\penalty0 (1):\penalty0 86, 2021.
+
+\bibitem[Ravi and Larochelle(2017)]{ravi2016meta}
+Sachin Ravi and Hugo Larochelle.
+\newblock Optimization as a model for few-shot learning.
+\newblock In \emph{ICLR}, 2017.
+
+\bibitem[Rieke et~al.(2020)Rieke, Hancox, Li, et~al.]{rieke2020future}
+Nicola Rieke, Jonathan Hancox, Wenqi Li, et~al.
+\newblock The future of digital health with federated learning.
+\newblock \emph{NPJ Digital Medicine}, 3\penalty0 (1):\penalty0 119, 2020.
+
+\bibitem[Sharafi and Aminian(2023)]{sharafi2023ethos}
+Mohammad Sharafi and Gholamreza Aminian.
+\newblock {ETHOS}: Efficient transformer for health outcome prediction using
+  symptom tokens.
+\newblock Technical report, 2023.
+\newblock Encoder extended for few-shot feasibility in companion thesis work.
+
+\bibitem[Sheller et~al.(2020)Sheller, Edwards, Reina,
+  et~al.]{sheller2020federated}
+Micah~J Sheller, Brandon Edwards, G~Anthony Reina, et~al.
+\newblock Federated learning in medicine: Facilitating multi-institutional
+  collaborations without sharing patient data.
+\newblock \emph{Scientific Reports}, 10\penalty0 (1):\penalty0 12598, 2020.
+
+\bibitem[Snell et~al.(2017)Snell, Swersky, and Zemel]{snell2017prototypical}
+Jake Snell, Kevin Swersky, and Richard Zemel.
+\newblock Prototypical networks for few-shot learning.
+\newblock In \emph{NeurIPS}, volume~30, 2017.
+
+\bibitem[Sung et~al.(2018)Sung, Yang, Zhang, Xiang, Torr, and
+  Hospedales]{sung2018learning}
+Flood Sung, Yongxin Yang, Li~Zhang, Tao Xiang, Philip~HS Torr, and Timothy~M
+  Hospedales.
+\newblock Learning to compare: Relation network for few-shot learning.
+\newblock In \emph{CVPR}, 2018.
+
+\bibitem[Triantafillou et~al.(2020)Triantafillou, Zhu, Dumoulin,
+  et~al.]{triantafillou2020meta}
+Eleni Triantafillou, Tyler Zhu, Vincent Dumoulin, et~al.
+\newblock Meta-dataset: A dataset of datasets for learning to learn from few
+  examples.
+\newblock In \emph{ICLR}, 2020.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar,
+  et~al.]{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, et~al.
+\newblock Attention is all you need.
+\newblock In \emph{NeurIPS}, 2017.
+
+\bibitem[Vinyals et~al.(2016)Vinyals, Blundell, Lillicrap, and
+  Wierstra]{vinyals2016matching}
+Oriol Vinyals, Charles Blundell, Timothy Lillicrap, and Daan Wierstra.
+\newblock Matching networks for one shot learning.
+\newblock In \emph{NeurIPS}, volume~29, 2016.
+
+\bibitem[Wang et~al.(2020)Wang, Yao, Kwok, and Ni]{wang2020generalizing}
+Yaqing Wang, Quanming Yao, James~T Kwok, and Lionel~M Ni.
+\newblock Generalizing from a few examples: A survey on few-shot learning.
+\newblock \emph{ACM Computing Surveys}, 53\penalty0 (3):\penalty0 1--34, 2020.
+
+\bibitem[Wolpert(1992)]{wolpert1992stacked}
+David~H Wolpert.
+\newblock Stacked generalization.
+\newblock \emph{Neural Networks}, 5\penalty0 (2):\penalty0 241--259, 1992.
+
+\end{thebibliography}

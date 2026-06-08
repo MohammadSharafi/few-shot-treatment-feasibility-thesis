@@ -1,0 +1,14 @@
+\section{Discussion}
+\label{sec:discuss}
+
+\subsection{Simulation fidelity}
+Diagnosis nodes induce meaningful covariate shift but omit legal data silos, EHR schema mismatch, and asynchronous participation~\citep{li2020federated}. Results should be cited as \textbf{proof-of-concept} for FL optimization stability, not for multi-site generalization.
+
+\subsection{Privacy}
+Update vectors can leak information~\citep{kairouz2021advances}; DP-FedAvg and secure aggregation are standard mitigations not evaluated here.
+
+\subsection{Clinical implications}
+Low absolute AUROC in the few-shot federated setting implies deployment would be inappropriate without architectural changes (e.g., federated training of \emph{tabular} models) or much larger effective sample sizes.
+
+\subsection{Relation to companion work}
+A companion manuscript details few-shot engineering and stacking that reach $\approx 0.75$ AUROC \emph{centrally}; extending those recipes to FL (and comparing to federated XGBoost) is an open engineering task.

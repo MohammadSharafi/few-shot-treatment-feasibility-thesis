@@ -1,0 +1,42 @@
+% =============================================================================
+% thesis_fa_digits.tex؛ ارقام در متن RTL فارسی با \pnum{...}
+% =============================================================================
+% \pnum{0.746} → عدد فارسیِ امن داخل متن فارسی.
+% عدد در منبع ASCII/LTR می‌ماند، در خروجی به رقم فارسی نگاشت می‌شود، و داخل جزیرۀ
+% LTR قرار می‌گیرد؛ این مسیر از وارونگی نمونه‌هایی مثل ۰۰۰،۲ جلوگیری می‌کند.
+% انگلیسی LTR: \lr{AUROC 0.746} یا \cnum{0.746} (= همان \lr{...})
+% ریاضی، verbatim، listings دست‌نخورده بمانند.
+% =============================================================================
+
+\ExplSyntaxOn
+\cs_new:Npn \thesis_pnum_map:n #1
+  {
+    \tl_map_inline:nn {#1}
+      {
+        \str_case:nnF { ##1 }
+          {
+            {0}{۰}
+            {1}{۱}
+            {2}{۲}
+            {3}{۳}
+            {4}{۴}
+            {5}{۵}
+            {6}{۶}
+            {7}{۷}
+            {8}{۸}
+            {9}{۹}
+            {.}{\ThesisDecimalSep}
+            {,}{\ThesisThousandsSep}
+          }
+          { ##1 }
+      }
+  }
+\NewDocumentCommand \pnum { m }
+  {
+    \mbox{\beginL{\thesis_pnum_map:n {#1}}\endL}
+  }
+\NewDocumentCommand \prange { m m }
+  {
+    \mbox{\beginL{\thesis_pnum_map:n {#1}{\ThesisLatinPunct -}\thesis_pnum_map:n {#2}}\endL}
+  }
+\ExplSyntaxOff

@@ -1,0 +1,23 @@
+\section{Calibrated stacking fusion}
+\label{sec:stack}
+
+\subsection{Base learners}
+We denote by $g_{\mathrm{FS}}$ the few-shot model (probability output), by $g_{\mathrm{RF}}$ a tuned Random Forest, and by $f_\theta$ the encoder producing $\mathbf{z}$.
+
+\subsection{Meta-learner}
+On the validation set we fit a \textbf{logistic regression} on concatenated features $\mathbf{u} = [g_{\mathrm{FS}}(\mathbf{x}), g_{\mathrm{RF}}(\mathbf{x}), \mathbf{z}]^\top$, possibly with $\ell_2$ regularization, and apply \textbf{isotonic regression} to calibrate $\hat{p}$~\citep{wolpert1992stacked}. This mirrors the thesis \texttt{BEST\_Stacked} configuration.
+
+\begin{algorithm}[htbp]
+\caption{Train stacked feasibility predictor (conceptual)}
+\label{alg:stack}
+\begin{algorithmic}[1]
+\State Train $g_{\mathrm{RF}}$ on train split; tune threshold on val
+\State Train $g_{\mathrm{FS}}$ and $f_\theta$ with multi-phase schedule
+\State For each patient in \textbf{validation}: compute $g_{\mathrm{FS}}, g_{\mathrm{RF}}, \mathbf{z}$
+\State Fit logistic meta-model + isotonic calibration
+\State Evaluate on held-out \textbf{test} with frozen bases and meta-weights
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Why stacking helps}
+Forests partition tabular space; embeddings encode alternative geometry after contrastive and distillation training. Stacking learns \emph{when} to trust each signal, improving AUROC from \textbf{0.670} (few-shot-only) to \textbf{0.746} (stacked) in repository exports.

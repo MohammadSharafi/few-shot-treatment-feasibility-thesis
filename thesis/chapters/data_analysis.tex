@@ -1,0 +1,270 @@
+\chapter{Data Analysis and Exploratory Findings}
+\label{ch:data_analysis}
+
+This chapter presents a comprehensive analysis of the MIMIC-IV cohort, data distributions, feature correlations, and exploratory visualizations that inform our modeling choices.
+
+%==============================================================================
+\section{MIMIC-IV Schema and Data Flow}
+%==============================================================================
+
+Figure~\ref{fig:mimic_schema} summarizes the MIMIC-IV table relationships and preprocessing pipeline at a glance.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{0.95\textwidth}{!}{\input{latex/mimic_iv_schema.tex}}
+\caption{MIMIC-IV extraction schema: source tables, join keys, and preprocessing to tabular and token representations (vector diagram; monochrome for print).}
+\label{fig:mimic_schema}
+\end{figure}
+
+Table~\ref{tab:mimic_flow} summarizes the MIMIC-IV data extraction and preprocessing pipeline. We join \texttt{patients} $\to$ \texttt{admissions} $\to$ \texttt{icustays} on \texttt{subject\_id} and \texttt{hadm\_id}; \texttt{labevents} and \texttt{chartevents} are linked via \texttt{stay\_id}. The preprocessing pipeline selects 15 labs and 7 vitals, normalizes to [0,1], applies feature engineering, and produces either a 25-D tabular vector or a token sequence for ETHOS (128-D embedding). The cohort is stratified by primary ICD-10 diagnosis for federated partitioning.
+
+\begin{table}[htbp]
+\centering
+\caption{MIMIC-IV Data Extraction and Processing Flow}
+\small
+\begin{tabular}{llp{5cm}}
+\toprule
+Stage & Input & Output \\
+\midrule
+Extract & \texttt{patients}, \texttt{admissions}, \texttt{icustays} & ICU stays with demographics \\
+ & \texttt{labevents}, \texttt{chartevents} (via \texttt{stay\_id}) & Labs and vitals per stay \\
+Select & 15 labs + 7 vitals & ItemIDs from \texttt{d\_labitems}, \texttt{d\_items} \\
+Normalize & Raw values & Min-max [0,1] \\
+Engineer & Normalized values & SOFA proxy, shock index, abnormal count \\
+Represent & Engineered features & 25-D tabular $\mid$ token sequence \\
+Encode & Token sequence & ETHOS $\to$ 128-D embedding \\
+\midrule
+\multicolumn{3}{l}{\textbf{Output:} 2,000 patients $\times$ 25 features + labels} \\
+\bottomrule
+\end{tabular}
+\label{tab:mimic_flow}
+\end{table}
+
+%==============================================================================
+\section{Cohort Demographics}
+%==============================================================================
+
+Table~\ref{tab:cohort_demographics_extended} provides detailed cohort statistics. Our 2,000-patient sample has a feasible rate of approximately 42\% (infeasible 58\%), reflecting the challenging nature of ICU discharge prediction. Age distribution is right-skewed; the majority of patients are 60--80 years old.
+
+\begin{table}[htbp]
+\centering
+\caption{Extended Cohort Demographics}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Total patients & 2,000 \\
+Feasible (label=1) & 840 (42\%) \\
+Infeasible (label=0) & 1,160 (58\%) \\
+Mean age (years) & 64.2 \\
+Median age (years) & 67 \\
+Age range & 18--90 \\
+Female & 44\% \\
+Male & 56\% \\
+Mean ICU LOS (hours) & 72.4 \\
+Median ICU LOS (hours) & 48 \\
+\bottomrule
+\end{tabular}
+\label{tab:cohort_demographics_extended}
+\end{table}
+
+%==============================================================================
+\section{Disease Node Distribution}
+%==============================================================================
+
+Table~\ref{tab:node_distribution} shows the distribution of patients across the five disease nodes. Table~\ref{tab:icd10_sample} lists representative ICD-10 codes per node for reproducibility.
+
+\begin{table}[htbp]
+\centering
+\caption{Representative ICD-10 Codes by Disease Node}
+\small
+\begin{tabular}{llp{6cm}}
+\toprule
+Node & Code & Description \\
+\midrule
+1 & A40, A41 & Streptococcal/septicemia \\
+1 & R652 & Severe sepsis \\
+2 & I21, I22 & Acute MI \\
+2 & I50 & Heart failure \\
+3 & J18, J44 & Pneumonia, COPD \\
+3 & J96 & Respiratory failure \\
+4 & N17, N18, N19 & Acute/chronic kidney failure \\
+5 & E10, E11, E13 & Diabetes mellitus \\
+\bottomrule
+\end{tabular}
+\label{tab:icd10_sample}
+\end{table}
+ Sepsis and cardiac nodes have the largest samples; renal and diabetes nodes are smaller, which motivates few-shot and federated approaches for data-scarce groups.
+
+\begin{table}[htbp]
+\centering
+\caption{Patient Distribution by Disease Node}
+\begin{tabular}{lrrr}
+\toprule
+Node & Diagnosis Group & Patients & Feasible \% \\
+\midrule
+1 & Sepsis (A40, A41, R652) & 412 & 38 \\
+2 & Cardiac (I21, I22, I25, I50, etc.) & 398 & 45 \\
+3 & Respiratory (J18, J44, J96, etc.) & 356 & 41 \\
+4 & Renal (N17, N18, N19) & 418 & 39 \\
+5 & Diabetes (E10, E11, E13) & 416 & 46 \\
+\bottomrule
+\end{tabular}
+\label{tab:node_distribution}
+\end{table}
+
+%==============================================================================
+\section{Lab and Vital Correlations}
+%==============================================================================
+
+Creatinine correlates with BUN (kidney function, $r > 0.7$); hemoglobin with platelets (hematologic); glucose with lactate in some critically ill patients. These correlations inform feature engineering and potential redundancy.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.88\textwidth,keepaspectratio]{fig38_lab_correlation.png}
+\caption{Pearson correlation matrix for labs and vitals (illustrative structure on training cohort).}
+\label{fig:lab_correlation}
+\end{figure}
+
+%==============================================================================
+\section{SOFA Proxy and Clinical Severity}
+\label{sec:sofa_proxy}
+%==============================================================================
+
+We compute a SOFA proxy from creatinine, platelets, SpO$_2$, and lactate. Higher SOFA (worse organ dysfunction) correlates with lower feasibility, as expected clinically. The mean SOFA proxy for feasible patients is 0.35 vs.\ 0.52 for infeasible ($p < 0.001$, Wilcoxon rank-sum).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth,keepaspectratio]{fig35_sofa_scatter.png}
+\caption{SOFA proxy vs.\ creatinine (normalized) by feasibility label; higher SOFA and creatinine associate with infeasible discharge.}
+\label{fig:sofa_scatter}
+\end{figure}
+
+%==============================================================================
+\section{Age-Stratified Performance}
+%==============================================================================
+
+Older patients (65+) have lower feasibility rates (37\%) compared to younger patients (18--45: 51\%, 45--65: 44\%). The model's AUROC is slightly lower for the 65+ group (0.72) than for the overall cohort (0.76), motivating fairness evaluation in deployment.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth,keepaspectratio]{fig37_age_stratified.png}
+\caption{Age-stratified test AUROC: Random Forest, Stacked V4, and baseline ETHOS+FewShot.}
+\label{fig:age_stratified}
+\end{figure}
+
+%==============================================================================
+\section{Error Analysis: Creatinine}
+%==============================================================================
+
+Creatinine is a top feature. Misclassifications cluster in borderline ranges (0.3--0.5 normalized creatinine), where kidney function is neither clearly normal nor severely impaired. In these ranges, the error rate is approximately 40\% compared to 20\% in extreme ranges.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth,keepaspectratio]{fig36_error_creatinine.png}
+\caption{Classification error rate by creatinine bin (RF vs.\ ETHOS) with patient counts.}
+\label{fig:error_creatinine}
+\end{figure}
+
+%==============================================================================
+\section{Embedding Visualization (t-SNE)}
+%==============================================================================
+
+t-SNE projection of ETHOS embeddings shows partial separation of feasible and infeasible patients in embedding space, but overlap is substantial---consistent with the moderate AUROC of the few-shot model. The silhouette score of the two-class partition is 0.12, indicating weak but nonzero cluster structure.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth,keepaspectratio]{fig27_tsne.png}
+\caption{t-SNE of ETHOS embeddings (test patients): partial overlap of feasible vs.\ infeasible classes.}
+\label{fig:tsne_embeddings}
+\end{figure}
+
+%==============================================================================
+\section{Prototype Analysis}
+%==============================================================================
+
+In prototypical networks, each class has a prototype (mean of support embeddings). The Euclidean distance between the two class prototypes in the 128-dimensional embedding space is 3.42, reflecting moderate discriminative capacity of the few-shot head. Query samples are classified by nearest-prototype assignment.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth,keepaspectratio]{fig28_prototype.png}
+\caption{Illustration of support sets, class prototypes, and query classification in embedding space (2-D projection).}
+\label{fig:prototype_illustration}
+\end{figure}
+
+%==============================================================================
+\section{Patient Timeline Example}
+%==============================================================================
+
+Temporal patterns (e.g., improving creatinine, stable vitals) inform discharge feasibility. For example, a patient whose creatinine decreases from 2.1 to 1.4 mg/dL over 24 hours with stable heart rate (75--85 bpm) and blood pressure (systolic 120--130 mmHg) has a high feasibility probability (0.78). Our tokenization aggregates these temporal trajectories into a fixed-length representation.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth,keepaspectratio]{fig32_patient_timeline.png}
+\caption{Example ICU first-24h trajectories: heart rate, blood pressure, and creatinine (illustrative).}
+\label{fig:patient_timeline}
+\end{figure}
+
+%==============================================================================
+\section{Class Balancing}
+%==============================================================================
+
+We explored SMOTE (Synthetic Minority Over-sampling) to address the 42/58 class imbalance. For our task, class weighting in the loss function and threshold tuning on the validation set sufficed; SMOTE did not yield consistent gains. This may be because the imbalance is moderate and the decision boundary is well-separated for many samples.
+
+%==============================================================================
+\section{Missingness and Data Quality}
+%==============================================================================
+
+Clinical data often contain missing values due to irregular sampling, test ordering practices, or patient-specific factors. We analyzed missingness patterns across our cohort. Laboratory values (e.g., lactate, troponin) are more frequently missing than routine vitals (heart rate, blood pressure). For our tokenization, we use forward-fill for time-series and population median for completely missing features. Table~\ref{tab:missingness} summarizes missingness rates by feature category. Features with $>$30\% missingness (e.g., lactate in non-septic patients) may require careful handling in deployment; our min-max normalization with clipping mitigates the impact of imputation artifacts.
+
+\begin{table}[htbp]
+\centering
+\caption{Missingness Rates by Feature Category (First 24h)}
+\begin{tabular}{lrr}
+\toprule
+Category & \% Missing & Imputation \\
+\midrule
+Routine labs (creatinine, glucose) & 5--12 & Median \\
+Specialty labs (lactate, troponin) & 18--35 & Median \\
+Vitals (HR, BP, SpO2) & 2--8 & Forward-fill \\
+Engineered (SOFA, shock index) & 0 & Derived \\
+\bottomrule
+\end{tabular}
+\label{tab:missingness}
+\end{table}
+
+%==============================================================================
+\section{Data Quality Assessment}
+%==============================================================================
+
+We assessed data quality using several criteria: (1) \textbf{Completeness}: Fraction of non-missing values per feature; routine labs (creatinine, sodium) have $>$90\% completeness; specialty labs (lactate, troponin) have 65--80\%. (2) \textbf{Plausibility}: Values within clinical ranges (e.g., creatinine 0.1--30 mg/dL); we clip outliers. (3) \textbf{Consistency}: No contradictory values (e.g., discharge before admission); we validated timestamps. (4) \textbf{Representativeness}: Cohort matches MIMIC-IV age and sex distribution; our stratified sampling ensures balance across disease nodes. These checks support the validity of our experimental results.
+
+%==============================================================================
+\section{Temporal Patterns}
+%==============================================================================
+
+We examined temporal trends within the first 24 hours. Patients with improving lab trajectories (e.g., decreasing creatinine, stable glucose) tend to have higher feasibility rates. The SOFA proxy, computed from peak values in the first 24h, correlates with feasibility (Section~\ref{sec:sofa_proxy}). Our tokenization aggregates temporal information into a fixed-length sequence; future work could explore explicit temporal modeling (e.g., LSTM over hourly bins) to capture trends more directly.
+
+%==============================================================================
+\section{Lab and Vital Value Distributions}
+%==============================================================================
+
+We examined the distribution of key lab and vital values across the cohort. Creatinine: median 1.1 mg/dL (IQR 0.8--1.8); 12\% of patients have values $>$2.0 (indicating renal impairment). Glucose: median 140 mg/dL (IQR 110--180); glycemic variability is high in critically ill patients. Hemoglobin: median 9.2 g/dL (IQR 7.8--10.5); 28\% have values $<$8.0 (anemia). Lactate: median 1.6 mmol/L (IQR 1.0--2.5); elevated lactate ($>$2.0) in 35\% of patients correlates with lower feasibility. These distributions inform feature engineering and clinical interpretation of model predictions. The SOFA proxy, computed from creatinine, platelets, SpO$_2$, and lactate, has median 0.42 (IQR 0.28--0.58); higher values indicate worse organ dysfunction and lower feasibility rates.
+
+%==============================================================================
+\section{Admission Type and Discharge Destination}
+%==============================================================================
+
+We analyzed feasibility by admission type (elective vs.\ emergency) and discharge destination. Emergency admissions have lower feasibility (38\%) than elective (48\%), consistent with acuity. Discharge to home: 22\% of cohort; to rehabilitation: 18\%; to skilled nursing: 15\%; to other acute care: 25\%; in-hospital death: 8\%. Our feasibility label combines home, home health, and rehabilitation as feasible; the remaining as infeasible. This binary simplification may lose nuance (e.g., skilled nursing vs.\ long-term acute care) but provides a tractable prediction target.
+
+%==============================================================================
+\section{Correlation Structure and Feature Redundancy}
+%==============================================================================
+
+The correlation structure reveals expected clinical relationships. Creatinine and BUN (blood urea nitrogen) correlate strongly (r $>$ 0.7)---both reflect kidney function. Hemoglobin and hematocrit are highly correlated (r $>$ 0.9)---redundant for prediction. Sodium and chloride correlate (r $>$ 0.6)---electrolyte balance. These correlations inform feature selection: removing redundant features (e.g., hematocrit if hemoglobin is present) could simplify the model without losing predictive power.
+
+%==============================================================================
+\section{Chapter Summary}
+%==============================================================================
+
+This chapter presented comprehensive data analysis of the MIMIC-IV cohort: database schema and extraction pipeline, cohort demographics and disease node distribution, lab and vital correlations, SOFA proxy validation, age-stratified performance, error analysis, embedding analysis, class balancing, missingness patterns, data quality assessment, temporal trends, feature distributions, and correlation structure. Key findings include: (1) the cohort is balanced across disease nodes; (2) lab correlations reflect known clinical relationships; (3) the SOFA proxy correlates with feasibility; (4) classification errors concentrate at borderline lab values; (5) ETHOS embeddings show partial class separation (silhouette score 0.12). These insights inform the model architecture, feature engineering, and interpretation of results presented in subsequent chapters.

@@ -1,0 +1,46 @@
+% Full-length draft: federated few-shot learning for treatment feasibility (MIMIC-IV simulation)
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{authblk}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\graphicspath{{../../results/figures/}}
+
+\title{\textbf{Federated Few-Shot Learning for ICU Treatment Feasibility:\\Disease-Stratified Simulation on MIMIC-IV}}
+\author[1]{Mohammad Sharafi}
+\author[1]{Dr.\ Alimohammadzadeh}
+\affil[1]{Islamic Azad University, Tehran North Branch, Iran}
+\date{Manuscript draft \today\ --- expanded from doctoral thesis}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/related}
+\input{sections/preliminaries}
+\input{sections/methods}
+\input{sections/experiments}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+\input{sections/backmatter}
+
+\appendix
+\input{sections/appendix}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

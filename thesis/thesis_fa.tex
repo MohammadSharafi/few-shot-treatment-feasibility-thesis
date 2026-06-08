@@ -1,0 +1,396 @@
+% !TEX program = xelatex
+% =============================================================================
+% thesis_fa.tex؛ پایان‌نامۀ فارسی (XeLaTeX + XePersian)
+% =============================================================================
+% ساختار کلی: جلد فارسی/عنوان انگلیسی، تعهدنامه، تقدیم، قدردانی، فهرست‌ها، چکیده فارسی،
+% فهرست‌ها؛ سپس پنج فصل (کلیات، پیشینه، روش، یافته‌ها، بحث و نتیجه)؛ پیوست، منابع، چکیده انگلیسی.
+% ---------------------------------------------------------------------------
+% مشخصات حروف‌چینی (هم‌تراز با رویه‌ی رایج پایان‌نامه‌ی فارسی + جفت انگلیسی)
+% ---------------------------------------------------------------------------
+% | بخش              | قلم / اندازه |
+% |------------------|--------------|
+% | بدنه‌ی فارسی      | B Nazanin، از طریق `\settextfont` در thesis_fa_fonts.tex؛ کلاس `extreport` با **۱۴pt** (بزرگ‌تر از نسخه‌ی انگلیسی ۱۲pt؛ مطابق انتخاب فعلی برای خوانایی خط فارسی). |
+% | ارقام      | فارسی (\pnum یا نویسه‌ی یونیکد) در پاراگراف RTL؛ انگلیسی فقط در \lr{}/\begin{latin}/ریاضی/کد؛ \cnum = \cnum{...}؛ فایل کمکی `thesis_fa_digits.tex`. |
+% | لاتین درون‌خطی   | Times New Roman با مقیاس کمی کوچک‌تر از بدنه‌ی فارسی؛ بلوک‌های لاتین با `\cnum{...}` یا `\begin{latin}`. |
+% | ریاضی            | `amsmath` پیش‌فرض؛ ارقام ریاضی لاتین (`mathdigits=default` در `xepersian`). نسخه‌ی انگلیسی از `newtxmath` استفاده می‌کند؛ برای یکسان‌سازی کامل ریاضی با Times نیاز به مهاجرت به `unicode-math` است (خارج از این ویرایش). |
+% | مونو / کد        | Courier New با مقیاس کوچک‌تر از لاتین (`\thesisMonoScale` در thesis_fa_fonts.tex). |
+% | عنوان شناورها   | `\small` با `stretch=1.5` مانند بدنه (`caption`). |
+% | جدول در شناور   | `\footnotesize` (`\AtBeginEnvironment{table}`). |
+% | حاشیه‌ها         | چپ/بالا/پایین ۲٫۵cm؛ راست **۳cm** (حاشیه‌ی صحافی؛ نسخه‌ی انگلیسی همه‌جا ۲٫۵cm). |
+% | فاصله‌ی خط        | `\setstretch{1.5}` (معادل رایج «یک‌ونیم خط» در آیین‌نامه‌ها). |
+% | شماره‌ی مقدمات   | حروف الفبای فارسی (الف … ی) تا ۳۲ صفحه؛ سپس عربی؛ از فصل اول `\pagenumbering{arabic}`. |
+% ---------------------------------------------------------------------------
+% فایل بارگذاری قلم: `thesis_fa_fonts.tex`؛ B Nazanin محلی (thesis/fonts/ یا thesis/fontes/)، در غیر این صورت IRNazanin سیستم.
+%
+% Build (فقط این موتور):
+%   cd thesis && xelatex thesis_fa && bibtex thesis_fa && xelatex thesis_fa && xelatex thesis_fa
+%   یا:        latexmk -xelatex -interaction=nonstopmode thesis_fa.tex
+%
+% ⛔ pdfLaTeX و LuaLaTeX برای این فایل پشتیبانی نمی‌شوند (xepersian فقط روی XeTeX).
+%
+% RTL / LTR: متن فارسی RTL؛ واژه/جملۀ انگلیسی در متن فارسی با \cnum{...}؛
+% بلوک انگلیسی با \begin{latin}...\end{latin}.
+% =============================================================================
+\documentclass[14pt,a4paper,twoside]{extreport}
+% Suppress non-actionable missing-glyph log spam from bidi control markers/nullfont punctuation.
+% Visual PDF review remains mandatory.
+\tracinglostchars=0
+
+% --- موتور اجباری: XeLaTeX (در لاگ باید ببینید: This is XeTeX, Version ...) ---
+\RequirePackage{iftex}
+\ifXeTeX\else
+  \begingroup
+    \newlinechar`\^^J%
+    \immediate\write16{^^J%
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J%
+  WRONG ENGINE: thesis_fa.tex must be built with XeLaTeX (xelatex).^^J%
+  Do not use pdfLaTeX or LuaLaTeX (xepersian needs XeTeX).^^J%
+  Try:  cd thesis  &&  xelatex thesis_fa^^J%
+        or:  latexmk -xelatex thesis_fa.tex^^J%
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J}%
+  \endgroup
+  \expandafter\endinput
+\fi
+\typeout{%
+^^J======================================================================^^J%
+ thesis_fa.tex  |  ENGINE: XeLaTeX + XePersian + fontspec  (required)^^J%
+======================================================================^^J%
+}
+
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption,float}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\graphicspath{{../results/figures/}{./results/figures/}{../results/}{./results/}{./}{../}}
+
+\usepackage{booktabs,multirow,longtable,tabularx,array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{geometry}
+% حاشیۀ راست بزرگ‌تر برای صحافی؛ بقیه ۲٫۵ سانتی‌متر
+\geometry{a4paper,left=2.5cm,right=3cm,top=2.5cm,bottom=2.5cm}
+% fancyhdr: ارتفاع سرصفحه باید از ارتفاع واقعی قلم سرصفحه کم‌تر نباشد (هشدار LaTeX ≈17.77pt برای 14pt).
+\setlength{\headheight}{17.77pt}
+\addtolength{\topmargin}{-0.77pt}
+% Paragraphs: rely on first-line indent; no extra skip between paragraphs (academic norm).
+\setlength{\parskip}{0pt}
+
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+% List of figures/tables: slightly smaller body so Latin/Persian match; avoids oversized \texttt in LOT.
+% LOF/LOT: one step below body (14pt → \small), not \footnotesize (too small next to captions).
+\renewcommand{\cftfigfont}{\small}
+\renewcommand{\cftfigpagefont}{\small}
+\renewcommand{\cfttabfont}{\small}
+\renewcommand{\cfttabpagefont}{\small}
+\usepackage{appendix}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{etoolbox}
+% فاصلۀ خط: ضریب ۱٫۵ (رایج در آیین‌نامه‌های دانشگاهی از جمله آزاد اسلامی)؛ برای ۱٫۱۵ از ۱٫۱۵ استفاده کنید.
+\setstretch{1.5}
+% Keep list spacing consistent with body line stretch
+% هم‌تراز با فاصله‌ی لیست در thesis.tex (نسخه‌ی انگلیسی).
+\setlist{itemsep=0.2em,parsep=0.15em,topsep=0.35em}
+% Default \labelitemi often resolves to a bullet missing from B Nazanin (tofu squares).
+\setlist[itemize,1]{label=\raisebox{0.08ex}{\small$\bullet$}}
+% سلسله‌مراتب شماره و فهرست: فصل ← بخش ← زیربخش
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\input{thesis_fa_frontmatter}
+
+% hyperref باید قبل از xepersian باشد.
+\usepackage[hidelinks,unicode]{hyperref}
+% Latin digits in math avoid unicode-persianmath glyph checks on legacy fonts (e.g.\ B Nazanin missing U+066B).
+\usepackage[mathdigits=default,displaymathdigits=default,inlinemathdigits=default]{xepersian}
+\input{thesis_fa_fonts}
+% Better Persian wrapping (XeTeX + HarfBuzz): fewer overstretched justified lines near LTR islands.
+\ifdefined\XeTeXlinebreaklocale
+  \XeTeXlinebreaklocale "fa"
+  \XeTeXlinebreakskip = 0pt plus 3pt minus 0.25pt
+\fi
+% English-only strings in shared snippets (\texttt{\lr{tables\_*.tex}}) must route through Latin font in lists/body.
+\newcommand{\maybeLr}[1]{\lr{#1}}
+% اعداد محاسباتی (\lr{AUROC}، \lr{F1}، وزن‌ها، …): ارقام لاتین و نقطه‌ی اعشار ASCII؛
+% در جدول‌ها \cnum{...} به‌تنهایی گاهی علامت منفی/اعشار را در متن RTL جابه‌جا می‌کند.
+\newcommand{\cnum}[1]{\mbox{\beginL{\latinfont #1}\endL}}
+% \pnum: ارقام فارسیِ پایدار در متن RTL با جزیرۀ LTR؛ از thesis_fa_digits.tex
+\input{thesis_fa_digits.tex}
+% نگهداری نسخه‌ی اصلی برای بازگردانی پس از `\end{table}` / `\end{longtable}`
+\NewCommandCopy{\ThesisOrgPnum}{\pnum}
+\NewCommandCopy{\ThesisOrgPrange}{\prange}
+% داخل جدول: همان آرگومان منبع (ارقام \lr{} ASCII)؛ خروجی فقط انگلیسی
+\NewDocumentCommand{\ThesisPnumTableLatin}{m}{\mbox{\lr{#1}}}
+\NewDocumentCommand{\ThesisPrangeTableLatin}{m m}{\mbox{\beginL{\latinfont #1-#2}\endL}}
+\pdfstringdefDisableCommands{%
+  \def\pnum#1{#1}%
+  \def\prange#1#2{#1-#2}%
+  \def\lr#1{#1}%
+  \def\texttt#1{#1}%
+  \def\cnum#1{#1}%
+  \def\maybeLr#1{#1}%
+}
+% ریاضی درون‌خطی در جزیره‌ی چپ‌به‌راست (جلوگیری از قاطی شدن $<>$ با ارقام/متن فارسی)
+% XeTeX: \textdir وجود ندارد؛ \beginL...\endL جزیرۀ LTR در پاراگراف RTL می‌سازد.
+\newcommand{\LTRformula}[1]{\mbox{\beginL $#1$\endL}}
+
+% English paragraphs/tables inside floats must use latin *inside* the float (outer \begin{latin} is lost when floats migrate).
+\newenvironment{englishblock}{\begin{latin}}{\end{latin}}
+% Route every \texttt{\lr{...}} through Latin text font + LTR so B Nazanin never receives ASCII (fixes tofu in tables).
+\NewCommandCopy{\ThesisOrgTexttt}{\texttt}
+\DeclareRobustCommand{\texttt}[1]{%
+  \ifmmode\text{\ThesisOrgTexttt{#1}}\else\lr{\ThesisOrgTexttt{#1}}\fi
+}
+% listings must load after xepersian/bidi (otherwise LTR listings break the direction stack → xdvipdfmx errors).
+\usepackage{listings}
+\usepackage{fancyvrb}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\ttfamily,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+}
+\hypersetup{%
+  pdftitle={فیوشات درمانی: پیش‌بینی هوشمند قابلیت درمان با توکن‌های علائم از داده‌های تجمیع‌شده},%
+  pdfauthor={Mohammad Sharafi},%
+  pdfsubject={Few-Shot Treatment Feasibility Prediction Using Symptom Tokens from Aggregated Data},%
+  pdfkeywords={few-shot learning; federated learning; symptom tokens; treatment feasibility; MIMIC-IV; ETHOS},%
+}
+% Slightly forgiving line breaks inside justified RTL+LTR prose (helps long \texttt/\lr fragments).
+\setlength{\emergencystretch}{1.2em}
+\tolerance 1800
+\hbadness 2500
+% XeTeX: improved Arabic/Persian inter-word spacing when using OpenType + HarfBuzz.
+\ifdefined\XeTeXinterwordspaceshaping\XeTeXinterwordspaceshaping=2\relax\fi
+\raggedbottom
+% Captions: slightly smaller than body, same line stretch as body (1.5 via setspace)
+\captionsetup{font={small,stretch=1.5},labelfont=bf,labelsep=colon,skip=8pt}
+\captionsetup[lstlisting]{font={small,stretch=1.4},labelfont=bf,labelsep=colon,skip=6pt,singlelinecheck=false}
+% تورفتگی اول خط پاراگراف‌های بدنه (راست‌چین در RTL)
+\setlength{\parindent}{1.5em}
+% صفحات سفیدِ بین فصل‌ها/بخش‌های مقدماتی نباید سرصفحه‌ی بخش قبلی را نشان دهند.
+\makeatletter
+\renewcommand{\cleardoublepage}{%
+  \clearpage
+  \if@twoside
+    \ifodd\c@page\else
+      \hbox{}%
+      \thispagestyle{empty}%
+      \newpage
+      \if@twocolumn\hbox{}\newpage\fi
+    \fi
+  \fi
+}
+\makeatother
+% فاصله‌ی شناورها کم‌تر از پیش‌فرض برای جلوگیری از «پرش» زیاد بین متن و جدول/شکل
+\setlength{\textfloatsep}{14pt plus 4pt minus 3pt}
+\setlength{\floatsep}{12pt plus 3pt minus 2pt}
+\setlength{\intextsep}{11pt plus 3pt minus 2pt}
+% پانویس‌ها: فاصله و خط جداکننده‌ی رسمی‌تر برای متن فارسی.
+\setlength{\footnotesep}{0.75\baselineskip}
+\renewcommand{\footnoterule}{%
+  \kern -3pt
+  \hfill\rule{0.34\textwidth}{0.4pt}%
+  \kern 5pt
+}
+% Tables: one step below body (\footnotesize), matching the final Chapter 5 table style.
+% (emergencystretch set once above after fonts؛ applies to body and floats.)
+\AtBeginEnvironment{table}{%
+  \footnotesize
+  \setlength{\tabcolsep}{1.8pt}%
+  \renewcommand{\arraystretch}{1.12}%
+  \let\pnum\ThesisPnumTableLatin
+  \let\prange\ThesisPrangeTableLatin
+}
+\AtEndEnvironment{table}{%
+  \let\pnum\ThesisOrgPnum
+  \let\prange\ThesisOrgPrange
+}
+\AtBeginEnvironment{longtable}{%
+  \footnotesize
+  \setlength{\tabcolsep}{1.8pt}%
+  \renewcommand{\arraystretch}{1.12}%
+  \let\pnum\ThesisPnumTableLatin
+  \let\prange\ThesisPrangeTableLatin
+}
+\AtEndEnvironment{longtable}{%
+  \let\pnum\ThesisOrgPnum
+  \let\prange\ThesisOrgPrange
+}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{Z}{>{\centering\arraybackslash}X}
+% الگوریتم‌ها: در chapters_fa/methods.tex داخل \begin{latin}...\end{latin} (قلاب سراسری با float سازگار نیست)
+% نیم‌فاصله‌ی یونیکد (U+200C) دست‌کاری نشود؛ قلم فارسی معتبر (B~Nazanin محلی یا Vazirmatn) برای رندر درست مرکب‌ها لازم است.
+% برخی بیلدهای قدیمی B~Nazanin U+066B (٫ اعشار) و حمزۀ ترکیبی را ندارند → «مربع»؛ در صورت необت، از Vazirmatn سیستمی استفاده می‌شود.
+\usepackage{newunicodechar}
+\newcommand{\ThesisDecimalSep}{{\ThesisLatinPunct.}}
+\newcommand{\ThesisThousandsSep}{{\ThesisLatinPunct,}}
+\newcommand{\ThesisDash}{-}
+\newcommand{\ThesisEllipsis}{{\ThesisLatinPunct\ldots}}
+\newunicodechar{٫}{\ThesisDecimalSep}
+% BNazanin.ttf often omits Latin/general punctuation; draw these from the Latin serif font.
+\IfFontExistsTF{Times New Roman}{%
+  \newfontfamily\ThesisLatinPunct[Scale=\thesisLatinTextScale]{Times New Roman}%
+  \newfontfamily\ThesisLatinUpright[Scale=\thesisLatinTextScale]{Times New Roman}%
+}{%
+  \IfFontExistsTF{FreeSerif}{%
+    \newfontfamily\ThesisLatinPunct[Scale=\thesisLatinTextScale]{FreeSerif}%
+    \newfontfamily\ThesisLatinUpright[Scale=\thesisLatinTextScale]{FreeSerif}%
+  }{%
+    \newfontfamily\ThesisLatinPunct[Scale=\thesisLatinTextScale]{DejaVu Serif}%
+    \newfontfamily\ThesisLatinUpright[Scale=\thesisLatinTextScale]{DejaVu Serif}%
+  }%
+}%
+\newunicodechar{‏}{}
+\newunicodechar{‎}{}
+\newunicodechar{–}{\ThesisDash}
+\newunicodechar{—}{{\ThesisLatinPunct\symbol{"2014}}}
+\newunicodechar{•}{{\ThesisLatinPunct\symbol{"2022}}}
+\newunicodechar{…}{\ThesisEllipsis}
+\renewcommand{\lstlistingname}{کد}
+\renewcommand{\lstlistlistingname}{فهرست کدها}
+% U+066C (Arabic thousands separator) missing in many BNazanin builds.
+\newunicodechar{٬}{\ThesisThousandsSep}
+% More punctuation missing from many BNazanin builds (captions / فهرست‌ها).
+\newunicodechar{٪}{{\ThesisLatinPunct\%}}
+\newunicodechar{‐}{{\ThesisLatinPunct-}}
+\newunicodechar{‑}{{\ThesisLatinPunct-}}
+% Author--year text from \cite must use Latin font (apalike + kernel \cite).
+\makeatletter
+\let\Thesis@orig@cite@ofmt\@cite@ofmt
+\def\@cite@ofmt#1{\Thesis@orig@cite@ofmt{\lr{#1}}}%
+\makeatother
+\renewcommand{\abstractname}{چکیده}
+
+% عنوان فصل مراجع فارسی؛ فقط بدنۀ \bibitem با قلم لاتین (B Nazanin لاتین ندارد).
+\renewcommand{\bibname}{مراجع}
+\makeatletter
+\patchcmd{\thebibliography}{%
+      \sloppy\clubpenalty4000\widowpenalty4000%
+      \sfcode`\.\@m}{%
+      \sloppy\clubpenalty4000\widowpenalty4000%
+      \begin{latin}%
+      \sfcode`\.\@m}{}{%
+  \PackageWarning{thesis_fa}{Could not patch thebibliography for latin body; check extreport.cls.}%
+}%
+\patchcmd{\endthebibliography}{\endlist}{\end{latin}\endlist}{}{%
+  \PackageWarning{thesis_fa}{Could not patch endthebibliography for latin.}%
+}%
+\makeatother
+
+\newenvironment{acknowledgments}
+  {\chapter*{سپاسگزاری}}
+  {\par\medskip\cleardoublepage}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{فیوشات درمانی:\\
+پیش‌بینی هوشمند قابلیت درمان با توکن‌های علائم از داده‌های تجمیع‌شده}
+\author{محمد شرفی \\[0.35em]
+{\normalsize \lr{Mohammad Sharafi}} \\[0.65em]
+\normalsize مهندسی کامپیوتر، گرایش نرم‌افزار \\
+\normalsize دانشگاه آزاد اسلامی، واحد تهران شمال \\[0.5em]
+\normalsize استاد راهنما: دکتر علی‌محمدزاده}
+\date{اسفند \pnum{1404} / مارس \pnum{2026}}
+
+\begin{document}
+% --- بدون شماره تا پایان «تقدیم» ---
+\pagenumbering{gobble}
+\input{frontmatter_fa/cover}
+\input{frontmatter_fa/commitment}
+\input{frontmatter_fa/dedication}
+\cleardoublepage
+% --- مقدمات: شماره با حروف (الف، ب، …) از صفحۀ ۱ ---
+\ThesisPrelimNumberingStart
+
+\begin{acknowledgments}
+خاستگاه این پژوهش به تجربۀ کاری من در بستر \lr{Mayo Clinic} بازمی‌گردد؛ جایی که از نزدیک با دو واقعیت هم‌زمان روبه‌رو شدم: نیاز روزافزون به پیش‌بینی هوشمند در سلامت، و دشواری جدی دسترسی به دادۀ بالینی حساس. در آن تجربه، آنچه در دسترس بود عمدتاً شناسه‌ها و کدها بود، نه پرونده‌های بالینی خام. همین محدودیت برای من روشن کرد که اگر قرار است مدل‌های پیش‌بینی در پزشکی کاربرد واقعی پیدا کنند، باید بتوانند بدون تجمیع مستقیم داده و با احترام به حریم خصوصی بیمار آموزش ببینند. این پایان‌نامه از همان دغدغه شکل گرفت و سه مسیر یادگیری کم‌نمونه، یادگیری فدرال و بازنمایی فشرده مبتنی بر توکن‌های علائم را دنبال کرد. از استاد راهنما، دکتر علی‌محمدزاده، برای راهنمایی‌های ارزشمندشان و از همۀ کسانی که در این مسیر همراه من بودند، صمیمانه سپاسگزارم.
+\end{acknowledgments}
+
+% ترتیب برگرفته از نمونۀ استاد: فهرست مطالب، فهرست جداول، فهرست شکل‌ها، سپس چکیده.
+\tableofcontents
+\listoftables
+\listoffigures
+
+\chapter*{چکیده}
+\addcontentsline{toc}{chapter}{چکیده}
+پیش‌بینی \emph{امکان‌پذیری درمان} بر پایۀ دادۀ بالینی محدود و حساس، یکی از مسائل مهم در پشتیبانی تصمیم فردمحور است. در این پژوهش، امکان‌پذیری درمان به‌صورت عملیاتی به‌معنای پیش‌بینی یک پیامد بالینی قابل‌اندازه‌گیری بر اساس سیگنال‌های اولیه بیمار در \lr{ICU} تعریف می‌شود. این مفهوم به‌معنای توصیه مستقیم درمان، نسخه‌نویسی خودکار یا جایگزینی تصمیم پزشک نیست. در این پایان‌نامه، چارچوبی ترکیبی بررسی می‌شود که از چند جزء اصلی تشکیل شده است: \emph{توکن‌های علائم} (\lr{Symptom Tokens}) برای بازنمایی فشردۀ آزمایش‌ها و علائم حیاتی، رمزگذار \lr{ETHOS}، یادگیری کم‌نمونه و آموزش فدرال. آزمایش‌ها روی نمونۀ \pnum{2,000} بیمار از \lr{MIMIC\text{-}IV v3.1} و پنج گرۀ بیماری شامل سپسیس، بیماری‌های قلبی، تنفسی، کلیوی و دیابت انجام شده است.
+
+برای تعیین مرجع عملکرد، ابتدا یک مدل جدولی قوی گزارش می‌شود. فرایند \lr{SOTA} جدولی در مجموعۀ آزمون به \textbf{\lr{AUROC} برابر \pnum{0.748}}، \lr{F1} برابر \pnum{0.674} و دقت \pnum{0.700} می‌رسد. بهترین اجرای ترکیبی یادگیری کم‌نمونه با انباشت \textbf{\lr{AUROC} برابر \pnum{0.746}} با بازۀ اطمینان بوت‌استرپ \pnum{95}\% \cnum{[0.699, 0.797]} دارد؛ بنابراین از نظر توصیفی به سقف جدولی بسیار نزدیک است. در مقابل، زیرمدل کم‌نمونه به‌تنهایی \lr{AUROC} برابر \pnum{0.670} به‌دست می‌آورد. در آزمایش جداگانۀ \lr{Exp1} نیز مدل پیشنهادی کم‌نمونه به \textbf{\pnum{0.611}} و \lr{Random Forest} به \textbf{\pnum{0.762}} می‌رسند؛ ازاین‌رو نتایج اپیزودیک، نتایج \lr{Exp1} و نتایج انباشتی نباید به‌جای یکدیگر تفسیر شوند. شکاف آموزش فدرال نسبت به آموزش متمرکز نیز حدود \textbf{\pnum{0.005}} واحد \lr{AUROC} است.
+
+اجزای اصلی روش شامل سازگاری به‌سبک \lr{Proto-MAML}، تقطیر دانش از معلم \lr{Random Forest}، پیش‌آموزش \lr{Contrastive} نظارت‌شده، ویژگی‌های جدولی مهندسی‌شده، توجه درگاهی به ویژگی، نمونه‌های \lr{Cross-Attention} و یک فرا یادگیر انباشتی است که پیش‌بینی‌های کم‌نمونه و مدل‌های کلاسیک را با هم ترکیب می‌کند.
+
+\textbf{مشارکت‌های این پایان‌نامه} عبارت‌اند از: (\pnum{1}) ارائۀ بنچمارکی بازتولیدپذیر برای امکان‌پذیری درمان بر \lr{MIMIC\text{-}IV} با سلسله‌مراتب شفاف گزارش نتایج؛ (\pnum{2}) استفاده از \lr{Symptom Tokens} همراه با \lr{ETHOS} برای یادگیری کم‌نمونه؛ (\pnum{3}) نشان دادن اینکه مدل کم‌نمونه خام جایگزین مستقیم مدل‌های جدولی قوی نیست، اما انباشت می‌تواند فاصله تا سقف جدولی را به‌طور چشمگیر کاهش دهد؛ و (\pnum{4}) فراهم کردن کد و جداول خروجی برای بازتولید نتایج. محدودیت‌های اصلی شامل تک‌مرکزی بودن \lr{MIMIC\text{-}IV}، اندازۀ نمونۀ \pnum{2,000} بیمار، برچسب جانشین برای پیامد بالینی و نبود اعتبارسنجی خارجی است.
+
+\vspace{1em}
+\noindent\textbf{کلیدواژه‌ها:}
+امکان‌پذیری درمان؛
+یادگیری کم‌نمونه؛
+یادگیری فدرال؛
+\lr{MIMIC\text{-}IV}؛
+\lr{Symptom Tokens}؛
+\lr{ETHOS}؛
+یادگیری ماشین بالینی.
+
+\cleardoublepage
+\input{frontmatter_fa/preface}
+
+% --- بدنۀ اصلی: شمارۀ عربی از ۱ از ابتدای فصل اول (مقدمه) ---
+\ThesisPrelimNumberingEnd
+
+\input{chapters_fa/introduction}
+\input{chapters_fa/background}
+\input{chapters_fa/methods}
+\input{chapters_fa/experiments}
+\input{chapters_fa/results}
+\input{chapters_fa/data_analysis}
+\input{chapters_fa/discussion}
+\input{chapters_fa/conclusion}
+
+\begin{appendices}
+\input{chapters_fa/appendix_a}
+\input{chapters_fa/appendix_b}
+\input{chapters_fa/appendix_c}
+\input{chapters_fa/appendix_d}
+\input{chapters_fa/appendix_e}
+\input{chapters_fa/appendix_f}
+\input{chapters_fa/appendix_g}
+\input{chapters_fa/appendix_h}
+\input{chapters_fa/appendix_i}
+\input{chapters_fa/appendix_tables_generated}
+\input{chapters_fa/appendix_j}
+\input{chapters_fa/appendix_k}
+\input{chapters_fa/appendix_l}
+\input{chapters_fa/appendix_m}
+\input{chapters_fa/appendix_n}
+\input{chapters_fa/appendix_o}
+\input{chapters_fa/appendix_p}
+\input{chapters_fa/appendix_q}
+\input{chapters_fa/appendix_r}
+\end{appendices}
+
+% سبک نزدیک به APA (نویسنده--سال): در صورت نیاز به APA دقیق از biblatex-apa استفاده کنید.
+\bibliographystyle{apalike}
+\bibliography{references}
+
+\input{frontmatter_fa/titlepage_en}
+\input{frontmatter_fa/abstract_en}
+
+\end{document}
+%
+% یادآوری: قلم‌ها در thesis_fa_fonts.tex؛ شمارۀ مقدمات در thesis_fa_frontmatter.tex
+% «ابجد» عددی با حروف الفبایی متفاوت است؛ در صورت الزام آیین‌نامه، نگاشت را عوض کنید.

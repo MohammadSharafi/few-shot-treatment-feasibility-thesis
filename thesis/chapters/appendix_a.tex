@@ -1,0 +1,94 @@
+\chapter{Hyperparameters}
+\label{app:hyperparams}
+
+This appendix lists all hyperparameters used in our experiments.
+
+%==============================================================================
+\section{ETHOS Encoder}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{ETHOS Encoder Configuration}
+\begin{tabular}{ll}
+\toprule
+Parameter & Value \\
+\midrule
+d\_model & 128 \\
+nhead & 8 \\
+num\_layers & 2 \\
+d\_ff & 512 \\
+dropout & 0.2 \\
+vocab\_size & 23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Few-Shot}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Few-Shot Configuration}
+\begin{tabular}{ll}
+\toprule
+Parameter & Value \\
+\midrule
+n\_support (K) & 5 \\
+n\_query (Q) & 15 \\
+n\_way & 2 \\
+temperature & 10.0 \\
+use\_focal\_loss & true \\
+focal\_gamma & 2.0 \\
+n\_episodes\_train & 500 \\
+n\_episodes\_val & 100 \\
+n\_episodes\_test & 500 \\
+lr & 0.001 \\
+max\_epochs & 50 \\
+early\_stop\_patience & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Federated}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Federated Configuration}
+\begin{tabular}{ll}
+\toprule
+Parameter & Value \\
+\midrule
+n\_rounds & 20 \\
+n\_nodes & 5 \\
+aggregation & fedavg \\
+local\_epochs & 3 \\
+local\_batch\_size & 32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Final Best Model (Random Forest)}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{RandomForest\_threshold\_tuned Hyperparameters}
+\begin{tabular}{ll}
+\toprule
+Parameter & Value \\
+\midrule
+n\_estimators & 200 \\
+max\_depth & 28 \\
+min\_samples\_split & 5 \\
+min\_samples\_leaf & 2 \\
+max\_features & log2 \\
+class\_weight & balanced \\
+threshold $\theta$ & 0.54 \\
+\bottomrule
+\end{tabular}
+\end{table}

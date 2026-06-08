@@ -1,0 +1,63 @@
+\section{Results}
+\label{sec:res}
+
+Table~\ref{tab:tabular_c}--\ref{tab:stackc} summarize repository exports.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tuned tabular models (\texttt{exp\_tabular\_sota.csv}, unique configs).}
+  \label{tab:tabular_c}
+  \begin{tabular}{lcccc}
+    \toprule
+    Model & AUROC & F1 (macro) & Acc. & MCC \\
+    \midrule
+    RandomForest & 0.744 & 0.663 & 0.690 & 0.327 \\
+    XGBoost & 0.740 & 0.575 & 0.675 & 0.248 \\
+    CatBoost & 0.731 & 0.664 & 0.683 & 0.329 \\
+    LightGBM & 0.727 & 0.641 & 0.678 & 0.288 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Augmented best tabular row (\texttt{exp\_final\_best\_model.csv}).}
+  \label{tab:aug}
+  \begin{tabular}{lcccc}
+    \toprule
+    Model & AUROC & F1 (macro) & Acc. & MCC \\
+    \midrule
+    aug\_gaussian (best row) & \textbf{0.747} & 0.673 & 0.700 & 0.348 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Few-shot vs.\ stacked (\texttt{exp\_fewshot\_best.json}).}
+  \label{tab:stackc}
+  \begin{tabular}{lccccc}
+    \toprule
+    Strategy & AUROC & 95\% CI & F1 (macro) & Acc. & MCC \\
+    \midrule
+    BEST\_Stacked & \textbf{0.746} & [0.699, 0.797] & 0.687 & 0.698 & 0.382 \\
+    BEST\_FewShot\_GFA\_CrossAttn & 0.670 & [0.612, 0.726] & 0.386 & 0.628 & 0.000 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The stacked model matches the best tabular export within \textbf{0.001} AUROC, while few-shot-only remains \textbf{0.077} below stacked, underscoring the value of classical fusion.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Exp1 controlled comparison (selected rows, \texttt{exp1\_results.csv}).}
+  \label{tab:exp1c}
+  \begin{tabular}{lcc}
+    \toprule
+    Model & AUROC & F1 (macro) \\
+    \midrule
+    RandomForest & 0.762 & 0.679 \\
+    Proposed\_FewShot & 0.611 & 0.572 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

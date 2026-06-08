@@ -1,0 +1,46 @@
+\chapter{Threats to Validity and Mitigations}
+\label{app:threats}
+
+This appendix discusses threats to validity and corresponding mitigations.
+
+%==============================================================================
+\section{Internal Validity}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Threats to Validity and Mitigations}
+\begin{tabular}{p{3.5cm}p{2.5cm}p{6cm}}
+\toprule
+Threat & Type & Mitigation \\
+\midrule
+Sample size (2,000) & Internal & Bootstrap CIs; report variance; acknowledge limitation. \\
+Class imbalance (42/58) & Construct & Class weighting; SMOTE ablation; F1-macro. \\
+Hyperparameter choice & Internal & Grid search; fixed seed (42); report full grids. \\
+Train/val/test split & Internal & Stratified; fixed split; no data leakage. \\
+\midrule
+\multicolumn{3}{l}{\textit{External Validity}} \\
+\midrule
+Single center (MIMIC) & External & Multi-year data; diverse disease nodes. \\
+US-only population & External & Acknowledge; future: multi-site validation. \\
+ICU-only setting & External & Clear scope; generalize to other settings cautiously. \\
+\midrule
+\multicolumn{3}{l}{\textit{Construct Validity}} \\
+\midrule
+Feasibility definition & Construct & Align with prior work; discharge location as proxy. \\
+First 24h only & Construct & Standard for early prediction; document choice. \\
+\bottomrule
+\end{tabular}
+\label{tab:threats_full}
+\end{table}
+
+%==============================================================================
+\section{Limitations}
+%==============================================================================
+
+\begin{itemize}
+\item \textbf{Data}: MIMIC-IV is retrospective; prospective validation needed.
+\item \textbf{Models}: ETHOS underperforms RF; negative result reported honestly.
+\item \textbf{Generalization}: Results may not transfer to other hospitals or countries.
+\item \textbf{Bias}: Age/sex stratification performed; full fairness audit recommended.
+\end{itemize}

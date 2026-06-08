@@ -1,0 +1,124 @@
+\chapter{واژه‌نامه (\pnum{50} واژه)}
+\label{app:glossary}
+
+این پیوست واژه‌های کلیدی به‌کاررفته در پایان‌نامه را تعریف می‌کند.
+
+%==============================================================================
+\section{مفاهیم هسته}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{واژه‌نامه (واژه‌های منتخب)}
+\begin{tabular}{lr}
+\toprule
+واژه & تعریف \\
+\midrule
+\lr{AUROC} & مساحت زیر منحنی \lr{ROC}؛ معیار رتبه‌بندی نسبت به آستانه. \\
+\lr{AUPRC} & مساحت زیر منحنی دقت-بازخوانی. \\
+\lr{Few-shot} & یادگیری با تعداد اندک نمونه‌ی برچسب‌دار به‌ازای هر کلاس. \\
+\lr{FedAvg} & میانگین‌گیری فدرال؛ تجمیع به‌روزرسانی‌های مدل کلاینت‌ها. \\
+\lr{MIMIC\text{-}IV} & \lr{Medical Information Mart for Intensive Care}، نسخه‌ی \pnum{4}. \\
+\lr{SOFA} & نمره‌ی ارزیابی پی‌درپی نارسایی اندام. \\
+\lr{SHAP} & \lr{SHapley Additive exPlanations}؛ روش انتساب ویژگی. \\
+\midrule
+\multicolumn{2}{l}{\textit{بازنمایی}} \\
+\midrule
+\lr{Symptom Token} & بازنمایی گسسته از مقدار آزمایش/علامت حیاتی (بین و شدت). \\
+\lr{ETHOS} & \lr{Encoder for Time-series and Heterogeneous Organ Signals}. \\
+\lr{Prototype} & مرکز جرم کلاس در فضای نهفته (شبکه‌های نمونه‌اولیه‌ای). \\
+\midrule
+\multicolumn{2}{l}{\textit{یادگیری}} \\
+\midrule
+\lr{MAML} & \lr{Model-Agnostic Meta-Learning}. \\
+\lr{Episodic} & رژیم آموزش با تقسیم \lr{support/query}. \\
+\lr{Focal Loss} & زیان کانونی؛ نمونه‌های آسان را کم‌اهمیت می‌کند. \\
+\midrule
+\multicolumn{2}{l}{\textit{بالینی}} \\
+\midrule
+\lr{Feasibility} & ترخیص به منزل/توان‌بخشی در برابر مرگ/\lr{SNF}. \\
+\lr{ICU LOS} & مدت بستری در واحد مراقبت ویژه. \\
+\lr{ICD-10} & طبقه‌بندی بین‌المللی بیماری‌ها، ویرایش دهم. \\
+\midrule
+\multicolumn{2}{l}{\textit{ارزیابی}} \\
+\midrule
+\lr{MCC} & ضریب همبستگی متیوز. \\
+\lr{F1} کلان & میانگین \lr{F1} به‌ازای هر کلاس. \\
+\lr{Bootstrap CI} & بازه‌ی اطمینان از نمونه‌برداری مجدد. \\
+\lr{Wilcoxon} & آزمون جفتی ناپارامتریک. \\
+\midrule
+\multicolumn{2}{l}{\textit{فنی}} \\
+\midrule
+\lr{ItemID} & شناسه‌ی \lr{MIMIC} برای نوع آزمایش/علامت حیاتی. \\
+\lr{Stay ID} & شناسه‌ی یکتای بستری \lr{ICU}. \\
+\lr{Parquet} & قالب ذخیره‌ی ستونی. \\
+\bottomrule
+\end{tabular}
+\label{tab:glossary_full}
+\end{table}
+
+%==============================================================================
+\section{واژه‌نامه‌ی تفصیلی (فهرست کامل)}
+%==============================================================================
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.2cm}>{\raggedleft\arraybackslash}p{10cm}}
+\toprule
+\textbf{واژه} & \textbf{تعریف} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{واژه} & \textbf{تعریف} \\
+\midrule
+\endhead
+
+\lr{Adversarial robustness} & تاب‌آوری مدل در برابر ورودی‌های مختل‌شده. \\
+\lr{Attention mechanism} & وزن‌ها روی توکنهای ورودی برای بازنمایی وابسته به زمینه. \\
+\lr{AUROC} & مساحت زیر منحنی \lr{ROC}؛ احتمال بالاتر بودن رتبه‌ی مثبت نسبت به منفی. \\
+\lr{AUPRC} & مساحت زیر منحنی دقت-بازخوانی؛ برای داده‌ی نامتعادل مفید است. \\
+\lr{Bootstrap CI} & بازه‌ی اطمینان از نمونه‌برداری مجدد با جایگزینی. \\
+\lr{Calibration} & تطابق احتمالات پیش‌بینی‌شده با فراوانی مشاهده‌شده. \\
+\lr{Class imbalance} & توزیع نابرابر کلاس‌ها (مثلاً \pnum{42}\% در برابر \pnum{58}\%). \\
+\lr{Cross-validation} & ارزیابی \lr{K-fold} برای برآورد پایدار عملکرد. \\
+\lr{Differential privacy} & چارچوب رسمی برای محدودکردن افشای اطلاعات فردی در آمار یا مدل‌های تجمیعی. \\
+\lr{Embedding} & بردار متراکم بازنمایی ورودی (مثلاً \pnum{128} بعدی). \\
+\lr{Episodic training} & فرا یادگیری با نمونه‌برداری قسمت \lr{support/query}. \\
+\lr{ETHOS} & \lr{Encoder for Time-series and Heterogeneous Organ Signals}. \\
+\lr{FedAvg} & میانگین‌گیری فدرال؛ میانگین وزنی به‌روزرسانی‌های کلاینت. \\
+\lr{Federated learning} & آموزش روی داده‌های توزیع‌شده بدون متمرکزسازی. \\
+\lr{Feasibility} & دودویی: ترخیص به منزل/توان‌بخشی (\pnum{1}) در برابر مرگ/\lr{SNF} (\pnum{0}). \\
+\lr{Focal Loss} & آنتروپی متقاطع با کم‌اهمیت‌کردن نمونه‌های آسان با $(1-p)^\gamma$. \\
+\lr{F1} کلان & میانگین \lr{F1} به‌ازای هر کلاس؛ کلاس‌ها را برابر می‌انگارد. \\
+\lr{Gradient descent} & بهینه‌سازی با حرکت تکراری در جهت مخالف گرادیان. \\
+\lr{Hyperparameter} & پارامتر مدل/پیکربندی که پیش از آموزش تنظیم می‌شود (مثلاً نرخ یادگیری). \\
+\lr{ICD-10} & طبقه‌بندی بین‌المللی بیماری‌ها، ویرایش دهم. \\
+\lr{ICU LOS} & مدت بستری در واحد مراقبت ویژه. \\
+\lr{Imputation} & پر کردن مقادیر گم‌شده (مثلاً \lr{forward-fill}، میانگین). \\
+\lr{ItemID} & شناسه‌ی \lr{MIMIC} برای نوع اندازه‌گیری آزمایش/علامت حیاتی. \\
+\lr{K-shot} & تعداد نمونه‌های \lr{support} به‌ازای هر کلاس (مثلاً $K=5$). \\
+\lr{Label smoothing} & نرم‌کردن برچسب‌های \lr{one-hot} برای تنظیم. \\
+\lr{LightGBM} & تقویت گرادیان با رشد برگ‌محور. \\
+\lr{MAML} & \lr{Model-Agnostic Meta-Learning}؛ یادگیری مقداردهی اولیه برای سازگاری سریع. \\
+\lr{MCC} & ضریب همبستگی متیوز؛ متعادل برای طبقه‌بندی دودویی. \\
+\lr{Meta-learning} & یادگیری برای یادگیری؛ بهینه‌سازی روی وظایف. \\
+\lr{MIMIC\text{-}IV} & \lr{Medical Information Mart for Intensive Care}، نسخه‌ی \pnum{4}. \\
+\lr{Normalization} & مقیاس‌کردن ورودی‌ها به بازه‌ی استاندارد (مثلاً $[0,1]$). \\
+\lr{Outlier} & مقدار افراطی؛ ما به بازه‌های بالینی \lr{clip} می‌کنیم. \\
+\lr{Parquet} & قالب ذخیره‌ی ستونی برای \lr{I/O} کارآمد. \\
+\lr{Precision} & $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$؛ ارزش پیش‌بینی مثبت. \\
+\lr{Prototype} & مرکز جرم کلاس در فضای نهفته (شبکه‌های نمونه‌اولیه‌ای). \\
+\lr{Recall} & $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$؛ حساسیت. \\
+\lr{Resampling} & \lr{oversampling} اقلیت یا \lr{undersampling} اکثریت. \\
+\lr{SHAP} & \lr{SHapley Additive exPlanations}؛ انتساب ویژگی. \\
+\lr{SMOTE} & \lr{Synthetic Minority Over-sampling Technique}. \\
+\lr{SOFA} & \lr{Sequential Organ Failure Assessment}؛ نمره‌ی نارسایی اندام. \\
+\lr{Stay ID} & شناسه‌ی یکتای بستری \lr{ICU} در \lr{MIMIC}. \\
+\lr{Symptom Token} & بازنمایی گسسته: \lr{(symptom\_id, intensity, time, modality)}. \\
+\lr{Threshold tuning} & انتخاب آستانه‌ی تصمیم برای بیشینه‌کردن \lr{F1} یا معیار دیگر. \\
+توکن‌سازی & نگاشت مقادیر پیوسته به شناسه‌های توکن گسسته. \\
+\lr{Transfer learning} & استفاده از مدل ازپیش‌آموزش‌دیده روی وظیفه‌ی جدید. \\
+\lr{Validation set} & داده‌ی نگه‌داشته‌شده برای انتخاب مدل؛ برای گزارش نهایی استفاده نمی‌شود. \\
+\lr{XGBoost} & \lr{Extreme Gradient Boosting}؛ مجموعه‌ی درخت. \\
+\lr{Zero-shot} & تعمیم با صفر نمونه‌ی برچسب‌دار در کلاس هدف. \\
+\bottomrule
+\end{longtable}

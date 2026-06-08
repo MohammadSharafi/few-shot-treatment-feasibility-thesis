@@ -1,0 +1,74 @@
+\chapter{API Specification}
+\label{app:api}
+
+This appendix provides the REST API specification for deployment of the feasibility prediction model.
+
+%==============================================================================
+\section{Overview}
+%==============================================================================
+
+The API exposes three endpoints:
+\begin{itemize}
+\item \texttt{POST /predict} --- Feasibility prediction from lab/vital input
+\item \texttt{GET /model} --- Model metadata and version
+\item \texttt{POST /explain} --- SHAP explanation for a prediction
+\end{itemize}
+
+Base URL: \texttt{https://api.example.com/v1}
+
+%==============================================================================
+\section{Endpoints}
+%==============================================================================
+
+\subsection{POST /predict}
+
+\textbf{Request:}
+\begin{lstlisting}
+{
+  "patient_id": "string",
+  "features": {
+    "creatinine": 1.2,
+    "glucose": 120,
+    "hemoglobin": 10.5
+  }
+}
+\end{lstlisting}
+
+\textbf{Response:}
+\begin{lstlisting}
+{
+  "patient_id": "string",
+  "feasible": true,
+  "probability": 0.72,
+  "model_version": "1.0"
+}
+\end{lstlisting}
+
+\subsection{GET /model}
+
+Returns model metadata: version, AUROC, training date, feature list.
+
+\subsection{POST /explain}
+
+Same request body as \texttt{/predict}. Returns SHAP values per feature for the prediction.
+
+%==============================================================================
+\section{OpenAPI Summary}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{API Endpoints Summary}
+\begin{tabular}{lll}
+\toprule
+Method & Path & Description \\
+\midrule
+POST & /predict & Feasibility prediction \\
+GET & /model & Model metadata \\
+POST & /explain & SHAP explanation \\
+\bottomrule
+\end{tabular}
+\label{tab:api_endpoints}
+\end{table}
+
+Authentication: API key in \texttt{X-API-Key} header. Rate limit: 100 req/min.

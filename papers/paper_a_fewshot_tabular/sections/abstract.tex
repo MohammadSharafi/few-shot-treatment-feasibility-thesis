@@ -1,0 +1,13 @@
+\begin{abstract}
+\noindent\textbf{Background.} Few-shot meta-learning achieves strong results in computer vision and NLP when pretrained representations exist. \emph{Tabular} clinical prediction from moderate-sized intensive care unit (ICU) cohorts is still dominated by tree ensembles and regularized linear models, raising the question of whether metric-based meta-learning can be made competitive without misleading claims of ``parity.''
+\noindent\textbf{Objective.} To evaluate a complete pipeline---Symptom Tokens, transformer encoder (ETHOS), prototypical networks, advanced training (contrastive pre-training, knowledge distillation, adaptation), and neural--classical stacking---against strong tabular baselines on a reproducible treatment feasibility task from MIMIC-IV v3.1.
+
+\noindent\textbf{Methods.} We extracted $n{=}2{,}000$ first ICU stays (five disease strata), 25-D tabular features from 15 labs and 7 vitals in the first 24\,h plus engineered summaries, and fixed 64\%/16\%/20\% train/validation/test splits (seed 42). Experiments included (1)~classical baselines and tuned gradient boosting, (2)~episodic $K$-shot sensitivity, (3)~federated vs.\ centralized few-shot training, (4)~component ablations, (5)~cross-node generalization. We report a clear \emph{reporting hierarchy}: tabular ceiling $\rightarrow$ stacked hybrid $\rightarrow$ few-shot-only $\rightarrow$ federated sensitivity.
+
+\noindent\textbf{Results.} Repository-frozen exports give: tabular strong model \textbf{AUROC 0.747} (augmented RF variant, \texttt{exp\_final\_best\_model.csv}); tuned RF in the tabular-SOTA grid \textbf{0.744}; stacked BEST few-shot+classical \textbf{0.746} (95\% bootstrap CI 0.699--0.797); few-shot-only BEST (GFA+CrossAttn) \textbf{0.670} (CI 0.612--0.726). The main script comparison (\texttt{exp1\_main.py}) yields \texttt{Proposed\_FewShot} \textbf{0.611} vs.\ Random Forest \textbf{0.762} on the same split---showing that episodic baselines and fully engineered stacks are not interchangeable. Federated simulation reduces AUROC by $\approx$\textbf{0.005} vs.\ centralized few-shot training.
+
+\noindent\textbf{Conclusions.} With disciplined reporting, few-shot pipelines can approach tabular ceilings when classical predictions and embeddings are fused via calibrated stacking. Claims of non-inferiority require paired tests on aligned score vectors. Limitations include single-center data and simplified labels.
+
+\medskip
+\noindent\textbf{Keywords:} few-shot learning; electronic health records; MIMIC-IV; prototypical networks; stacking; knowledge distillation; ICU; reproducibility
+\end{abstract}

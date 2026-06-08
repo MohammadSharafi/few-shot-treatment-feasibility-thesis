@@ -1,0 +1,19 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Clinical context}
+Early ICU data contain rich signals in laboratory values and vital signs. Machine learning can assist discharge planning, but models must be accurate and inspectable enough for clinician oversight~\citep{ghassemi2021practical}.
+
+\subsection{Representation dilemma}
+\textbf{Tabular} models consume a fixed feature vector per stay; \textbf{sequence} models can in principle preserve measurement-time structure. Clinical transformers often operate on diagnosis codes or text~\citep{li2020behrt,rasmy2021med}. We target \emph{continuous} measurements with a token design that keeps clinical identity (which lab/vital), intensity (normalized value), relative time, and modality.
+
+\subsection{Contributions}
+\begin{itemize}
+  \item Formalization of \textbf{Symptom Tokens} for 15+7 channels in the first 24\,h.
+  \item \textbf{ETHOS} transformer encoder mapping tokens to 128-D embeddings~\citep{sharafi2023ethos,vaswani2017attention}.
+  \item \textbf{Calibrated stacking} meta-learner fusing few-shot probabilities, forest output, and embeddings.
+  \item Empirical alignment between stacked neural--classical AUROC (\textbf{0.746}) and best tabular export (\textbf{0.747}) on a shared benchmark.
+\end{itemize}
+
+\subsection{Outline}
+Section~\ref{sec:related} reviews related representation learning. Sections~\ref{sec:tokens}--\ref{sec:stack} describe tokens, encoder, and fusion. Sections~\ref{sec:setup}--\ref{sec:res} present setup and results. Sections~\ref{sec:interp}--\ref{sec:conc} cover interpretability and conclusions.

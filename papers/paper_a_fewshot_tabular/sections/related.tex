@@ -1,0 +1,17 @@
+\section{Related work}
+\label{sec:related}
+
+\subsection{Clinical prediction on MIMIC}
+MIMIC-III/IV have supported hundreds of studies on mortality, length of stay, and discharge outcomes~\citep{johnson2023mimic,harutyunyan2019multitask,purushotham2018benchmarking}. Random forests and gradient boosting remain competitive when features are carefully engineered~\citep{awad2017random}. Deep models often require large samples or multi-task objectives to exceed these baselines.
+
+\subsection{Transformers for structured EHRs}
+Transformer encoders have been applied to diagnostic codes, clinical notes, and longitudinal events~\citep{li2020behrt,rasmy2021med}. Our \textbf{Symptom Tokens} target \emph{quantitative} laboratory and vital channels in a fixed early window, closer to tabular deep models than to note-based BERT variants.
+
+\subsection{Meta-learning and few-shot classification}
+Beyond prototypical and matching networks~\citep{snell2017prototypical,vinyals2016matching} and MAML~\citep{finn2017model}, relation networks~\citep{sung2018learning} and optimization-based meta-learners~\citep{ravi2016meta} expand the toolbox. Benchmark analyses~\citep{chen2019closer} stress the role of backbone quality. For tabular few-shot, TabLLM~\citep{hegselmann2023tabllm} frames classification via language interfaces; our approach stays in a dedicated clinical token space.
+
+\subsection{Knowledge distillation and ensembling}
+Distillation from strong teachers~\citep{hinton2015distilling} transfers decision boundaries into student embeddings. Stacking~\citep{wolpert1992stacked} and calibrated fusion are standard when validation data are limited---a recurring issue in clinical cohorts.
+
+\subsection{Federated learning (context only)}
+FedAvg~\citep{mcmahan2017communication} and medical FL surveys~\citep{rieke2020future,sheller2020federated} motivate privacy-preserving training. We report federated sensitivity mainly to contextualize deployment; the focal comparison here is centralized tabular vs.\ centralized few-shot engineering.

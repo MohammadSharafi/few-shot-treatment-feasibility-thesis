@@ -1,0 +1,89 @@
+\chapter{Full Result Tables}
+\label{app:tables}
+
+This appendix provides extended result tables.
+
+%==============================================================================
+\section{Tabular SOTA: All Models}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Tabular SOTA Pipeline: Single Models (Test Set)}
+\begin{tabular}{lcccc}
+\toprule
+Model & AUROC & F1 & Accuracy & MCC \\
+\midrule
+XGBoost & 0.743 & 0.672 & 0.680 & 0.356 \\
+RandomForest & 0.760 & 0.669 & 0.705 & 0.347 \\
+LightGBM & 0.727 & 0.641 & 0.678 & 0.289 \\
+CatBoost & 0.731 & 0.664 & 0.683 & 0.329 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Ensemble Results}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{Ensemble Models (Test Set)}
+\begin{tabular}{lccccc}
+\toprule
+Model & Threshold & AUROC & F1 & Accuracy & MCC \\
+\midrule
+SoftVoting & 0.51 & 0.743 & 0.654 & 0.675 & 0.309 \\
+Stacking & 0.45 & 0.742 & 0.656 & 0.678 & 0.311 \\
+RandomForest\_threshold\_tuned & 0.54 & \textbf{0.760} & \textbf{0.682} & \textbf{0.703} & \textbf{0.364} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Lab and Vital Item IDs}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\caption{MIMIC-IV Lab Item IDs}
+\begin{tabular}{lll}
+\toprule
+Item ID & Name & Range (min--max) \\
+\midrule
+50912 & Creatinine & 0.1--30 mg/dL \\
+50971 & Potassium & 1.5--10 mEq/L \\
+50983 & Sodium & 100--180 mEq/L \\
+50902 & Chloride & 70--130 mEq/L \\
+50931 & Glucose & 20--600 mg/dL \\
+50893 & Calcium & 4--16 mg/dL \\
+50960 & Magnesium & 0.5--6 mEq/L \\
+50811 & Hemoglobin & 3--25 g/dL \\
+51265 & Platelets & 5--1000 K/uL \\
+51300 & WBC & 0.5--50 K/uL \\
+50813 & Lactate & 0.5--25 mmol/L \\
+50861 & ALT & 5--2000 U/L \\
+50878 & AST & 5--2000 U/L \\
+51006 & BUN & 5--300 mg/dL \\
+50882 & Bicarbonate & 5--50 mEq/L \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{MIMIC-IV Vital Item IDs}
+\begin{tabular}{lll}
+\toprule
+Item ID & Name & Range \\
+\midrule
+220045 & Heart Rate & 20--250 bpm \\
+220050 & Systolic BP & 40--250 mmHg \\
+220051 & Diastolic BP & 20--180 mmHg \\
+220052 & Mean BP & 30--200 mmHg \\
+223761 & Temperature & 90--110 F \\
+220277 & SpO2 & 50--100 \% \\
+220210 & Respiratory Rate & 1--60 /min \\
+\bottomrule
+\end{tabular}
+\end{table}

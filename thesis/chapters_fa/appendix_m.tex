@@ -1,0 +1,141 @@
+\chapter{جداول تفصیلی جستجوی ابرپارامتر و حذف اجزا}
+\label{app:extended_tables}
+
+این پیوست نتایج تفصیلی جستجوی ابرپارامتر و جداول حذف اجزا را ارائه می‌کند.
+
+%==============================================================================
+\section{شبکه‌ی ابرپارامتر \lr{Random Forest}}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{شبکه‌ی \lr{RandomizedSearchCV} برای \lr{Random Forest}}
+\begin{tabular}{rl}
+\toprule
+پارامتر & بازه‌ی جستجو \\
+\midrule
+\maybeLr{n\_estimators} & \maybeLr{[100, 200, 300, 400, 500]} \\
+\maybeLr{max\_depth} & \maybeLr{[8, 12, 16, 20, 24, 28]} \\
+\maybeLr{min\_samples\_split} & \maybeLr{[2, 5, 10]} \\
+\maybeLr{min\_samples\_leaf} & \maybeLr{[1, 2, 4]} \\
+\maybeLr{max\_features} & \maybeLr{[sqrt, log2]} \\
+\maybeLr{class\_weight} & \maybeLr{[balanced, balanced\_subsample]} \\
+\bottomrule
+\end{tabular}
+\label{tab:rf_grid}
+\end{table}
+
+%==============================================================================
+\section{شبکه‌ی ابرپارامتر \lr{XGBoost}}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{شبکه‌ی \lr{RandomizedSearchCV} برای \lr{XGBoost}}
+\begin{tabular}{rl}
+\toprule
+پارامتر & بازه‌ی جستجو \\
+\midrule
+\maybeLr{n\_estimators} & \maybeLr{[100, 200, 300, 400, 500]} \\
+\maybeLr{max\_depth} & \maybeLr{[4, 6, 8, 10, 12]} \\
+\maybeLr{learning\_rate} & \maybeLr{[0.01, 0.03, 0.05, 0.1]} \\
+\maybeLr{subsample} & \maybeLr{[0.5, 0.7, 0.85, 1.0]} \\
+\maybeLr{colsample\_bytree} & \maybeLr{[0.5, 0.7, 0.85, 1.0]} \\
+\maybeLr{min\_child\_weight} & \maybeLr{[1, 3, 5, 7]} \\
+\maybeLr{reg\_alpha} & \maybeLr{[0.01, 0.1, 1.0, 10.0]} \\
+\maybeLr{reg\_lambda} & \maybeLr{[0.01, 0.1, 1.0, 10.0]} \\
+\bottomrule
+\end{tabular}
+\label{tab:xgb_grid}
+\end{table}
+
+%==============================================================================
+\section{حذف اجزای \lr{ETHOS}: نتایج کامل}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{مطالعۀ حذف اجزا (همگام با خروجی فعلی مخزن)}
+\begin{tabular}{rccc}
+\toprule
+نوع & \lr{AUROC} & \lr{F1} & $\Delta$\lr{AUROC} \\
+\midrule
+مدل کامل & \cnum{0.583} & \cnum{0.554} & \cnum{-} \\
+بدون توکن‌های علائم (\lr{LR} خام) & \cnum{0.724} & \cnum{0.628} & \cnum{+0.140} \\
+بدون سوگیری بالینی & \cnum{0.584} & \cnum{0.557} & \cnum{+0.001} \\
+بدون وزن‌دهی شدت & \cnum{0.577} & \cnum{0.570} & \cnum{-0.006} \\
+بدون افت زمانی & \cnum{0.583} & \cnum{0.554} & \cnum{0.000} \\
+بدون سر کم‌نمونه (\lr{Standard NN}) & \cnum{0.645} & \cnum{0.584} & \cnum{+0.062} \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation_full}
+\end{table}
+
+%==============================================================================
+\section{حساسیت \lr{K}-شات: جدول کامل}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{حساسیت \lr{K}-شات (همه‌ی مقادیر آزموده‌شده)}
+\begin{tabular}{ccccc}
+\toprule
+$K$ & \lr{AUROC} & انحراف معیار \lr{AUROC} & بازۀ اطمینان \pnum{95}\% \lr{AUROC} & \lr{F1} کلان \\
+\midrule
+\cnum{1} & \cnum{0.564} & \cnum{0.022} & \cnum{[0.543, 0.585]} & \cnum{0.554} \\
+\cnum{3} & \cnum{0.564} & \cnum{0.025} & \cnum{[0.541, 0.588]} & \cnum{0.548} \\
+\cnum{5} & \cnum{0.560} & \cnum{0.029} & \cnum{[0.533, 0.588]} & \cnum{0.539} \\
+\cnum{10} & \cnum{0.557} & \cnum{0.021} & \cnum{[0.538, 0.577]} & \cnum{0.534} \\
+\cnum{15} & \cnum{0.557} & \cnum{0.021} & \cnum{[0.538, 0.577]} & \cnum{0.534} \\
+\bottomrule
+\end{tabular}
+\label{tab:kshot_full}
+\end{table}
+
+%==============================================================================
+\section{دورهای فدرال: معیارها به‌تفکیک دور}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{آموزش فدرال: \lr{AUROC} اعتبارسنجی به‌تفکیک دور (نمونه)}
+\begin{tabular}{rc}
+\toprule
+دور & \lr{Val AUROC} \\
+\midrule
+\cnum{0} & \cnum{0.52} \\
+\cnum{5} & \cnum{0.56} \\
+\cnum{10} & \cnum{0.59} \\
+\cnum{15} & \cnum{0.612} \\
+\cnum{20} & \cnum{0.624} \\
+\bottomrule
+\end{tabular}
+\label{tab:fed_rounds}
+\end{table}
+
+%==============================================================================
+\section{چندبیماری: نتایج کامل همه‌ی گره‌ها}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{تعمیم بین‌بیماری (همه‌ی گره‌ها)}
+\begin{tabular}{rcccc}
+\toprule
+گره آزمون & پیشنهادی & \lr{LR} & \lr{XGBoost} & \lr{NN} \\
+\midrule
+گره \pnum{1} (سپسیس) & \cnum{0.61} & \cnum{0.68} & \cnum{0.71} & \cnum{0.58} \\
+گره \pnum{2} (قلبی) & \cnum{0.62} & \cnum{0.70} & \cnum{0.72} & \cnum{0.60} \\
+گره \pnum{3} (تنفسی) & \cnum{0.60} & \cnum{0.67} & \cnum{0.69} & \cnum{0.57} \\
+گره \pnum{4} (کلیوی) & \cnum{0.60} & \cnum{0.67} & \cnum{0.70} & \cnum{0.57} \\
+گره \pnum{5} (دیابت) & \cnum{0.53} & \cnum{0.66} & \cnum{0.70} & \cnum{0.64} \\
+\bottomrule
+\end{tabular}
+\label{tab:cross_disease_full}
+\end{table}
+
+%==============================================================================
+% Note on deprecated extended tables
+%==============================================================================
+
+در نسخه‌های کاری اولیه، مجموعه‌ای از جداول انگلیسیِ توسعه‌ای در فایل \texttt{\lr{tables\_extended.tex}} درج می‌شد. از آن‌جا که بخشی از آن جداول بر پایۀ اجراهای تاریخی و ناهمگام با خروجی نهایی مخزن بودند، در نسخۀ نهایی پایان‌نامه حذف شدند تا از گزارش دوگانۀ اعداد جلوگیری شود. جداول تکمیلی معتبر در پیوست~\ref{app:pipeline_tables} و همین پیوست آمده‌اند.

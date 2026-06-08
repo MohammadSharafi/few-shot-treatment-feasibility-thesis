@@ -1,0 +1,60 @@
+\chapter{Extended Literature Survey}
+\label{app:literature}
+
+This appendix provides an extended survey of prior work relevant to our thesis.
+
+%==============================================================================
+\section{Few-Shot Learning: Key Papers}
+%==============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{Key Few-Shot Learning Papers}
+\small
+\begin{tabular}{llp{5cm}}
+\toprule
+\textbf{Paper} & \textbf{Year} & \textbf{Contribution} \\
+\midrule
+Matching Networks & 2016 & Attention over support set for one-shot \\
+Prototypical Networks & 2017 & Mean embeddings as class prototypes \\
+MAML & 2017 & Meta-learning via gradient-based adaptation \\
+Relation Network & 2018 & Learned metric instead of Euclidean \\
+Simple baselines & 2019 & Nearest-centroid can match complex methods \\
+\bottomrule
+\end{tabular}
+\label{tab:fsl_papers}
+\end{table}
+
+%==============================================================================
+\section{Federated Learning: Healthcare Applications}
+%==============================================================================
+
+Federated learning in healthcare has been applied to: (1) medical imaging (e.g., brain MRI segmentation across hospitals); (2) EHR prediction (mortality, readmission); (3) drug discovery (molecular property prediction). Key challenges: non-IID data, communication costs, and regulatory compliance. Our work adds few-shot meta-learning to the federated setting for treatment feasibility.
+
+%==============================================================================
+\section{Clinical Prediction: Benchmark Results}
+%==============================================================================
+
+Prior work on MIMIC-III/IV reports AUROC in the range 0.72--0.88 for mortality, 0.70--0.80 for readmission, and 0.65--0.78 for length-of-stay prediction. Our AUROC 0.76 for treatment feasibility is comparable. Task definition and cohort selection significantly affect reported metrics; direct comparison requires identical evaluation protocols.
+
+%==============================================================================
+\section{Transformer Architecture Details}
+%==============================================================================
+
+The transformer encoder consists of alternating multi-head self-attention and feed-forward layers. Each attention head computes:
+\begin{equation}
+\text{head}_i = \text{Softmax}\left(\frac{Q_i K_i^\top}{\sqrt{d_k}}\right) V_i
+\end{equation}
+where $Q_i, K_i, V_i$ are learned projections. The outputs of all heads are concatenated and projected. Layer normalization is applied before and after each sublayer (Pre-LN configuration). The feed-forward layer: $\text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2$ with $d_{\text{ff}} = 512$. Dropout (0.2) is applied after attention and FFN.
+
+%==============================================================================
+\section{Evaluation Protocol Details}
+%==============================================================================
+
+For few-shot evaluation, we sample 100 episodes from the test set. Each episode has $K$ support and $Q$ query per class. We report mean AUROC and standard deviation across episodes. For classical models, we use the full test set in a single evaluation. The different protocols explain why K-shot experiment AUROC (0.51--0.55) is lower than main ETHOS+FewShot AUROC (0.619): the main evaluation uses the full test set with a single trained model; the K-shot experiment uses episodic sampling which introduces variance.
+
+%==============================================================================
+\section{Comparison with MIMIC-III Prior Work}
+%==============================================================================
+
+MIMIC-III (predecessor of MIMIC-IV) has been used extensively. Awad et al. (2017) reported AUROC 0.78 for discharge prediction using Random Forest. Purushotham et al. (2018) benchmarked LSTM and RF on mortality (AUROC 0.85 for best model). Our MIMIC-IV cohort and task (treatment feasibility) differ; our AUROC 0.76 is in a comparable range. The shift from MIMIC-III to MIMIC-IV introduces schema changes; we use the updated structure (e.g., \texttt{labevents} itemids).

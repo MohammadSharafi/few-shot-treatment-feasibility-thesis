@@ -1,0 +1,11 @@
+\section{Related work}
+\label{sec:related}
+
+\subsection{Federated optimization}
+FedAvg~\citep{mcmahan2017communication} remains the default baseline: local SGD epochs followed by weighted averaging. Heterogeneity-aware variants (e.g., FedProx~\citep{li2020federated}) reduce client drift. Surveys summarize threats, privacy tooling, and systems constraints~\citep{kairouz2021advances}.
+
+\subsection{Federated learning in medicine}
+Overview articles argue FL can enable multi-institutional models without data pooling~\citep{rieke2020future}. Empirical studies include federated tumor segmentation~\citep{sheller2020federated}. Structured EHR tasks add schema heterogeneity and variable missingness across sites---challenges our simulation only partially captures.
+
+\subsection{Few-shot meta-learning}
+Prototypical networks~\citep{snell2017prototypical} and MAML~\citep{finn2017model} underpin our client-side training. Combining FL with meta-learning has been proposed for cross-device personalization; here we use meta-learning as the \emph{task} model class rather than meta-learning across FL rounds.

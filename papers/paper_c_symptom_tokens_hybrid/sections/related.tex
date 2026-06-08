@@ -1,0 +1,14 @@
+\section{Related work}
+\label{sec:related}
+
+\subsection{Tabular machine learning in medicine}
+Random forests and boosting remain strong on structured clinical data~\citep{awad2017random,caruana2015intelligible}. Deep tabular models (e.g., transformers with specialized embeddings) are an active area~\citep{hegselmann2023tabllm}.
+
+\subsection{Transformers for EHRs}
+BEHRT~\citep{li2020behrt} and Med-BERT~\citep{rasmy2021med} demonstrate transformer capacity on coded/binned EHR sequences. Our tokens emphasize \textbf{continuous physiology} in an early window rather than longitudinal code sequences.
+
+\subsection{Few-shot and hybrid fusion}
+Prototypical networks~\citep{snell2017prototypical} provide a natural few-shot head on top of encoders. Hybrid models that concatenate neural embeddings with tabular features are common; \textbf{stacking}~\citep{wolpert1992stacked} learns a second-level combination with better calibration when base learners are diverse.
+
+\subsection{Knowledge distillation}
+Distillation from a strong teacher~\citep{hinton2015distilling} transfers inductive bias into student embeddings and complements stacking when the student also serves as a feature generator.

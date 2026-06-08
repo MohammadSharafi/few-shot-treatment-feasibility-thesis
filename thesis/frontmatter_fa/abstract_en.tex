@@ -1,0 +1,18 @@
+% چکیدۀ انگلیسی (بخش پایانی)؛ هم‌راستا با thesis.tex
+\chapter*{چکیده انگلیسی}
+\addcontentsline{toc}{chapter}{چکیده انگلیسی}
+\begin{latin}
+\small
+\noindent
+Predicting \emph{treatment feasibility} from limited, aggregated clinical data is a critical challenge in personalized healthcare decision support. In this thesis, treatment feasibility is operationalized as predicting a measurable clinical discharge/treatment-feasibility outcome from early ICU signals in MIMIC-IV. It does not mean autonomous treatment recommendation, automated prescription, or replacement of physician judgment. We address this research problem using a pipeline combining \emph{Symptom Tokens}---a compact representation of labs and vitals---with the ETHOS encoder, few-shot meta-learning, classical tabular baselines, hybrid stacking, and federated simulation. Experiments use a 2{,}000-patient MIMIC-IV v3.1 sample, split into five disease nodes (sepsis, cardiac, respiratory, renal, diabetes).
+
+We establish a strong \textbf{tabular ceiling}: the frozen Tabular SOTA pipeline reaches \textbf{test AUROC 0.748} (F1 0.674, accuracy 0.700). The unified best few-shot pipeline with stacking achieves \textbf{AUROC 0.746} (95\% bootstrap CI [0.699, 0.797]), descriptively closing most of the gap to the tabular ceiling, while the few-shot sub-model alone reaches AUROC 0.670. Under the separate Exp1 comparison protocol, the proposed few-shot model attains \textbf{AUROC 0.611} and Random Forest reaches \textbf{0.762} on the same Exp1 split. This shows that raw few-shot does not outperform the strongest classical baseline, and that Exp1, episodic, and stacked-pipeline metrics are protocol-specific rather than interchangeable. Federated training costs about \textbf{0.5 percentage points} AUROC vs.\ centralized on our setup.
+
+Key innovations include Proto-MAML-style adaptation, knowledge distillation from a Random Forest teacher, supervised contrastive pre-training, engineered tabular features, gated feature attention, cross-attention prototypes, and a stacking meta-learner fusing few-shot and classical predictions.
+
+We contribute: (1)~a reproducible MIMIC-IV feasibility benchmark with a clear reporting hierarchy (tabular ceiling $\rightarrow$ raw few-shot $\rightarrow$ stacked hybrid $\rightarrow$ federated simulation); (2)~Symptom Tokens plus ETHOS for few-shot learning; (3)~evidence that classical tabular ML remains very strong on structured ICU data while stacking can recover much of the raw few-shot gap; and (4)~open code and auto-exported tables for replication. The main limitations are the single-source retrospective dataset, the 2{,}000-patient cohort, the proxy outcome label, simulated rather than deployed federation, and the absence of external prospective validation.
+
+\vspace{1em}
+\noindent\textbf{Keywords:} treatment feasibility, few-shot learning, federated learning, MIMIC-IV, Symptom Tokens, ETHOS, clinical machine learning.
+\end{latin}
+\cleardoublepage

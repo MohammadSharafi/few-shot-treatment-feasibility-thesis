@@ -1,0 +1,39 @@
+% =============================================================================
+% thesis_fa_frontmatter.tex — شمارۀ صفحات مقدماتی با حروف الفبای فارسی
+% =============================================================================
+% از «الف» برای صفحۀ ۱ تا «ی» برای صفحۀ ۳۲؛ از صفحۀ ۳۳ به بعد در مقدمات،
+% شمارۀ لاتین \arabic{page} (در صورت نیاز لیست را طولانی‌تر کنید).
+% «ابجد» عددی (أ=۱، ب=۲، …) متفاوت است؛ اگر آیین‌نامه دقیقاً همان را خواست،
+% باید جدول نگاشت جداگانه تعریف شود.
+% =============================================================================
+
+\makeatletter
+\newcommand{\thesis@prelimletter}[1]{%
+  \ifnum#1<1\relax ?%
+  \else\ifnum#1>32\relax \lr{\arabic{page}}%
+  \else
+    \ifcase#1\relax\or الف\or ب\or پ\or ت\or ث\or ج\or چ\or ح\or خ\or د\or ذ\or ر\or ز\or ژ\or س\or ش\or ص\or ض\or ط\or ظ\or ع\or غ\or ف\or ق\or ک\or گ\or ل\or م\or ن\or و\or ه\or ی\fi
+  \fi\fi
+}
+\newif\ifthesis@frontmatter
+\thesis@frontmatterfalse
+\newcommand{\thesis@thepage}{%
+  \ifthesis@frontmatter
+    \thesis@prelimletter{\value{page}}%
+  \else
+    \arabic{page}%
+  \fi
+}
+% فراخوانی بعد از \maketitle و \cleardoublepage
+\newcommand{\ThesisPrelimNumberingStart}{%
+  \thesis@frontmattertrue
+  \setcounter{page}{1}%
+  \renewcommand{\thepage}{\thesis@thepage}%
+}
+% فراخوانی بلافاصله قبل از \input{chapters_fa/introduction}
+\newcommand{\ThesisPrelimNumberingEnd}{%
+  \cleardoublepage
+  \thesis@frontmatterfalse
+  \pagenumbering{arabic}%
+}
+\makeatother
