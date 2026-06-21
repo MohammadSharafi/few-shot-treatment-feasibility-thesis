@@ -1,0 +1,58 @@
+{
+  "raw_data": {
+    "data_root": "/Users/moe/Programming/Thesis-curser/mimic-iv-3.1",
+    "manifest_exists": true,
+    "manifest_entries": 33,
+    "files_present": 33,
+    "files_missing": [],
+    "required_files_present": {
+      "hosp/patients.csv.gz": true,
+      "hosp/admissions.csv.gz": true,
+      "hosp/diagnoses_icd.csv.gz": true,
+      "hosp/labevents.csv.gz": true,
+      "icu/icustays.csv.gz": true,
+      "icu/chartevents.csv.gz": true
+    },
+    "complete_by_manifest": true
+  },
+  "config": {
+    "processed_dir": "/Users/moe/Programming/Thesis-curser/data/processed_full_cohort",
+    "results_dir": "/Users/moe/Programming/Thesis-curser/results/full_cohort",
+    "max_cohort_sample": null
+  },
+  "cohort": {
+    "rows": 32399,
+    "unique_icu_stays": 32399,
+    "unique_subjects": 32399
+  },
+  "symptoms": {
+    "rows": 32399,
+    "unique_icu_stays": 32399
+  },
+  "final_dataset": {
+    "rows": 32399,
+    "columns": 29,
+    "feature_columns": 22,
+    "unique_icu_stays": 32399,
+    "unique_subjects": 32399,
+    "label_distribution": {
+      "0": 12102,
+      "1": 20297
+    },
+    "post_imputation_missing_cells": 0
+  },
+  "missingness": {
+    "mean_pre_imputation_missing_pct": 0.25239134765663357,
+    "max_pre_imputation_missing_pct": 0.9981172258403036
+  },
+  "tokens": {
+    "shape": [
+      32399,
+      25,
+      4
+    ],
+    "metadata_rows": 32399,
+    "metadata_unique_icu_stays": 32399
+  },
+  "all_eligible_data_used": true
+}

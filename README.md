@@ -10,10 +10,32 @@ In this project, **treatment feasibility** is an operational research label deri
 **Supervisor:** Dr. Alimohammadzadeh  
 **Institution:** Islamic Azad University, Tehran North Branch  
 
+## Full-Cohort Revision
+
+The main revised analysis now uses the full eligible MIMIC-IV v3.1 cohort after the study inclusion/exclusion criteria, not the old 2,000-stay benchmark subset.
+
+- Raw data path: `mimic-iv-3.1/`
+- Processed full-cohort outputs: `data/processed_full_cohort/`
+- Full-cohort results: `results/full_cohort/`
+- Revised submission package: `papers/full_cohort_revision/`
+- Run report: `FULL_COHORT_RUN_REPORT.md`
+
+Full-cohort validation:
+
+| Quantity | Value |
+|---|---:|
+| Final modelling rows | 32,399 |
+| Unique ICU stays | 32,399 |
+| Unique subjects | 32,399 |
+| Label distribution | 12,102 infeasible / 20,297 feasible |
+| Token tensor | `(32399, 25, 4)` |
+
+Best full-cohort result in the rerun: **Stacked Classical AUROC 0.755** (95% CI 0.743-0.766). The old 2,000-stay results remain historical benchmark context only and should not be cited as the primary full-cohort evidence.
+
 ## Thesis: review & high-value experiments
 
 - **What to improve, what data to add, which models to run:** see [`docs/THESIS_REVIEW_AND_NEXT_STEPS.md`](docs/THESIS_REVIEW_AND_NEXT_STEPS.md).
-- **Conflicting numbers?** Treat [`results/KEY_FINDINGS.md`](results/KEY_FINDINGS.md) + [`results/tables/`](results/tables/) as canonical; [`results/improvement_log.md`](results/improvement_log.md) is historical context only (see banner there).
+- **Conflicting numbers?** For the full-cohort revision, treat [`results/full_cohort/`](results/full_cohort/) and [`FULL_COHORT_RUN_REPORT.md`](FULL_COHORT_RUN_REPORT.md) as canonical. The older [`results/KEY_FINDINGS.md`](results/KEY_FINDINGS.md) + [`results/tables/`](results/tables/) bundle is the frozen 2,000-stay benchmark record.
 - **Before submission:** [`docs/THESIS_SUBMISSION_CHECKLIST.md`](docs/THESIS_SUBMISSION_CHECKLIST.md) + frozen env [`requirements-frozen.txt`](requirements-frozen.txt).
 - **Ordered run (ceiling → hybrid → core → diagnostics → best few-shot):**
   ```bash
@@ -31,21 +53,22 @@ In this project, **treatment feasibility** is an operational research label deri
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Extract data (requires MIMIC-IV credentials; place v3.1 under data/3.1/)
+# 2. Extract data (requires MIMIC-IV credentials; place v3.1 under mimic-iv-3.1/)
 python extraction/01_cohort.py
 python extraction/02_symptoms.py
 python extraction/03_labels.py
 python extraction/04_tokenize.py
 python extraction/05_federated_split.py
 
-# 3. Run core experiments (or use the orchestrator)
-python experiments/run_all.py --skip-extraction   # if processed data exists
+# 3. Validate and run full-cohort models
+python scripts/validate_full_cohort.py
+python scripts/run_full_cohort_models.py --fewshot-episodes 40
 
-# 4. Generate all thesis figures + tables (always safe to re-run)
+# 4. Generate revised full-cohort PDFs and BMC package
+python scripts/generate_full_cohort_deliverables.py
+
+# 5. Historical 2,000-stay thesis assets still use:
 python scripts/build_thesis_assets.py
-
-# 5. Validate thesis readiness (figures, paths)
-python results/validate_thesis_readiness.py
 ```
 
 ### Orchestrator options
@@ -87,7 +110,7 @@ make validate
 make defense
 ```
 
-## Key Results (frozen submission metrics, 2k cohort)
+## Historical Key Results (frozen 2k benchmark)
 
 > **Canonical source:** [`results/CANONICAL_METRICS.json`](results/CANONICAL_METRICS.json) is the single source of truth for every headline number below. The defense demo (`scripts/defense_demo.py`) and the validator (`scripts/validate_results.py`) both read this file.
 

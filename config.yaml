@@ -5,13 +5,13 @@
 seed: 42
 
 paths:
-  data_root: "data/3.1"
-  hosp_dir: "data/3.1/hosp"
-  icu_dir: "data/3.1/icu"
-  processed_dir: "data/processed"
-  results_dir: "results"
-  figures_dir: "results/figures"
-  tables_dir: "results/tables"
+  data_root: "mimic-iv-3.1"
+  hosp_dir: "mimic-iv-3.1/hosp"
+  icu_dir: "mimic-iv-3.1/icu"
+  processed_dir: "data/processed_full_cohort"
+  results_dir: "results/full_cohort"
+  figures_dir: "results/full_cohort/figures"
+  tables_dir: "results/full_cohort/tables"
 
 # Cohort extraction (01_cohort.py)
 cohort:
@@ -20,11 +20,11 @@ cohort:
   first_icu_only: true
 
 # Symptom extraction (02_symptoms.py)
-# max_cohort_sample: null = use full cohort; set to N for faster extraction (e.g. 5000)
+# max_cohort_sample must remain null for the full-cohort revision.
 symptoms:
   first_24h_only: true
   chunk_size: 100000
-  max_cohort_sample: 2000  # Full cohort (null) requires ~10min extraction
+  max_cohort_sample: null
   # Lab itemids (MIMIC-IV d_labitems) — Blood, most frequent
   lab_itemids: [50912, 50971, 50983, 50902, 50931, 50893, 50960, 50811, 51265, 51300, 50813, 50861, 50878, 51006, 50882]
   # Vital itemids (MIMIC-IV d_items) — Routine Vital Signs

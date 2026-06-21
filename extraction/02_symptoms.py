@@ -14,12 +14,19 @@ def load_config():
         return yaml.safe_load(f)
 
 def load_cohort(cfg):
-    cohort = pd.read_parquet(Path(cfg["paths"]["processed_dir"]) / "cohort.parquet")
+    proj_root = Path(__file__).parent.parent
+    processed_dir = Path(cfg["paths"]["processed_dir"])
+    if not processed_dir.is_absolute():
+        processed_dir = proj_root / processed_dir
+    cohort = pd.read_parquet(processed_dir / "cohort.parquet")
     cohort["intime"] = pd.to_datetime(cohort["intime"])
     cohort["window_end"] = cohort["intime"] + pd.Timedelta(hours=24)
     n = cfg["symptoms"].get("max_cohort_sample")
     if n is not None:
-        cohort = cohort.sample(n=min(n, len(cohort)), random_state=cfg["seed"])
+        raise ValueError(
+            "symptoms.max_cohort_sample must be null for the full-cohort revision; "
+            "sampling caps are disabled."
+        )
     return cohort[["subject_id", "hadm_id", "stay_id", "intime", "window_end"]]
 
 def extract_labs_duckdb(cfg, cohort, hosp_dir):
@@ -27,52 +34,35 @@ def extract_labs_duckdb(cfg, cohort, hosp_dir):
     import duckdb
     lab_itemids = cfg["symptoms"]["lab_itemids"]
     lab_ranges = cfg["symptoms"]["lab_ranges"]
-    hadm_list = cohort["hadm_id"].unique().tolist()
-    hadm_str = ",".join(str(x) for x in hadm_list[:50000])
     itemid_str = ",".join(str(x) for x in lab_itemids)
+    cohort_tbl = cohort[["hadm_id", "stay_id", "intime", "window_end"]].drop_duplicates()
     
     con = duckdb.connect()
     con.execute("SET threads TO 4")
+    con.register("cohort_tbl", cohort_tbl)
     q = f"""
-    SELECT subject_id, hadm_id, charttime, itemid, valuenum
-    FROM read_csv_auto('{hosp_dir}/labevents.csv.gz', header=true)
-    WHERE hadm_id IN ({hadm_str})
-    AND itemid IN ({itemid_str})
-    AND valuenum IS NOT NULL
+    SELECT l.subject_id, l.hadm_id, c.stay_id, l.charttime, l.itemid, l.valuenum,
+           c.intime, c.window_end
+    FROM read_csv_auto('{hosp_dir}/labevents.csv.gz', header=true) AS l
+    INNER JOIN cohort_tbl AS c
+        ON l.hadm_id = c.hadm_id
+    WHERE l.itemid IN ({itemid_str})
+      AND l.valuenum IS NOT NULL
     """
     try:
         labs = con.execute(q).fetchdf()
     except Exception as e:
-        if "50000" in str(e) or "limit" in str(e).lower():
-            labs = pd.DataFrame()
-            for i in range(0, len(hadm_list), 5000):
-                batch = hadm_list[i:i+5000]
-                hadm_str_b = ",".join(str(x) for x in batch)
-                qb = f"""
-                SELECT subject_id, hadm_id, charttime, itemid, valuenum
-                FROM read_csv_auto('{hosp_dir}/labevents.csv.gz', header=true)
-                WHERE hadm_id IN ({hadm_str_b})
-                AND itemid IN ({itemid_str})
-                AND valuenum IS NOT NULL
-                """
-                lb = con.execute(qb).fetchdf()
-                labs = pd.concat([labs, lb], ignore_index=True) if len(labs) > 0 else lb
-        else:
-            raise e
+        raise e
     con.close()
     
     if len(labs) == 0:
         return pd.DataFrame()
     
     labs["charttime"] = pd.to_datetime(labs["charttime"])
+    labs["intime"] = pd.to_datetime(labs["intime"])
+    labs["window_end"] = pd.to_datetime(labs["window_end"])
     labs["valuenum"] = pd.to_numeric(labs["valuenum"], errors="coerce")
     labs = labs.dropna(subset=["valuenum"])
-    
-    cohort_lookup = cohort.set_index("hadm_id")
-    labs["intime"] = labs["hadm_id"].map(lambda h: cohort_lookup.loc[h, "intime"] if h in cohort_lookup.index else pd.NaT)
-    labs["stay_id"] = labs["hadm_id"].map(lambda h: cohort_lookup.loc[h, "stay_id"] if h in cohort_lookup.index else None)
-    labs = labs.dropna(subset=["intime", "stay_id"])
-    labs["window_end"] = labs["intime"] + pd.Timedelta(hours=24)
     labs = labs[(labs["charttime"] >= labs["intime"]) & (labs["charttime"] <= labs["window_end"])]
     
     for itemid, (lo, hi) in lab_ranges.items():
@@ -87,48 +77,35 @@ def extract_vitals_duckdb(cfg, cohort, icu_dir):
     import duckdb
     vital_itemids = cfg["symptoms"]["vital_itemids"]
     vital_ranges = cfg["symptoms"]["vital_ranges"]
-    stay_list = cohort["stay_id"].unique().tolist()
-    stay_str = ",".join(str(x) for x in stay_list[:50000])
     itemid_str = ",".join(str(x) for x in vital_itemids)
+    cohort_tbl = cohort[["stay_id", "intime", "window_end"]].drop_duplicates()
     
     con = duckdb.connect()
     con.execute("SET threads TO 4")
+    con.register("cohort_tbl", cohort_tbl)
     q = f"""
-    SELECT subject_id, hadm_id, stay_id, charttime, itemid, valuenum
-    FROM read_csv_auto('{icu_dir}/chartevents.csv.gz', header=true)
-    WHERE stay_id IN ({stay_str})
-    AND itemid IN ({itemid_str})
-    AND valuenum IS NOT NULL
+    SELECT v.subject_id, v.hadm_id, v.stay_id, v.charttime, v.itemid, v.valuenum,
+           c.intime, c.window_end
+    FROM read_csv_auto('{icu_dir}/chartevents.csv.gz', header=true) AS v
+    INNER JOIN cohort_tbl AS c
+        ON v.stay_id = c.stay_id
+    WHERE v.itemid IN ({itemid_str})
+      AND v.valuenum IS NOT NULL
     """
     try:
         vitals = con.execute(q).fetchdf()
-    except Exception:
-        vitals = pd.DataFrame()
-        for i in range(0, len(stay_list), 5000):
-            batch = stay_list[i:i+5000]
-            stay_str_b = ",".join(str(x) for x in batch)
-            qb = f"""
-            SELECT subject_id, hadm_id, stay_id, charttime, itemid, valuenum
-            FROM read_csv_auto('{icu_dir}/chartevents.csv.gz', header=true)
-            WHERE stay_id IN ({stay_str_b})
-            AND itemid IN ({itemid_str})
-            AND valuenum IS NOT NULL
-            """
-            vb = con.execute(qb).fetchdf()
-            vitals = pd.concat([vitals, vb], ignore_index=True) if len(vitals) > 0 else vb
+    except Exception as e:
+        raise e
     con.close()
     
     if len(vitals) == 0:
         return pd.DataFrame()
     
     vitals["charttime"] = pd.to_datetime(vitals["charttime"])
+    vitals["intime"] = pd.to_datetime(vitals["intime"])
+    vitals["window_end"] = pd.to_datetime(vitals["window_end"])
     vitals["valuenum"] = pd.to_numeric(vitals["valuenum"], errors="coerce")
     vitals = vitals.dropna(subset=["valuenum"])
-    
-    cohort_lookup = cohort.set_index("stay_id")
-    vitals["intime"] = vitals["stay_id"].map(lambda s: cohort_lookup.loc[s, "intime"] if s in cohort_lookup.index else pd.NaT)
-    vitals = vitals.dropna(subset=["intime"])
-    vitals["window_end"] = vitals["intime"] + pd.Timedelta(hours=24)
     vitals = vitals[(vitals["charttime"] >= vitals["intime"]) & (vitals["charttime"] <= vitals["window_end"])]
     
     for itemid, (lo, hi) in vital_ranges.items():
@@ -138,7 +115,7 @@ def extract_vitals_duckdb(cfg, cohort, icu_dir):
     
     return vitals[["subject_id", "hadm_id", "stay_id", "itemid", "charttime", "valuenum"]]
 
-def aggregate_to_patient(labs, vitals, cfg):
+def aggregate_to_patient(labs, vitals, cfg, cohort_stays=None):
     """Aggregate: median per (stay_id, itemid), then pivot to one row per stay."""
     lab_itemids = cfg["symptoms"]["lab_itemids"]
     vital_itemids = cfg["symptoms"]["vital_itemids"]
@@ -155,10 +132,13 @@ def aggregate_to_patient(labs, vitals, cfg):
         combined.append(vit_agg)
     
     if not combined:
-        return pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
     
     agg = pd.concat(combined, ignore_index=True)
-    stays = agg["stay_id"].unique()
+    if cohort_stays is not None:
+        stays = pd.Index(cohort_stays).drop_duplicates().to_numpy()
+    else:
+        stays = agg["stay_id"].unique()
     n_features = len(lab_itemids) + len(vital_itemids)
     X = np.full((len(stays), n_features), np.nan)
     stay_to_row = {s: i for i, s in enumerate(stays)}
@@ -166,11 +146,21 @@ def aggregate_to_patient(labs, vitals, cfg):
     for _, row in agg.iterrows():
         idx = itemid_to_idx.get(row["itemid"])
         if idx is not None:
+            if row["stay_id"] not in stay_to_row:
+                continue
             r = stay_to_row[row["stay_id"]]
             if np.isnan(X[r, idx]):
                 X[r, idx] = row["valuenum"]
             else:
                 X[r, idx] = (X[r, idx] + row["valuenum"]) / 2
+
+    itemids = lab_itemids + vital_itemids
+    missingness = pd.DataFrame({
+        "feature_index": list(range(n_features)),
+        "itemid": itemids,
+        "missing_count": np.isnan(X).sum(axis=0).astype(int),
+        "missing_pct": np.isnan(X).mean(axis=0),
+    })
     
     p2 = np.nanpercentile(X, 2, axis=0)
     p98 = np.nanpercentile(X, 98, axis=0)
@@ -186,7 +176,7 @@ def aggregate_to_patient(labs, vitals, cfg):
     df = pd.DataFrame(X_norm, index=stays)
     df.index.name = "stay_id"
     df = df.reset_index()
-    return df
+    return df, missingness
 
 def main():
     cfg = load_config()
@@ -208,7 +198,7 @@ def main():
     vitals = extract_vitals_duckdb(cfg, cohort, icu_dir)
     print(f"Vital measurements: {len(vitals):,}")
     
-    symptoms = aggregate_to_patient(labs, vitals, cfg)
+    symptoms, missingness = aggregate_to_patient(labs, vitals, cfg, cohort["stay_id"])
     if len(symptoms) == 0:
         raise RuntimeError("No symptoms extracted. Check cohort and itemids.")
     
@@ -219,11 +209,14 @@ def main():
     
     out_path = out_dir / "symptoms.parquet"
     symptoms.to_parquet(out_path, index=False)
+    missingness_path = out_dir / "missingness_summary.csv"
+    missingness.to_csv(missingness_path, index=False)
     
     print("=" * 60)
     print("SYMPTOM EXTRACTION COMPLETE")
     print("=" * 60)
     print(f"Output: {out_path}")
+    print(f"Missingness: {missingness_path}")
     print(f"Stays with symptoms: {len(symptoms):,}")
     print("=" * 60)
 

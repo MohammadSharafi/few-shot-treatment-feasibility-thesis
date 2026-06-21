@@ -1,0 +1,229 @@
+{
+  "dataset_rows": 32399,
+  "features_after_engineering": 25,
+  "split": {
+    "train_rows": 25919,
+    "test_rows": 6480,
+    "train_label_distribution": {
+      "0": 9682,
+      "1": 16237
+    },
+    "test_label_distribution": {
+      "0": 2420,
+      "1": 4060
+    }
+  },
+  "statuses": [
+    {
+      "model": "Logistic Regression",
+      "status": "completed",
+      "seconds": 1.747
+    },
+    {
+      "model": "Random Forest",
+      "status": "completed",
+      "seconds": 5.999
+    },
+    {
+      "model": "Neural Baseline",
+      "status": "completed",
+      "seconds": 3.163
+    },
+    {
+      "model": "XGBoost",
+      "status": "completed",
+      "seconds": 2.418
+    },
+    {
+      "model": "LightGBM",
+      "status": "completed",
+      "seconds": 5.911
+    },
+    {
+      "model": "CatBoost",
+      "status": "completed",
+      "seconds": 3.88
+    },
+    {
+      "model": "Stacked Classical",
+      "status": "completed",
+      "seconds": 13.913,
+      "base_models": [
+        "Logistic Regression",
+        "Random Forest",
+        "XGBoost",
+        "LightGBM",
+        "CatBoost"
+      ]
+    },
+    {
+      "model": "Token Hybrid RF",
+      "status": "completed",
+      "seconds": 5.08
+    },
+    {
+      "model": "Federated LR Node Ensemble",
+      "status": "completed",
+      "seconds": 1.689,
+      "nodes_used": 5
+    },
+    {
+      "model": "Few-Shot ETHOS",
+      "status": "completed",
+      "seconds": 11.424,
+      "episodes": 40
+    }
+  ],
+  "results": [
+    {
+      "model": "Stacked Classical",
+      "threshold": 0.445,
+      "accuracy": 0.6972222222222222,
+      "f1_macro": 0.6768237206614252,
+      "auroc": 0.7551173513007368,
+      "auprc": 0.8257071887149022,
+      "mcc": 0.35365257065183203,
+      "auroc_ci_lo": 0.7427829580480724,
+      "auroc_ci_hi": 0.7663363809117224,
+      "fit_seconds": 13.913,
+      "base_models": "Logistic Regression; Random Forest; XGBoost; LightGBM; CatBoost",
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "CatBoost",
+      "threshold": 0.445,
+      "accuracy": 0.7,
+      "f1_macro": 0.6730636270204615,
+      "auroc": 0.7533958596262671,
+      "auprc": 0.8239020774494936,
+      "mcc": 0.3478989849622557,
+      "auroc_ci_lo": 0.7409975339845823,
+      "auroc_ci_hi": 0.7643004473865184,
+      "fit_seconds": 3.88,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "XGBoost",
+      "threshold": 0.595,
+      "accuracy": 0.6953703703703704,
+      "f1_macro": 0.6750617283950617,
+      "auroc": 0.7525717542645441,
+      "auprc": 0.8249162688874602,
+      "mcc": 0.3501376499840063,
+      "auroc_ci_lo": 0.7403502456545485,
+      "auroc_ci_hi": 0.7636334023780849,
+      "fit_seconds": 2.418,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "LightGBM",
+      "threshold": 0.49,
+      "accuracy": 0.6899691358024691,
+      "f1_macro": 0.6735084501876252,
+      "auroc": 0.7511192647477914,
+      "auprc": 0.8232176377611284,
+      "mcc": 0.34820588835360955,
+      "auroc_ci_lo": 0.7389433709090473,
+      "auroc_ci_hi": 0.7620482253678452,
+      "fit_seconds": 5.911,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "Token Hybrid RF",
+      "threshold": 0.5449999999999999,
+      "accuracy": 0.6950617283950618,
+      "f1_macro": 0.6713665342326527,
+      "auroc": 0.7498080446199569,
+      "auprc": 0.8214150500665613,
+      "mcc": 0.3430914682694416,
+      "auroc_ci_lo": 0.7375180639315103,
+      "auroc_ci_hi": 0.7619571127129785,
+      "fit_seconds": 5.08,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "Random Forest",
+      "threshold": 0.565,
+      "accuracy": 0.6854938271604938,
+      "f1_macro": 0.6665635185206132,
+      "auroc": 0.7476317021536456,
+      "auprc": 0.8193407348192034,
+      "mcc": 0.3334466584124533,
+      "auroc_ci_lo": 0.7349002023812243,
+      "auroc_ci_hi": 0.7595097544690836,
+      "fit_seconds": 5.999,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "Neural Baseline",
+      "threshold": 0.645,
+      "accuracy": 0.6564814814814814,
+      "f1_macro": 0.6510288065843621,
+      "auroc": 0.7347299291617473,
+      "auprc": 0.8088995006449844,
+      "mcc": 0.3243037257821148,
+      "auroc_ci_lo": 0.7217706589802806,
+      "auroc_ci_hi": 0.7470020149188814,
+      "fit_seconds": 3.163,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "Federated LR Node Ensemble",
+      "threshold": 0.5,
+      "accuracy": 0.6782407407407407,
+      "f1_macro": 0.6556715677425822,
+      "auroc": 0.7093091234784026,
+      "auprc": 0.7779879990654461,
+      "mcc": 0.31135560212749347,
+      "auroc_ci_lo": 0.696058449529299,
+      "auroc_ci_hi": 0.7216420875940579,
+      "fit_seconds": 1.689,
+      "base_models": NaN,
+      "nodes_used": 5.0,
+      "episodes": NaN
+    },
+    {
+      "model": "Logistic Regression",
+      "threshold": 0.495,
+      "accuracy": 0.6797839506172839,
+      "f1_macro": 0.6556649404244776,
+      "auroc": 0.7091535032365752,
+      "auprc": 0.7781169823206622,
+      "mcc": 0.3115255660865083,
+      "auroc_ci_lo": 0.696071849237739,
+      "auroc_ci_hi": 0.7216330969563227,
+      "fit_seconds": 1.747,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": NaN
+    },
+    {
+      "model": "Few-Shot ETHOS",
+      "threshold": 0.5,
+      "accuracy": 0.5875,
+      "f1_macro": 0.5687550309410891,
+      "auroc": 0.5901976550095672,
+      "auprc": 0.6682245697448042,
+      "mcc": 0.13990692497417062,
+      "auroc_ci_lo": 0.5755151969352278,
+      "auroc_ci_hi": 0.6044802680177069,
+      "fit_seconds": 11.424,
+      "base_models": NaN,
+      "nodes_used": NaN,
+      "episodes": 40.0
+    }
+  ]
+}

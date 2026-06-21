@@ -522,11 +522,16 @@ def tune_th(pp, yt):
 def run(quick=False, light=False):
     t0 = time.time()
     cfg = load_config()
+    paths = {k: str(proj / v) if isinstance(v, str) and not Path(v).is_absolute() else v for k, v in cfg["paths"].items()}
+    results_dir = Path(paths.get("results_dir", proj / "results"))
+    if not results_dir.is_absolute():
+        results_dir = proj / results_dir
+    results_dir.mkdir(parents=True, exist_ok=True)
     seed = cfg["seed"]
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    data = pd.read_parquet(proj / cfg["paths"]["processed_dir"] / "thesis_dataset.parquet")
+    data = pd.read_parquet(Path(paths["processed_dir"]) / "thesis_dataset.parquet")
     meta = ["stay_id","subject_id","hadm_id","feasible","protocol","primary_icd10","los_hours"]
     fc = [c for c in data.columns if c not in meta]
     Xr = np.nan_to_num(data[fc].values.astype(np.float32))
@@ -659,9 +664,9 @@ def run(quick=False, light=False):
     print(f"\n  Time: {elapsed:.0f}s", flush=True)
 
     out = {"fewshot_best": mfs, "stacked_best": mst, "seeds": seeds}
-    with open(proj / "results" / "exp_fewshot_best.json", "w") as f:
+    with open(results_dir / "exp_fewshot_best.json", "w") as f:
         json.dump(out, f, indent=2)
-    print("Saved to results/exp_fewshot_best.json", flush=True)
+    print(f"Saved to {results_dir / 'exp_fewshot_best.json'}", flush=True)
     return out
 
 

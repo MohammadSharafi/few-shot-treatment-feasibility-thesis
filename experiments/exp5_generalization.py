@@ -90,7 +90,11 @@ def run():
         f.write(df.to_latex(index=False, float_format="%.3f"))
     try:
         import json
-        json.dump(df.to_dict(orient="records"), open(Path(paths.get("results_dir", "results")) / "exp5_generalization.json", "w"), indent=2)
+        res_dir = Path(paths.get("results_dir", "results"))
+        if not res_dir.is_absolute():
+            res_dir = proj / res_dir
+        res_dir.mkdir(parents=True, exist_ok=True)
+        json.dump(df.to_dict(orient="records"), open(res_dir / "exp5_generalization.json", "w"), indent=2)
     except OSError:
         pass
     print("Exp5 complete.")

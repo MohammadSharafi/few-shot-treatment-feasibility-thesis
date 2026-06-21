@@ -355,7 +355,7 @@ def main():
     out_tables.mkdir(parents=True, exist_ok=True)
     results_dir = proj / cfg["paths"].get("results_dir", "results")
     results_dir.mkdir(parents=True, exist_ok=True)
-    models_dir = proj / "models"
+    models_dir = results_dir / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
 
     phase1_results = []
