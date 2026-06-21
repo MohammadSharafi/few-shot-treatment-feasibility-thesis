@@ -64,8 +64,8 @@ def m(canon: dict, key: str) -> dict:
 def check_files() -> list[tuple[str, bool, str]]:
     checks = [
         ("Canonical metrics file", CANONICAL_PATH),
-        ("Processed thesis dataset", ROOT / "data/processed/thesis_dataset.parquet"),
-        ("Token tensor", ROOT / "data/processed/tokens.npy"),
+        ("Full-cohort thesis dataset", ROOT / "data/processed_full_cohort/thesis_dataset.parquet"),
+        ("Full-cohort token tensor", ROOT / "data/processed_full_cohort/tokens.npy"),
         ("Final Persian PDF", ROOT / "thesis/thesis_fa.pdf"),
         ("Defense slides PDF", ROOT / "thesis/defense_slides.pdf"),
         ("Exp1 table", TABLES / "exp1_results.csv"),

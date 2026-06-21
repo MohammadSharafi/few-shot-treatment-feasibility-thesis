@@ -8,8 +8,8 @@ Generated: 2026-05-25 21:05:59
 ## File Readiness
 
 - PASS: Canonical metrics file (`results/CANONICAL_METRICS.json`)
-- PASS: Processed thesis dataset (`data/processed/thesis_dataset.parquet`)
-- PASS: Token tensor (`data/processed/tokens.npy`)
+- PASS: Full-cohort thesis dataset (`data/processed_full_cohort/thesis_dataset.parquet`)
+- PASS: Full-cohort token tensor (`data/processed_full_cohort/tokens.npy`)
 - PASS: Final Persian PDF (`thesis/thesis_fa.pdf`)
 - PASS: Defense slides PDF (`thesis/defense_slides.pdf`)
 - PASS: Exp1 table (`results/tables/exp1_results.csv`)

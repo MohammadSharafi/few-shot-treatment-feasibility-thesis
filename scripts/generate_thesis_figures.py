@@ -7,10 +7,22 @@ import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import yaml
 
 proj = Path(__file__).parent.parent
 sys.path.insert(0, str(proj))
-fig_dir = proj / "results" / "figures"
+
+
+def configured_path(key: str, default: str) -> Path:
+    with open(proj / "config.yaml") as f:
+        cfg = yaml.safe_load(f)
+    raw = cfg.get("paths", {}).get(key, default)
+    path = Path(raw)
+    return path if path.is_absolute() else proj / path
+
+
+processed_dir = configured_path("processed_dir", "data/processed_full_cohort")
+fig_dir = configured_path("figures_dir", "results/full_cohort/figures")
 fig_dir.mkdir(parents=True, exist_ok=True)
 
 import matplotlib
@@ -22,7 +34,7 @@ plt.rcParams.update({'font.size': 10, 'figure.dpi': 150})
 
 def fig16_shap_waterfall():
     """SHAP waterfall plot (RandomForest top patient). Falls back if data or SHAP unavailable."""
-    parquet = proj / "data/processed/thesis_dataset.parquet"
+    parquet = processed_dir / "thesis_dataset.parquet"
     if not parquet.exists():
         _fig16_fallback_waterfall()
         return
@@ -30,7 +42,7 @@ def fig16_shap_waterfall():
         import shap
         import joblib
         from utils.feature_engineering import add_engineered_features
-        data = pd.read_parquet(proj / "data/processed/thesis_dataset.parquet")
+        data = pd.read_parquet(parquet)
         meta = ["stay_id", "subject_id", "hadm_id", "feasible", "protocol", "primary_icd10", "los_hours"]
         feat = [c for c in data.columns if c not in meta]
         X = data[feat].values.astype(np.float32)

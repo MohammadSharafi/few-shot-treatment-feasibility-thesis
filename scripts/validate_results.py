@@ -713,8 +713,8 @@ def check_build_artifacts(r: ValidationResult) -> None:
     for rel in (
         "thesis/thesis_fa.pdf",
         "thesis/defense_slides.pdf",
-        "data/processed/thesis_dataset.parquet",
-        "data/processed/tokens.npy",
+        "data/processed_full_cohort/thesis_dataset.parquet",
+        "data/processed_full_cohort/tokens.npy",
         "results/figures/fig1_main_comparison.png",
         "results/figures/fig4_federated.png",
         "results/tables/exp1_results.csv",

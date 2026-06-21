@@ -56,15 +56,15 @@ check:
 	$(PYTHON) -c "import numpy; print(f'numpy: {numpy.__version__}')"
 	@echo ""
 	@echo "=== Required folders ==="
-	@[ -d data/processed ]  && echo "  ✓ data/processed"   || echo "  ✗ data/processed MISSING"
-	@[ -d results ]          && echo "  ✓ results"          || echo "  ✗ results MISSING"
-	@[ -d results/figures ]  && echo "  ✓ results/figures"  || echo "  ✗ results/figures MISSING"
-	@[ -d results/tables ]   && echo "  ✓ results/tables"   || echo "  ✗ results/tables MISSING"
+	@[ -d data/processed_full_cohort ]  && echo "  ✓ data/processed_full_cohort"   || echo "  ✗ data/processed_full_cohort MISSING"
+	@[ -d results/full_cohort ]         && echo "  ✓ results/full_cohort"          || echo "  ✗ results/full_cohort MISSING"
+	@[ -d results/full_cohort/figures ] && echo "  ✓ results/full_cohort/figures"  || echo "  ✗ results/full_cohort/figures MISSING"
+	@[ -d results/full_cohort/tables ]  && echo "  ✓ results/full_cohort/tables"   || echo "  ✗ results/full_cohort/tables MISSING"
 	@[ -d thesis ]           && echo "  ✓ thesis"           || echo "  ✗ thesis MISSING"
 	@echo ""
 	@echo "=== Key data files ==="
-	@[ -f data/processed/thesis_dataset.parquet ] && echo "  ✓ thesis_dataset.parquet" || echo "  ✗ thesis_dataset.parquet MISSING — run: make extract"
-	@[ -f data/processed/tokens.npy ]             && echo "  ✓ tokens.npy"             || echo "  ✗ tokens.npy MISSING — run: make extract"
+	@[ -f data/processed_full_cohort/thesis_dataset.parquet ] && echo "  ✓ full-cohort thesis_dataset.parquet" || echo "  ✗ full-cohort thesis_dataset.parquet MISSING — run: make extract"
+	@[ -f data/processed_full_cohort/tokens.npy ]             && echo "  ✓ full-cohort tokens.npy"             || echo "  ✗ full-cohort tokens.npy MISSING — run: make extract"
 	@echo ""
 	@echo "=== XeLaTeX (for thesis compilation) ==="
 	@command -v xelatex >/dev/null 2>&1 && echo "  ✓ xelatex found" || echo "  ✗ xelatex NOT FOUND — install MacTeX or TeX Live"
@@ -85,7 +85,7 @@ extract:
 	$(PYTHON) extraction/04_tokenize.py
 	$(PYTHON) extraction/05_federated_split.py
 	@echo ""
-	@echo "Extraction complete. Data written to data/processed/"
+	@echo "Extraction complete. Data written to data/processed_full_cohort/"
 
 # -----------------------------------------------------------------------------
 # experiments — run all core experiments (uses existing processed data)

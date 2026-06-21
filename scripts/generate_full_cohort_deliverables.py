@@ -70,7 +70,13 @@ def fmt(x, digits=3) -> str:
     return str(x)
 
 
-def make_figures(paths: dict[str, Path], models: pd.DataFrame, missing: pd.DataFrame, labels: pd.DataFrame):
+def make_figures(
+    paths: dict[str, Path],
+    models: pd.DataFrame,
+    missing: pd.DataFrame,
+    labels: pd.DataFrame,
+    comparison: pd.DataFrame | None = None,
+):
     fig_dir = paths["figures_dir"]
     fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -103,6 +109,23 @@ def make_figures(paths: dict[str, Path], models: pd.DataFrame, missing: pd.DataF
     plt.tight_layout()
     plt.savefig(fig_dir / "full_cohort_missingness.png", dpi=180)
     plt.close()
+
+    if comparison is not None and len(comparison) > 0:
+        comp = comparison.dropna(subset=["benchmark_auroc"]).copy()
+        if len(comp) > 0:
+            comp = comp.sort_values("full_cohort_auroc", ascending=True)
+            y = range(len(comp))
+            plt.figure(figsize=(8.8, 5.2))
+            plt.barh([i - 0.18 for i in y], comp["benchmark_auroc"], height=0.34, color="#8a4f7d", label="2,000-stay benchmark")
+            plt.barh([i + 0.18 for i in y], comp["full_cohort_auroc"], height=0.34, color="#2f6f73", label="Full cohort")
+            plt.yticks(list(y), comp["model"])
+            plt.xlabel("AUROC")
+            plt.title("Full-Cohort vs Historical Benchmark AUROC")
+            plt.xlim(0, 1)
+            plt.legend(loc="lower right")
+            plt.tight_layout()
+            plt.savefig(fig_dir / "full_vs_2k_benchmark_auroc.png", dpi=180)
+            plt.close()
 
 
 def styles():
@@ -147,24 +170,136 @@ def table_from_rows(rows, widths=None):
 
 
 def model_rows(models: pd.DataFrame):
-    cols = ["model", "auroc", "auroc_ci_lo", "auroc_ci_hi", "f1_macro", "auprc", "accuracy", "mcc"]
-    rows = [["Model", "AUROC", "95% CI", "F1", "AUPRC", "Accuracy", "MCC"]]
+    rows = [["Model", "Train/Val/Test", "AUROC", "AUPRC", "Accuracy", "Recall", "Specificity", "F1", "Brier", "ECE"]]
     for _, r in models.sort_values("auroc", ascending=False).iterrows():
-        ci = "NA"
-        if "auroc_ci_lo" in r and "auroc_ci_hi" in r and not pd.isna(r["auroc_ci_lo"]):
-            ci = f"{r['auroc_ci_lo']:.3f}-{r['auroc_ci_hi']:.3f}"
+        split = f"{int(r.get('train_rows', 0))}/{int(r.get('validation_rows', 0))}/{int(r.get('test_rows', 0))}"
         rows.append(
             [
                 r["model"],
+                split,
                 fmt(r.get("auroc")),
-                ci,
-                fmt(r.get("f1_macro")),
                 fmt(r.get("auprc")),
                 fmt(r.get("accuracy")),
-                fmt(r.get("mcc")),
+                fmt(r.get("sensitivity_recall")),
+                fmt(r.get("specificity")),
+                fmt(r.get("f1_macro")),
+                fmt(r.get("brier_score")),
+                fmt(r.get("calibration_ece_10bin")),
             ]
         )
     return rows
+
+
+def comparison_rows(comparison: pd.DataFrame):
+    rows = [["Model", "Full AUROC", "Benchmark AUROC", "Delta", "Benchmark source"]]
+    if comparison is None or len(comparison) == 0:
+        return rows + [["No comparison available", "NA", "NA", "NA", "NA"]]
+    for _, r in comparison.sort_values("full_cohort_auroc", ascending=False).iterrows():
+        rows.append(
+            [
+                r["model"],
+                fmt(r.get("full_cohort_auroc")),
+                fmt(r.get("benchmark_auroc")),
+                fmt(r.get("delta_auroc")),
+                r.get("benchmark_source", "NA"),
+            ]
+        )
+    return rows
+
+
+def build_benchmark_comparison(paths: dict[str, Path], models: pd.DataFrame) -> pd.DataFrame:
+    benchmark: dict[str, dict] = {}
+    exp1_path = ROOT / "results" / "tables" / "exp1_results.csv"
+    if exp1_path.exists():
+        exp1 = pd.read_csv(exp1_path)
+        exp1_map = {
+            "Logistic Regression": "LogisticRegression",
+            "Random Forest": "RandomForest",
+            "XGBoost": "XGBoost",
+            "Neural Baseline": "StandardNN",
+            "Few-Shot ETHOS": "Proposed_FewShot",
+        }
+        for full_name, old_name in exp1_map.items():
+            hit = exp1[exp1["model"] == old_name]
+            if len(hit) > 0:
+                r = hit.iloc[0]
+                benchmark[full_name] = {
+                    "benchmark_model": old_name,
+                    "benchmark_auroc": float(r.get("auroc")),
+                    "benchmark_auprc": float(r.get("auprc")) if "auprc" in r else float("nan"),
+                    "benchmark_accuracy": float(r.get("accuracy")) if "accuracy" in r else float("nan"),
+                    "benchmark_f1": float(r.get("f1_macro")) if "f1_macro" in r else float("nan"),
+                    "benchmark_source": "2,000-stay Exp1",
+                    "comparability": "same broad model family/protocol reference",
+                }
+    fewshot_path = ROOT / "results" / "exp_fewshot_best.json"
+    if fewshot_path.exists():
+        data = json.loads(fewshot_path.read_text(encoding="utf-8"))
+        stacked = data.get("stacked_best")
+        if stacked:
+            benchmark["Stacked Classical"] = {
+                "benchmark_model": stacked.get("strategy", "BEST_Stacked"),
+                "benchmark_auroc": float(stacked.get("auroc")),
+                "benchmark_auprc": float(stacked.get("auprc", float("nan"))),
+                "benchmark_accuracy": float(stacked.get("accuracy", float("nan"))),
+                "benchmark_f1": float(stacked.get("f1_macro", float("nan"))),
+                "benchmark_source": "2,000-stay stacked BEST",
+                "comparability": "benchmark reference; stacked recipes differ",
+            }
+    hybrid_path = ROOT / "results" / "tables" / "exp_ethos_rf_hybrid.csv"
+    if hybrid_path.exists():
+        hybrid = pd.read_csv(hybrid_path)
+        if len(hybrid) > 0:
+            r = hybrid.iloc[0]
+            benchmark["Token Hybrid RF"] = {
+                "benchmark_model": str(r.get("model", "ETHOS_RF_Hybrid")),
+                "benchmark_auroc": float(r.get("auroc")),
+                "benchmark_auprc": float("nan"),
+                "benchmark_accuracy": float(r.get("accuracy", float("nan"))),
+                "benchmark_f1": float(r.get("f1_macro", float("nan"))),
+                "benchmark_source": "2,000-stay ETHOS-RF hybrid",
+                "comparability": "benchmark reference; hybrid features differ",
+            }
+    fed_path = ROOT / "results" / "exp3_federated.json"
+    if fed_path.exists():
+        fed = pd.DataFrame(json.loads(fed_path.read_text(encoding="utf-8")))
+        hit = fed[fed.get("setup", pd.Series(dtype=str)) == "Federated"]
+        if len(hit) > 0:
+            r = hit.iloc[0]
+            benchmark["Federated LR Node Ensemble"] = {
+                "benchmark_model": "Federated",
+                "benchmark_auroc": float(r.get("auroc")),
+                "benchmark_auprc": float("nan"),
+                "benchmark_accuracy": float("nan"),
+                "benchmark_f1": float(r.get("f1_macro", float("nan"))),
+                "benchmark_source": "2,000-stay federated experiment",
+                "comparability": "benchmark reference; federated learners differ",
+            }
+
+    rows = []
+    for _, r in models.iterrows():
+        old = benchmark.get(r["model"], {})
+        old_auroc = old.get("benchmark_auroc", float("nan"))
+        rows.append(
+            {
+                "model": r["model"],
+                "full_cohort_auroc": float(r.get("auroc")),
+                "full_cohort_auprc": float(r.get("auprc", float("nan"))),
+                "full_cohort_accuracy": float(r.get("accuracy", float("nan"))),
+                "full_cohort_f1": float(r.get("f1_macro", float("nan"))),
+                "benchmark_model": old.get("benchmark_model", "NA"),
+                "benchmark_auroc": old_auroc,
+                "benchmark_auprc": old.get("benchmark_auprc", float("nan")),
+                "benchmark_accuracy": old.get("benchmark_accuracy", float("nan")),
+                "benchmark_f1": old.get("benchmark_f1", float("nan")),
+                "delta_auroc": float(r.get("auroc")) - old_auroc if not pd.isna(old_auroc) else float("nan"),
+                "benchmark_source": old.get("benchmark_source", "No directly comparable old benchmark metric"),
+                "comparability": old.get("comparability", "not compared"),
+            }
+        )
+    comparison = pd.DataFrame(rows)
+    comparison.to_csv(paths["tables_dir"] / "full_vs_2k_benchmark_comparison.csv", index=False)
+    return comparison
 
 
 def status_rows(run: dict):
@@ -202,7 +337,7 @@ def build_pdf(path: Path, title: str, subtitle: str, sections: list[tuple[str, l
     doc.build(story, onFirstPage=page_footer, onLaterPages=page_footer)
 
 
-def build_documents(paths, out_dir, validation, models, run, missing, labels, nodes):
+def build_documents(paths, out_dir, validation, models, run, missing, labels, nodes, comparison):
     st = styles()
     fig_dir = paths["figures_dir"]
     cohort = validation["cohort"]
@@ -225,12 +360,21 @@ def build_documents(paths, out_dir, validation, models, run, missing, labels, no
         ],
         widths=[8.8 * cm, 6.2 * cm],
     )
-    model_table = table_from_rows(model_rows(models), widths=[4.6 * cm, 2.0 * cm, 2.5 * cm, 1.6 * cm, 1.8 * cm, 1.8 * cm, 1.6 * cm])
+    model_table = table_from_rows(
+        model_rows(models),
+        widths=[3.0 * cm, 2.0 * cm, 1.25 * cm, 1.25 * cm, 1.35 * cm, 1.25 * cm, 1.45 * cm, 1.1 * cm, 1.15 * cm, 1.15 * cm],
+    )
+    comparison_table = table_from_rows(
+        comparison_rows(comparison),
+        widths=[4.0 * cm, 2.0 * cm, 2.2 * cm, 1.5 * cm, 5.8 * cm],
+    )
     status_table = table_from_rows(status_rows(run), widths=[5.0 * cm, 2.4 * cm, 8.1 * cm])
 
     auroc_img = Image(str(fig_dir / "full_cohort_model_auroc.png"), width=15.5 * cm, height=9.0 * cm)
     label_img = Image(str(fig_dir / "full_cohort_label_distribution.png"), width=11.5 * cm, height=8.2 * cm)
     missing_img = Image(str(fig_dir / "full_cohort_missingness.png"), width=15.5 * cm, height=9.0 * cm)
+    comparison_img_path = fig_dir / "full_vs_2k_benchmark_auroc.png"
+    comparison_img = Image(str(comparison_img_path), width=15.5 * cm, height=9.0 * cm) if comparison_img_path.exists() else None
 
     thesis_sections = [
         (
@@ -262,6 +406,8 @@ def build_documents(paths, out_dir, validation, models, run, missing, labels, no
                 label_img,
                 model_table,
                 auroc_img,
+                para("Historical 2,000-stay benchmark comparisons are reported below only as context. They are not reused as full-cohort results.", st["BodyText"]),
+                comparison_table,
             ],
         ),
         (
@@ -321,7 +467,7 @@ def build_documents(paths, out_dir, validation, models, run, missing, labels, no
         ),
         (
             "Results",
-            [model_table, auroc_img],
+            [model_table, auroc_img, comparison_table] + ([comparison_img] if comparison_img is not None else []),
         ),
         (
             "Discussion",
@@ -352,6 +498,8 @@ def build_documents(paths, out_dir, validation, models, run, missing, labels, no
     supplement_sections = [
         ("Raw Data Verification", [para(json.dumps(validation["raw_data"], indent=2), st["Small"])]),
         ("Model Completion Status", [status_table]),
+        ("Full-Cohort Model Metrics", [model_table]),
+        ("Historical Benchmark Comparison", [comparison_table] + ([comparison_img] if comparison_img is not None else [])),
         ("Missingness", [missing_img]),
         ("Federated Node Distribution", [table_from_rows([nodes.columns.tolist()] + nodes.astype(str).values.tolist())]),
     ]
@@ -387,7 +535,7 @@ def build_documents(paths, out_dir, validation, models, run, missing, labels, no
     )
 
 
-def write_notes_and_report(paths, out_dir, validation, models, run):
+def write_notes_and_report(paths, out_dir, validation, models, run, comparison):
     final = validation["final_dataset"]
     tokens = validation["tokens"]
     best = models.sort_values("auroc", ascending=False).iloc[0]
@@ -431,6 +579,8 @@ def write_notes_and_report(paths, out_dir, validation, models, run):
 Best full-cohort model: {best['model']} with AUROC {best['auroc']:.3f}, F1 {best['f1_macro']:.3f}, AUPRC {best['auprc']:.3f}, accuracy {best['accuracy']:.3f}, MCC {best['mcc']:.3f}.
 
 Full table: `results/full_cohort/tables/full_cohort_model_results.csv`.
+
+Benchmark comparison table: `results/full_cohort/tables/full_vs_2k_benchmark_comparison.csv`. Historical benchmark rows are context only; non-identical recipes are labelled as benchmark references.
 
 ## Remaining Limitations
 
@@ -492,6 +642,7 @@ def zip_package(out_dir: Path, paths: dict[str, Path]):
         paths["tables_dir"] / "full_cohort_model_results.csv",
         paths["tables_dir"] / "full_cohort_label_distribution.csv",
         paths["tables_dir"] / "full_cohort_missingness.csv",
+        paths["tables_dir"] / "full_vs_2k_benchmark_comparison.csv",
         paths["results_dir"] / "full_cohort_validation.json",
         paths["results_dir"] / "full_cohort_model_run.json",
     ]
@@ -506,6 +657,8 @@ def zip_package(out_dir: Path, paths: dict[str, Path]):
     fig_dest.mkdir()
     for fig in paths["figures_dir"].glob("full_cohort_*.png"):
         shutil.copy2(fig, fig_dest / fig.name)
+    for fig in paths["figures_dir"].glob("full_vs_2k_*.png"):
+        shutil.copy2(fig, fig_dest / fig.name)
     shutil.make_archive(str(zip_path.with_suffix("")), "zip", package_dir)
     shutil.rmtree(package_dir)
 
@@ -516,9 +669,10 @@ def main() -> int:
     out_dir = ROOT / "papers" / "full_cohort_revision"
     out_dir.mkdir(parents=True, exist_ok=True)
     validation, models, run, missing, labels, nodes = load_outputs(paths)
-    make_figures(paths, models, missing, labels)
-    build_documents(paths, out_dir, validation, models, run, missing, labels, nodes)
-    write_notes_and_report(paths, out_dir, validation, models, run)
+    comparison = build_benchmark_comparison(paths, models)
+    make_figures(paths, models, missing, labels, comparison)
+    build_documents(paths, out_dir, validation, models, run, missing, labels, nodes, comparison)
+    write_notes_and_report(paths, out_dir, validation, models, run, comparison)
     zip_package(out_dir, paths)
     for name in [
         "thesis_FULL_COHORT_REVISED.pdf",

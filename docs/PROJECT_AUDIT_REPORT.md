@@ -180,10 +180,10 @@ Thesis-curser/
 
 | File | Type | Size | Status |
 |------|------|------|--------|
-| `data/processed/thesis_dataset.parquet` | Main dataset | ~2k rows | ✓ |
+| `data/processed_full_cohort/thesis_dataset.parquet` | Main full-cohort dataset | ~32.4k rows | ✓ |
 | `data/processed/cohort.parquet` | ICU cohort | ~2k rows | ✓ |
 | `data/processed/symptoms.parquet` | Extracted features | ~2k rows | ✓ |
-| `data/processed/tokens.npy` | Token sequences | (2000, 25, 4) | ✓ |
+| `data/processed_full_cohort/tokens.npy` | Full-cohort token sequences | (32399, 25, 4) | ✓ |
 | `data/processed/tokens_metadata.parquet` | Token metadata | ~2k rows | ✓ |
 | `data/processed/node_1..5.parquet` | Federated splits | ~100–600 rows each | ✓ |
 | `models/ethos_pretrained.pt` | Pre-trained ETHOS weights | binary | ✓ |

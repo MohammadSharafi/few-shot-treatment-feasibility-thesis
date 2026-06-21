@@ -22,7 +22,7 @@
 
 ## Computational Constraints
 - Experiments run on CPU; few-shot training ~10s per 50 episodes
-- max_cohort_sample: 2000 for extraction speed
+- Historical extraction-speed note: prior benchmark runs capped the cohort at 2000 rows. Current full-cohort runs set `max_cohort_sample` to `null`.
 - Full cohort (null) requires ~10min for symptom extraction
 
 ## Honest Statements for Thesis (Scientific Notes)

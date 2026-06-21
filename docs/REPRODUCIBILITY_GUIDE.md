@@ -114,31 +114,31 @@ python extraction/04_tokenize.py        # ~1 min
 python extraction/05_federated_split.py # ~1 min
 ```
 
-### Sample size control
-The default `config.yaml` uses a 2,000-patient sample for speed:
+### Cohort size control
+The default `config.yaml` uses the full eligible cohort:
 ```yaml
 symptoms:
-  max_cohort_sample: 2000   # set to null for full cohort (~32,399 patients)
+  max_cohort_sample: null
 ```
 
-**Note:** The thesis experiments used the 2,000-patient sample. For full-cohort results, set `max_cohort_sample: null` and expect ~10x longer extraction time.
+The current thesis and manuscript results are based on the full eligible cohort after the study inclusion/exclusion criteria. Historical 2k benchmark outputs are retained only for comparison context.
 
 ### Verify extraction
 ```bash
 python -c "
 import pandas as pd
-df = pd.read_parquet('data/processed/thesis_dataset.parquet')
+df = pd.read_parquet('data/processed_full_cohort/thesis_dataset.parquet')
 print(f'Cohort size: {len(df)}')
-print(df['treatment_feasible'].value_counts())
+print(df['feasible'].value_counts())
 "
 ```
 
 Expected output:
 ```
-Cohort size: ~2000
-treatment_feasible
-1    ~1160
-0    ~840
+Cohort size: ~32399
+feasible
+1    ~20297
+0    ~12102
 ```
 
 ---

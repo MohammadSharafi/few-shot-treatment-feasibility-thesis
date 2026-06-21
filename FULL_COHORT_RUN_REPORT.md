@@ -33,9 +33,11 @@
 
 ## Updated Results
 
-Best full-cohort model: Stacked Classical with AUROC 0.755, F1 0.677, AUPRC 0.826, accuracy 0.697, MCC 0.354.
+Best full-cohort model: Stacked Classical with AUROC 0.755, F1 0.677, AUPRC 0.825, accuracy 0.699, MCC 0.354.
 
 Full table: `results/full_cohort/tables/full_cohort_model_results.csv`.
+
+Benchmark comparison table: `results/full_cohort/tables/full_vs_2k_benchmark_comparison.csv`. Historical benchmark rows are context only; non-identical recipes are labelled as benchmark references.
 
 ## Remaining Limitations
 

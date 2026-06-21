@@ -22,6 +22,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
+    brier_score_loss,
+    confusion_matrix,
     f1_score,
     matthews_corrcoef,
     roc_auc_score,
@@ -65,16 +67,65 @@ def load_data(cfg: dict, paths: dict[str, Path]):
     return data, X, y
 
 
-def metric_row(name: str, y_true: np.ndarray, probs: np.ndarray, threshold: float = 0.5) -> dict:
+def expected_calibration_error(y_true: np.ndarray, probs: np.ndarray, n_bins: int = 10) -> float:
+    bins = np.linspace(0.0, 1.0, n_bins + 1)
+    ece = 0.0
+    for i in range(n_bins):
+        if i == 0:
+            mask = (probs >= bins[i]) & (probs <= bins[i + 1])
+        else:
+            mask = (probs > bins[i]) & (probs <= bins[i + 1])
+        if not np.any(mask):
+            continue
+        ece += (mask.mean()) * abs(float(probs[mask].mean()) - float(y_true[mask].mean()))
+    return float(ece)
+
+
+def calibration_intercept_slope(y_true: np.ndarray, probs: np.ndarray) -> tuple[float, float]:
+    if len(np.unique(y_true)) < 2 or np.nanstd(probs) == 0:
+        return float("nan"), float("nan")
+    clipped = np.clip(probs, 1e-6, 1 - 1e-6)
+    logits = np.log(clipped / (1 - clipped)).reshape(-1, 1)
+    try:
+        cal = LogisticRegression(C=1e6, max_iter=1000, random_state=42)
+        cal.fit(logits, y_true)
+        return float(cal.intercept_[0]), float(cal.coef_[0, 0])
+    except Exception:
+        return float("nan"), float("nan")
+
+
+def metric_row(
+    name: str,
+    y_true: np.ndarray,
+    probs: np.ndarray,
+    threshold: float = 0.5,
+    split_info: dict | None = None,
+) -> dict:
     pred = (probs >= threshold).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y_true, pred, labels=[0, 1]).ravel()
+    sensitivity = tp / (tp + fn) if (tp + fn) > 0 else float("nan")
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else float("nan")
+    cal_intercept, cal_slope = calibration_intercept_slope(y_true, probs)
     row = {
         "model": name,
+        **(split_info or {}),
         "threshold": float(threshold),
         "accuracy": float(accuracy_score(y_true, pred)),
         "f1_macro": float(f1_score(y_true, pred, average="macro", zero_division=0)),
+        "f1_positive": float(f1_score(y_true, pred, pos_label=1, zero_division=0)),
+        "sensitivity_recall": float(sensitivity),
+        "specificity": float(specificity),
         "auroc": float(roc_auc_score(y_true, probs)) if len(np.unique(y_true)) > 1 else 0.5,
         "auprc": float(average_precision_score(y_true, probs)) if len(np.unique(y_true)) > 1 else 0.5,
         "mcc": float(matthews_corrcoef(y_true, pred)) if len(np.unique(y_true)) > 1 else 0.0,
+        "brier_score": float(brier_score_loss(y_true, probs)),
+        "calibration_ece_10bin": expected_calibration_error(y_true, probs, n_bins=10),
+        "calibration_intercept": cal_intercept,
+        "calibration_slope": cal_slope,
+        "tn": int(tn),
+        "fp": int(fp),
+        "fn": int(fn),
+        "tp": int(tp),
     }
     rng = np.random.RandomState(42)
     boots = []
@@ -182,12 +233,10 @@ def model_factories(seed: int) -> dict:
     return factories
 
 
-def run_standard_models(X, y, train_idx, test_idx, seed: int):
-    X_train, X_test = X[train_idx], X[test_idx]
-    y_train, y_test = y[train_idx], y[test_idx]
-    X_fit, X_val, y_fit, y_val = train_test_split(
-        X_train, y_train, test_size=0.2, random_state=seed, stratify=y_train
-    )
+def run_standard_models(X, y, train_idx, val_idx, test_idx, seed: int, split_info: dict):
+    train_val_idx = np.concatenate([train_idx, val_idx])
+    X_fit, X_val, X_train_val, X_test = X[train_idx], X[val_idx], X[train_val_idx], X[test_idx]
+    y_fit, y_val, y_train_val, y_test = y[train_idx], y[val_idx], y[train_val_idx], y[test_idx]
     rows, statuses, fitted = [], [], {}
     for name, factory in model_factories(seed).items():
         t0 = time.time()
@@ -197,9 +246,9 @@ def run_standard_models(X, y, train_idx, test_idx, seed: int):
             val_probs = predict_proba_positive(model, X_val)
             threshold = tune_threshold(y_val, val_probs)
             final_model = factory()
-            final_model.fit(X_train, y_train)
+            final_model.fit(X_train_val, y_train_val)
             test_probs = predict_proba_positive(final_model, X_test)
-            row = metric_row(name, y_test, test_probs, threshold)
+            row = metric_row(name, y_test, test_probs, threshold, split_info)
             row["fit_seconds"] = round(time.time() - t0, 3)
             rows.append(row)
             fitted[name] = final_model
@@ -211,32 +260,32 @@ def run_standard_models(X, y, train_idx, test_idx, seed: int):
     return rows, statuses, fitted
 
 
-def run_stacked(X, y, train_idx, test_idx, seed: int, available_names: list[str]):
+def run_stacked(X, y, train_idx, val_idx, test_idx, seed: int, available_names: list[str], split_info: dict):
     names = [n for n in ["Logistic Regression", "Random Forest", "XGBoost", "LightGBM", "CatBoost"] if n in available_names]
     if len(names) < 2:
         return None, {"model": "Stacked Classical", "status": "skipped", "reason": "Fewer than two base models completed"}
     factories = model_factories(seed)
-    X_train, X_test = X[train_idx], X[test_idx]
-    y_train, y_test = y[train_idx], y[test_idx]
-    sub_idx, meta_idx = train_test_split(np.arange(len(y_train)), test_size=0.25, random_state=seed, stratify=y_train)
+    train_val_idx = np.concatenate([train_idx, val_idx])
+    X_train, X_val, X_train_val, X_test = X[train_idx], X[val_idx], X[train_val_idx], X[test_idx]
+    y_train, y_val, y_test = y[train_idx], y[val_idx], y[test_idx]
     meta_features, test_features = [], []
     t0 = time.time()
     try:
         for name in names:
             m_meta = factories[name]()
-            m_meta.fit(X_train[sub_idx], y_train[sub_idx])
-            meta_features.append(predict_proba_positive(m_meta, X_train[meta_idx]))
+            m_meta.fit(X_train, y_train)
+            meta_features.append(predict_proba_positive(m_meta, X_val))
             m_full = factories[name]()
-            m_full.fit(X_train, y_train)
+            m_full.fit(X_train_val, y[train_val_idx])
             test_features.append(predict_proba_positive(m_full, X_test))
         Z_meta = np.column_stack(meta_features)
         Z_test = np.column_stack(test_features)
         meta_model = LogisticRegression(max_iter=2000, class_weight="balanced", random_state=seed)
-        meta_model.fit(Z_meta, y_train[meta_idx])
+        meta_model.fit(Z_meta, y_val)
         meta_val_probs = predict_proba_positive(meta_model, Z_meta)
-        threshold = tune_threshold(y_train[meta_idx], meta_val_probs)
+        threshold = tune_threshold(y_val, meta_val_probs)
         probs = predict_proba_positive(meta_model, Z_test)
-        row = metric_row("Stacked Classical", y_test, probs, threshold)
+        row = metric_row("Stacked Classical", y_test, probs, threshold, split_info)
         row["fit_seconds"] = round(time.time() - t0, 3)
         row["base_models"] = "; ".join(names)
         return row, {"model": "Stacked Classical", "status": "completed", "seconds": row["fit_seconds"], "base_models": names}
@@ -244,7 +293,7 @@ def run_stacked(X, y, train_idx, test_idx, seed: int, available_names: list[str]
         return None, {"model": "Stacked Classical", "status": "failed", "error": str(exc), "seconds": round(time.time() - t0, 3)}
 
 
-def run_token_hybrid(paths, X, y, train_idx, test_idx, seed: int):
+def run_token_hybrid(paths, X, y, train_idx, val_idx, test_idx, seed: int, split_info: dict):
     token_path = paths["processed_dir"] / "tokens.npy"
     if not token_path.exists():
         return None, {"model": "Token Hybrid RF", "status": "skipped", "reason": "tokens.npy missing"}
@@ -253,11 +302,9 @@ def run_token_hybrid(paths, X, y, train_idx, test_idx, seed: int):
         tokens = np.load(token_path)
         flat_tokens = tokens.reshape(tokens.shape[0], -1).astype(np.float32)
         Xh = np.hstack([X, flat_tokens])
-        X_train, X_test = Xh[train_idx], Xh[test_idx]
-        y_train, y_test = y[train_idx], y[test_idx]
-        X_fit, X_val, y_fit, y_val = train_test_split(
-            X_train, y_train, test_size=0.2, random_state=seed, stratify=y_train
-        )
+        train_val_idx = np.concatenate([train_idx, val_idx])
+        X_fit, X_val, X_train_val, X_test = Xh[train_idx], Xh[val_idx], Xh[train_val_idx], Xh[test_idx]
+        y_fit, y_val, y_train_val, y_test = y[train_idx], y[val_idx], y[train_val_idx], y[test_idx]
         model = RandomForestClassifier(
             n_estimators=220,
             min_samples_leaf=2,
@@ -268,16 +315,16 @@ def run_token_hybrid(paths, X, y, train_idx, test_idx, seed: int):
         model.fit(X_fit, y_fit)
         threshold = tune_threshold(y_val, predict_proba_positive(model, X_val))
         final_model = clone(model)
-        final_model.fit(X_train, y_train)
+        final_model.fit(X_train_val, y_train_val)
         probs = predict_proba_positive(final_model, X_test)
-        row = metric_row("Token Hybrid RF", y_test, probs, threshold)
+        row = metric_row("Token Hybrid RF", y_test, probs, threshold, split_info)
         row["fit_seconds"] = round(time.time() - t0, 3)
         return row, {"model": "Token Hybrid RF", "status": "completed", "seconds": row["fit_seconds"]}
     except Exception as exc:
         return None, {"model": "Token Hybrid RF", "status": "failed", "error": str(exc), "seconds": round(time.time() - t0, 3)}
 
 
-def run_fewshot(paths, y, train_idx, test_idx, cfg, max_episodes: int):
+def run_fewshot(paths, y, train_idx, val_idx, test_idx, cfg, max_episodes: int, split_info: dict):
     token_path = paths["processed_dir"] / "tokens.npy"
     if not token_path.exists():
         return None, {"model": "Few-Shot ETHOS", "status": "skipped", "reason": "tokens.npy missing"}
@@ -286,11 +333,12 @@ def run_fewshot(paths, y, train_idx, test_idx, cfg, max_episodes: int):
         from models.few_shot import FewShotPredictor
 
         tokens = np.load(token_path)
+        train_val_idx = np.concatenate([train_idx, val_idx])
         fs = FewShotPredictor(cfg)
-        fs.fit(tokens[train_idx], y[train_idx], n_episodes=max_episodes)
-        probs = fs._predict_proba(tokens[test_idx], tokens[train_idx], y[train_idx])
+        fs.fit(tokens[train_val_idx], y[train_val_idx], n_episodes=max_episodes)
+        probs = fs._predict_proba(tokens[test_idx], tokens[train_val_idx], y[train_val_idx])
         threshold = 0.5
-        row = metric_row("Few-Shot ETHOS", y[test_idx], probs[:, 1], threshold)
+        row = metric_row("Few-Shot ETHOS", y[test_idx], probs[:, 1], threshold, split_info)
         row["fit_seconds"] = round(time.time() - t0, 3)
         row["episodes"] = int(max_episodes)
         return row, {"model": "Few-Shot ETHOS", "status": "completed", "seconds": row["fit_seconds"], "episodes": int(max_episodes)}
@@ -298,7 +346,7 @@ def run_fewshot(paths, y, train_idx, test_idx, cfg, max_episodes: int):
         return None, {"model": "Few-Shot ETHOS", "status": "failed", "error": str(exc), "seconds": round(time.time() - t0, 3)}
 
 
-def run_federated_lr(paths, X, y, train_idx, test_idx, seed: int):
+def run_federated_lr(paths, X, y, train_idx, val_idx, test_idx, seed: int, split_info: dict):
     processed = paths["processed_dir"]
     node_files = sorted(processed.glob("node_*.parquet"))
     if len(node_files) < 2:
@@ -306,7 +354,8 @@ def run_federated_lr(paths, X, y, train_idx, test_idx, seed: int):
     t0 = time.time()
     try:
         data = pd.read_parquet(processed / "thesis_dataset.parquet")
-        train_stays = set(data.iloc[train_idx]["stay_id"].tolist())
+        train_val_idx = np.concatenate([train_idx, val_idx])
+        train_stays = set(data.iloc[train_val_idx]["stay_id"].tolist())
         X_test, y_test = X[test_idx], y[test_idx]
         probs_list, weights = [], []
         meta = ["stay_id", "subject_id", "hadm_id", "feasible", "protocol", "primary_icd10", "los_hours"]
@@ -336,7 +385,7 @@ def run_federated_lr(paths, X, y, train_idx, test_idx, seed: int):
         weights_arr = np.asarray(weights, dtype=float)
         probs = np.average(np.vstack(probs_list), axis=0, weights=weights_arr)
         threshold = 0.5
-        row = metric_row("Federated LR Node Ensemble", y_test, probs, threshold)
+        row = metric_row("Federated LR Node Ensemble", y_test, probs, threshold, split_info)
         row["fit_seconds"] = round(time.time() - t0, 3)
         row["nodes_used"] = len(probs_list)
         return row, {"model": "Federated LR Node Ensemble", "status": "completed", "seconds": row["fit_seconds"], "nodes_used": len(probs_list)}
@@ -357,33 +406,44 @@ def main() -> int:
     paths["figures_dir"].mkdir(parents=True, exist_ok=True)
 
     data, X, y = load_data(cfg, paths)
-    train_idx, test_idx = train_test_split(
+    train_val_idx, test_idx = train_test_split(
         np.arange(len(y)), test_size=0.2, random_state=cfg["seed"], stratify=y
     )
-    split = {
+    train_idx, val_idx = train_test_split(
+        train_val_idx, test_size=0.2, random_state=cfg["seed"], stratify=y[train_val_idx]
+    )
+    final_fit_rows = int(len(train_idx) + len(val_idx))
+    split_info = {
         "train_rows": int(len(train_idx)),
+        "validation_rows": int(len(val_idx)),
+        "test_rows": int(len(test_idx)),
+        "final_fit_rows": final_fit_rows,
+    }
+    split = {
+        **split_info,
         "test_rows": int(len(test_idx)),
         "train_label_distribution": {str(int(k)): int(v) for k, v in pd.Series(y[train_idx]).value_counts().sort_index().items()},
+        "validation_label_distribution": {str(int(k)): int(v) for k, v in pd.Series(y[val_idx]).value_counts().sort_index().items()},
         "test_label_distribution": {str(int(k)): int(v) for k, v in pd.Series(y[test_idx]).value_counts().sort_index().items()},
     }
 
-    rows, statuses, fitted = run_standard_models(X, y, train_idx, test_idx, cfg["seed"])
-    stacked_row, stacked_status = run_stacked(X, y, train_idx, test_idx, cfg["seed"], list(fitted.keys()))
+    rows, statuses, fitted = run_standard_models(X, y, train_idx, val_idx, test_idx, cfg["seed"], split_info)
+    stacked_row, stacked_status = run_stacked(X, y, train_idx, val_idx, test_idx, cfg["seed"], list(fitted.keys()), split_info)
     statuses.append(stacked_status)
     if stacked_row:
         rows.append(stacked_row)
-    hybrid_row, hybrid_status = run_token_hybrid(paths, X, y, train_idx, test_idx, cfg["seed"])
+    hybrid_row, hybrid_status = run_token_hybrid(paths, X, y, train_idx, val_idx, test_idx, cfg["seed"], split_info)
     statuses.append(hybrid_status)
     if hybrid_row:
         rows.append(hybrid_row)
-    fed_row, fed_status = run_federated_lr(paths, X, y, train_idx, test_idx, cfg["seed"])
+    fed_row, fed_status = run_federated_lr(paths, X, y, train_idx, val_idx, test_idx, cfg["seed"], split_info)
     statuses.append(fed_status)
     if fed_row:
         rows.append(fed_row)
     if args.skip_fewshot:
         statuses.append({"model": "Few-Shot ETHOS", "status": "skipped", "reason": "requested via --skip-fewshot"})
     else:
-        fs_row, fs_status = run_fewshot(paths, y, train_idx, test_idx, cfg, args.fewshot_episodes)
+        fs_row, fs_status = run_fewshot(paths, y, train_idx, val_idx, test_idx, cfg, args.fewshot_episodes, split_info)
         statuses.append(fs_status)
         if fs_row:
             rows.append(fs_row)

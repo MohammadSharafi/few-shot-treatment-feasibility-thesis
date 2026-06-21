@@ -73,8 +73,8 @@
 - PDF /Title exactly matches the official Persian title ✓
 - artifact exists: thesis/thesis_fa.pdf ✓
 - artifact exists: thesis/defense_slides.pdf ✓
-- artifact exists: data/processed/thesis_dataset.parquet ✓
-- artifact exists: data/processed/tokens.npy ✓
+- artifact exists: data/processed_full_cohort/thesis_dataset.parquet ✓
+- artifact exists: data/processed_full_cohort/tokens.npy ✓
 - artifact exists: results/figures/fig1_main_comparison.png ✓
 - artifact exists: results/figures/fig4_federated.png ✓
 - artifact exists: results/tables/exp1_results.csv ✓

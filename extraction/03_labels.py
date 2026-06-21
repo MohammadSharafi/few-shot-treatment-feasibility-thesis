@@ -3,7 +3,7 @@
 Extraction Step 3: Apply treatment feasibility label
 feasible=1 iff: hospital_expire_flag==0, discharge_location in allowed list, icu_los_hours < 720
 Assign treatment protocol (0-7) from prescriptions/procedures. Merge with cohort and symptoms.
-Output: data/processed/thesis_dataset.parquet
+Output: <paths.processed_dir>/thesis_dataset.parquet
 """
 import yaml
 import pandas as pd
