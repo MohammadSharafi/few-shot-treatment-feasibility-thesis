@@ -1,0 +1,32 @@
+\chapter{پیوست بازتولیدپذیری و ممیزی نتایج}
+\label{app:reproducibility}
+
+\section{مسیرهای اصلی}
+\begin{itemize}
+\item دادۀ پردازش‌شده: \texttt{\lr{data/processed\_full\_cohort/thesis\_dataset.parquet}}
+\item توکن‌ها: \texttt{\lr{data/processed\_full\_cohort/tokens.npy}}
+\item نتایج: \texttt{\lr{results/full\_cohort/}}
+\item جدول اصلی مدل‌ها: \texttt{\lr{results/full\_cohort/tables/full\_cohort\_model\_results.csv}}
+\end{itemize}
+
+\section{فرمان‌های استخراج}
+\begin{latin}
+\begin{verbatim}
+python extraction/01_cohort.py
+python extraction/02_symptoms.py
+python extraction/03_labels.py
+python extraction/04_tokenize.py
+python extraction/05_federated_split.py
+\end{verbatim}
+\end{latin}
+
+\section{فرمان‌های مدل‌سازی}
+\begin{latin}
+\begin{verbatim}
+python scripts/validate_full_cohort.py
+python scripts/run_full_cohort_models.py --fewshot-episodes 40
+\end{verbatim}
+\end{latin}
+
+\section{کنترل ادعاها}
+در نگارش نهایی، بنچمارک \pnum{2,000} بستری فقط به‌عنوان سابقۀ تاریخی گزارش شده است. هیچ نتیجه‌ای از آن به‌عنوان نتیجۀ کوهورت کامل استفاده نشده است. مدل‌های ضعیف‌تر، از جمله \lr{Few-Shot ETHOS}، از جدول اصلی حذف نشده‌اند و نتیجه آن‌ها صریحاً گزارش شده است.

@@ -1,0 +1,17 @@
+\chapter*{چکیده انگلیسی}
+\addcontentsline{toc}{chapter}{چکیده انگلیسی}
+\begin{latin}
+\small
+\noindent
+This thesis reports a retrospective full-cohort clinical machine-learning study using MIMIC-IV v3.1. The thesis title refers to therapeutic few-shot learning and symptom tokens; in the implemented study, this concept is operationalized conservatively as prediction of an ICU discharge-feasibility proxy, defined by in-hospital survival, favourable discharge destination, and ICU length of stay below 720 hours. The task is a reproducible retrospective proxy-modelling study, not a bedside readiness tool or clinical product.
+
+The final modelling dataset included 32,399 eligible adult first ICU stays, with 12,102 proxy-negative and 20,297 proxy-positive cases. The token tensor had shape (32399, 25, 4), and all eligible data after the study inclusion and exclusion criteria were used.
+
+Models evaluated on a fixed train/validation/test split included Logistic Regression, Random Forest, XGBoost, LightGBM, CatBoost, a neural baseline, Few-Shot ETHOS, a token-hybrid Random Forest, stacked classical modelling, and a simulated federated logistic-regression node ensemble. Stacked Classical achieved the highest AUROC (0.755), while XGBoost achieved a nearly identical AUROC (0.753) with stronger Brier score (0.189) and ECE (0.020). Therefore, XGBoost is treated as the most defensible primary model when discrimination and calibration are considered together. Pure Few-Shot ETHOS underperformed the classical tabular models (AUROC 0.590), an important empirical finding in this structured EHR task.
+
+The study contributes a full-cohort MIMIC-IV ICU discharge-feasibility proxy dataset, a symptom-token representation, a comparative benchmark of classical, neural, few-shot, hybrid, stacked, and simulated federated models, and a transparent discussion of where few-shot/token methods helped and where classical tabular models remained stronger. Limitations include the retrospective single-database design, the proxy nature of the outcome, lack of external or prospective validation, simulated rather than deployed federation, and MIMIC-IV data-use restrictions.
+
+\vspace{1em}
+\noindent\textbf{Keywords:} clinical machine learning, MIMIC-IV, ICU discharge-feasibility proxy, symptom tokens, few-shot learning, federated learning, calibration.
+\end{latin}
+\cleardoublepage

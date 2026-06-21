@@ -1,0 +1,176 @@
+\chapter{آزمایش‌ها و نتایج}
+\label{ch:results}
+
+\section{خلاصۀ کوهورت کامل}
+جدول~\ref{tab:dataset_summary} خلاصۀ داده را نشان می‌دهد. این جدول مبنای تمام نتایج اصلی پایان‌نامه است و جایگزین زیرمجموعۀ قدیمی \pnum{2,000} بستری شده است.
+
+\begin{table}[htbp]
+\centering
+\caption{خلاصۀ کوهورت کامل مدل‌سازی}
+\label{tab:dataset_summary}
+\begin{tabular}{lr}
+\toprule
+\textbf{مولفه} & \textbf{مقدار} \\
+\midrule
+ردیف‌های نهایی & \pnum{32,399} \\
+ستون‌های نهایی & \pnum{29} \\
+ستون‌های ویژگی & \pnum{22} \\
+بستری یکتای \lr{ICU} & \pnum{32,399} \\
+بیمار یکتا & \pnum{32,399} \\
+کلاس \pnum{0}: ناممکن & \pnum{12,102} \\
+کلاس \pnum{1}: ممکن & \pnum{20,297} \\
+شکل تانسور توکن & \lr{(32399, 25, 4)} \\
+سقف نمونه‌گیری & \lr{null} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{full_cohort_label_distribution.png}
+\caption{توزیع برچسب نشانگر جانشین امکان‌پذیری ترخیص از \lr{ICU} در کوهورت کامل}
+\label{fig:label_distribution}
+\end{figure}
+
+\section{جدول اصلی عملکرد مدل‌ها}
+جدول~\ref{tab:model_results} نتایج کامل مدل‌ها را روی آزمون نگه‌داشته‌شده نشان می‌دهد. همۀ مدل‌های برنامه‌ریزی‌شده اجرا شدند و هیچ مدل اصلی به‌دلیل ناپایداری حذف نشد.
+
+\begin{table}[htbp]
+\centering
+\caption{عملکرد مدل‌ها روی کوهورت کامل}
+\label{tab:model_results}
+\begin{latin}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+Model & Split & AUROC & AUPRC & Acc & Recall & Spec & F1 & Brier & ECE \\
+\midrule
+Stacked Classical & 20735/5184/6480 & 0.755 & 0.825 & 0.699 & 0.769 & 0.583 & 0.677 & 0.202 & 0.109 \\
+XGBoost & 20735/5184/6480 & 0.753 & 0.825 & 0.697 & 0.761 & 0.589 & 0.675 & 0.189 & 0.020 \\
+CatBoost & 20735/5184/6480 & 0.753 & 0.823 & 0.703 & 0.790 & 0.558 & 0.677 & 0.200 & 0.100 \\
+LightGBM & 20735/5184/6480 & 0.751 & 0.823 & 0.690 & 0.730 & 0.623 & 0.674 & 0.199 & 0.090 \\
+Token Hybrid RF & 20735/5184/6480 & 0.749 & 0.820 & 0.698 & 0.772 & 0.573 & 0.674 & 0.192 & 0.031 \\
+Random Forest & 20735/5184/6480 & 0.748 & 0.820 & 0.689 & 0.742 & 0.601 & 0.670 & 0.192 & 0.028 \\
+Neural Baseline & 20735/5184/6480 & 0.739 & 0.814 & 0.675 & 0.682 & 0.663 & 0.664 & 0.194 & 0.015 \\
+Federated LR Node Ensemble & 20735/5184/6480 & 0.709 & 0.778 & 0.678 & 0.746 & 0.565 & 0.656 & 0.215 & 0.109 \\
+Logistic Regression & 20735/5184/6480 & 0.709 & 0.778 & 0.680 & 0.754 & 0.556 & 0.656 & 0.215 & 0.109 \\
+Few-Shot ETHOS & 20735/5184/6480 & 0.590 & 0.668 & 0.590 & 0.642 & 0.504 & 0.570 & 0.250 & 0.127 \\
+\bottomrule
+\end{tabular}}
+\end{latin}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{full_cohort_model_auroc.png}
+\caption{مقایسۀ \lr{AUROC} مدل‌ها روی کوهورت کامل}
+\label{fig:model_auroc}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{full_cohort_model_auprc.png}
+\caption{مقایسۀ \lr{AUPRC} مدل‌ها روی کوهورت کامل}
+\label{fig:model_auprc}
+\end{figure}
+
+\section{نتایج تفکیک}
+بالاترین \lr{AUROC} به مدل \lr{Stacked Classical} با مقدار \cnum{0.755} تعلق داشت. \lr{XGBoost} و \lr{CatBoost} تقریباً همان سطح عملکرد را با \lr{AUROC} \cnum{0.753} و \cnum{0.753} نشان دادند. فاصله میان مدل انباشتی و \lr{XGBoost} از نظر \lr{AUROC} بسیار کوچک بود، بنابراین انتخاب مدل تنها بر اساس رتبه \lr{AUROC} کافی نیست.
+
+\section{کالیبراسیون و خطای احتمال}
+جدول~\ref{tab:calibration} معیارهای کالیبراسیون را خلاصه می‌کند. \lr{XGBoost} با امتیاز بریر \cnum{0.189} و \lr{ECE} \cnum{0.020} یکی از بهترین توازن‌ها را میان تفکیک و کالیبراسیون داشت. مدل انباشتی اگرچه بالاترین \lr{AUROC} را داشت، \lr{ECE} بالاتری نشان داد. ازاین‌رو، در این پایان‌نامه \lr{XGBoost} مدل اصلی قابل‌دفاع‌تر برای تفسیر پژوهشی معرفی می‌شود.
+
+\begin{table}[htbp]
+\centering
+\caption{معیارهای کالیبراسیون و آستانه}
+\label{tab:calibration}
+\begin{latin}
+\scriptsize
+\resizebox{0.9\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Threshold & Brier & ECE & Intercept & Slope \\
+\midrule
+XGBoost & 0.595 & 0.189 & 0.020 & -0.002 & 1.016 \\
+Token Hybrid RF & 0.545 & 0.192 & 0.031 & 0.045 & 1.175 \\
+Random Forest & 0.565 & 0.192 & 0.028 & 0.033 & 1.151 \\
+Neural Baseline & 0.645 & 0.194 & 0.015 & -0.005 & 0.927 \\
+LightGBM & 0.490 & 0.199 & 0.090 & 0.464 & 0.975 \\
+CatBoost & 0.445 & 0.200 & 0.100 & 0.498 & 1.060 \\
+Stacked Classical & 0.435 & 0.202 & 0.109 & 0.551 & 0.958 \\
+Federated LR Node Ensemble & 0.500 & 0.215 & 0.109 & 0.514 & 0.965 \\
+Logistic Regression & 0.495 & 0.215 & 0.109 & 0.517 & 0.941 \\
+Few-Shot ETHOS & 0.500 & 0.250 & 0.127 & 0.517 & 0.000 \\
+\bottomrule
+\end{tabular}}
+\end{latin}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{full_cohort_calibration_brier_ece.png}
+\caption{مقایسۀ امتیاز بریر و \lr{ECE}؛ مقدار کمتر بهتر است}
+\label{fig:calibration}
+\end{figure}
+
+\section{مدل‌های چندنمونه‌ای و توکن‌محور}
+مدل \lr{Few-Shot ETHOS} با \lr{AUROC} \cnum{0.590}، \lr{AUPRC} \cnum{0.668} و \lr{F1} \cnum{0.570} از مدل‌های جدولی ضعیف‌تر بود. این نتیجه نشان می‌دهد که در وظیفۀ فعلی، توکن‌سازی و یادگیری چندنمونه‌ای خام به‌تنهایی برای رقابت با مدل‌های درختی کافی نیستند. بااین‌حال، مدل \lr{Token Hybrid RF} با \lr{AUROC} \cnum{0.749} به جنگل تصادفی و مدل‌های گرادیان‌بوستینگ نزدیک شد. بنابراین توکن‌ها در نقش مکمل برای مدل هیبریدی امیدوارکننده‌تر از استفاده مستقل بودند.
+
+\section{شبیه‌سازی فدرال}
+مدل \lr{Federated LR Node Ensemble} با \lr{AUROC} \cnum{0.709} تقریباً هم‌سطح رگرسیون لجستیک متمرکز با \lr{AUROC} \cnum{0.709} بود. این نتیجه نشان می‌دهد که در خانوادۀ مدل‌های لجستیک، شبیه‌سازی فدرال می‌تواند عملکرد نزدیک به مدل متمرکز حفظ کند. بااین‌حال، هر دو مدل لجستیک از مدل‌های درختی ضعیف‌تر بودند. بنابراین یادگیری فدرال در این پژوهش به‌عنوان مسیر حفظ حریم خصوصی بررسی می‌شود، نه راهی برای افزایش عملکرد.
+
+\section{ماتریس درهم‌ریختگی}
+شکل~\ref{fig:xgb_cm} ماتریس درهم‌ریختگی \lr{XGBoost} را نشان می‌دهد. این مدل روی آزمون \pnum{6,480} نمونه‌ای، \pnum{3,091} مثبت درست و \pnum{1,425} منفی درست داشت. بازخوانی بالاتر از ویژگی بود؛ یعنی مدل در شناسایی کلاس مثبت حساس‌تر از رد کلاس منفی عمل کرد.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{full_cohort_xgboost_confusion_matrix.png}
+\caption{ماتریس درهم‌ریختگی مدل \lr{XGBoost} روی مجموعۀ آزمون}
+\label{fig:xgb_cm}
+\end{figure}
+
+\section{مقایسه با بنچمارک تاریخی \pnum{2,000} بستری}
+زیرمجموعۀ قدیمی \pnum{2,000} بستری فقط به‌عنوان زمینۀ تاریخی استفاده می‌شود و مبنای ادعاهای اصلی نیست. جدول~\ref{tab:benchmark_comparison} و شکل~\ref{fig:benchmark_comparison} نشان می‌دهند که برخی مدل‌ها در کوهورت کامل بهبود داشته‌اند و برخی اندکی کاهش نشان داده‌اند. به‌دلیل تفاوت پروتکل‌ها، این مقایسه باید توصیفی تفسیر شود.
+
+\begin{table}[htbp]
+\centering
+\caption{مقایسۀ توصیفی کوهورت کامل با بنچمارک تاریخی}
+\label{tab:benchmark_comparison}
+\begin{latin}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrl}
+\toprule
+Model & Full AUROC & Old AUROC & Delta & Source \\
+\midrule
+Stacked Classical & 0.755 & 0.746 & 0.009 & 2,000-stay stacked BEST \\
+XGBoost & 0.753 & 0.694 & 0.059 & 2,000-stay Exp1 \\
+CatBoost & 0.753 & NA & NA & No directly comparable old benchmark metric \\
+LightGBM & 0.751 & NA & NA & No directly comparable old benchmark metric \\
+Token Hybrid RF & 0.749 & 0.717 & 0.032 & 2,000-stay ETHOS-RF hybrid \\
+Random Forest & 0.748 & 0.762 & -0.015 & 2,000-stay Exp1 \\
+Neural Baseline & 0.739 & 0.652 & 0.087 & 2,000-stay Exp1 \\
+Federated LR Node Ensemble & 0.709 & 0.547 & 0.162 & 2,000-stay federated experiment \\
+Logistic Regression & 0.709 & 0.724 & -0.015 & 2,000-stay Exp1 \\
+Few-Shot ETHOS & 0.590 & 0.611 & -0.022 & 2,000-stay Exp1 \\
+\bottomrule
+\end{tabular}}
+\end{latin}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{full_vs_2k_benchmark_auroc.png}
+\caption{مقایسۀ توصیفی \lr{AUROC} کوهورت کامل با بنچمارک تاریخی \pnum{2,000} بستری}
+\label{fig:benchmark_comparison}
+\end{figure}
+
+\section{پاسخ مستقیم به پرسش‌های پژوهش}
+\begin{enumerate}
+\item ویژگی‌های \pnum{24} ساعت نخست توان پیش‌بینی متوسط تا خوب برای برچسب جانشین داشتند؛ بهترین \lr{AUROC} برابر \cnum{0.755} بود.
+\item مدل‌های جدولی و درختی از \lr{Few-Shot ETHOS} خام قوی‌تر بودند.
+\item توکن‌ها در مدل هیبریدی مفیدتر از حالت مستقل ظاهر شدند.
+\item شبیه‌سازی فدرال عملکردی نزدیک به رگرسیون لجستیک متمرکز حفظ کرد، اما به مدل‌های درختی نرسید.
+\item \lr{XGBoost} بهترین توازن میان تفکیک و کالیبراسیون را داشت و برای گزارش اصلی پژوهش مناسب‌تر بود.
+\end{enumerate}
