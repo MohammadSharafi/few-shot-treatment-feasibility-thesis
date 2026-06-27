@@ -35,41 +35,82 @@ catboost_info/
 *.fls
 *.fdb_latexmk
 *.blg
+*.bbl
 *.synctex.gz
 missfont.log
+*.run.xml
+*.bcf
+*.xdv
+*.ilg
+*.ind
+*.idx
+*.ist
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.xdy
 
-# LaTeX build output — comment these out if you want to track compiled PDFs
-# thesis/*.pdf
-# papers/**/main.pdf
+# Generated PDFs and compiled thesis/manuscript outputs
+# Keep LaTeX source tracked; ignore generated binaries.
+*.pdf
+papers/final_*/
+papers/**/main.pdf
+papers/**/*.pdf
+thesis/**/*.pdf
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# IDE
+# IDE/editor
 .vscode/
 .idea/
 *.sublime-workspace
-
-# Data (raw MIMIC-IV data; processed data is tracked)
-data/3.1/
-
-# Model checkpoints (tracked explicitly — do not add *.pt or *.joblib here)
-# models/*.pt and models/*.joblib ARE tracked (they are final trained models)
-
-# Local backup archives (not source)
-Thesis-curser*.zip
-Thesis-curser*.textClipping
-
-# Temporary and cache
-*.tmp
-*.bak
 *.swp
 *~
+
+# Raw MIMIC-IV and derived patient-level data
+# MIMIC data cannot be redistributed publicly. Keep extraction code, not data.
+mimic-iv-3.1/
+mimic-iv-3.1.zip
+data/
+!data/README.md
+!data/.gitkeep
+
+# Experiment outputs and generated reports
+results/
+diagnostics/
+tmp/
 .cache/
 
-# pytest
+# Local backup archives and exports
+*.zip
+*.tar
+*.tar.gz
+*.7z
+Thesis-curser*.zip
+Thesis-curser*.textClipping
+*.textClipping
+
+# Model/checkpoint artifacts generated locally
+*.pt
+*.pth
+*.ckpt
+*.joblib
+*.pkl
+*.pickle
+
+# pytest/coverage
 .pytest_cache/
 htmlcov/
 .coverage
+coverage.xml
+
+# Logs
+*.tmp
+*.bak
+*.log.*
