@@ -35,12 +35,14 @@ catboost_info/
 *.fls
 *.fdb_latexmk
 *.blg
+*.bbl
 *.synctex.gz
 missfont.log
 
-# LaTeX build output — comment these out if you want to track compiled PDFs
-# thesis/*.pdf
-# papers/**/main.pdf
+# LaTeX build output
+*.pdf
+papers/**/*.pdf
+thesis/**/*.pdf
 
 # macOS
 .DS_Store
@@ -52,18 +54,22 @@ missfont.log
 .idea/
 *.sublime-workspace
 
-# Data (raw MIMIC-IV data; processed data is tracked)
-data/3.1/
+# Data and generated outputs
 mimic-iv-3.1/
 mimic-iv-3.1.zip
-data/processed_full_cohort/
+data/
+results/
+diagnostics/
+tmp/
 
-# Model checkpoints (tracked explicitly — do not add *.pt or *.joblib here)
-# models/*.pt and models/*.joblib ARE tracked (they are final trained models)
-
-# Local backup archives (not source)
+# Local backup archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
 Thesis-curser*.zip
 Thesis-curser*.textClipping
+*.textClipping
 
 # Temporary and cache
 *.tmp
@@ -76,11 +82,3 @@ Thesis-curser*.textClipping
 .pytest_cache/
 htmlcov/
 .coverage
-mimic-iv-3.1/
-mimic-iv-3.1.zip
-data/
-results/
-tmp/
-.venv/
-.DS_Store
-*.zip
