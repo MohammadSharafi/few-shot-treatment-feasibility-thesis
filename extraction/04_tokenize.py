@@ -34,6 +34,9 @@ def main():
         itemid_to_symptom_id[itemid] = i
     
     thesis = pd.read_parquet(Path(paths["processed_dir"]) / "thesis_dataset.parquet")
+    ranges = {}
+    ranges.update({int(k): tuple(v) for k, v in cfg["symptoms"]["lab_ranges"].items()})
+    ranges.update({int(k): tuple(v) for k, v in cfg["symptoms"]["vital_ranges"].items()})
     
     # Feature columns (exclude stay_id, subject_id, hadm_id, feasible, protocol, primary_icd10, los_hours)
     meta_cols = ["stay_id", "subject_id", "hadm_id", "feasible", "protocol", "primary_icd10", "los_hours"]
@@ -52,14 +55,19 @@ def main():
         except ValueError:
             col_to_symptom_id.append(mask_id)
     
-    # Build token sequences: for each patient, create up to seq_len tokens
+    # Build token sequences: for each patient, create up to seq_len observed tokens.
     # Each token: [symptom_id, intensity, time_delta_norm, modality]
     # Simplified: we have one value per feature (aggregated). Create tokens from non-missing features.
     n_samples = len(thesis)
     n_dims = 4  # symptom_id, intensity, time_delta, modality
     tokens = np.zeros((n_samples, seq_len, n_dims), dtype=np.float32)
     
-    X = thesis[feat_cols].values.astype(np.float32)
+    X_raw = thesis[feat_cols].values.astype(np.float32)
+    itemids = lab_itemids + vital_itemids
+    X = X_raw.copy()
+    for j, itemid in enumerate(itemids[: X.shape[1]]):
+        lo, hi = ranges[int(itemid)]
+        X[:, j] = np.clip((X[:, j] - lo) / (hi - lo), 0, 1)
     
     for i in range(n_samples):
         row = X[i]

@@ -8,10 +8,10 @@ paths:
   data_root: "mimic-iv-3.1"
   hosp_dir: "mimic-iv-3.1/hosp"
   icu_dir: "mimic-iv-3.1/icu"
-  processed_dir: "data/processed_full_cohort"
-  results_dir: "results/full_cohort"
-  figures_dir: "results/full_cohort/figures"
-  tables_dir: "results/full_cohort/tables"
+  processed_dir: "data/processed_final_optimized"
+  results_dir: "results/final_optimized"
+  figures_dir: "results/final_optimized/figures"
+  tables_dir: "results/final_optimized/tables"
 
 # Cohort extraction (01_cohort.py)
 cohort:

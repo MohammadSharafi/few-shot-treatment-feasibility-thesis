@@ -76,3 +76,11 @@ Thesis-curser*.textClipping
 .pytest_cache/
 htmlcov/
 .coverage
+mimic-iv-3.1/
+mimic-iv-3.1.zip
+data/
+results/
+tmp/
+.venv/
+.DS_Store
+*.zip

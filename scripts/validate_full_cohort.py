@@ -41,8 +41,10 @@ def raw_manifest_status(data_root: Path) -> dict:
         "hosp/admissions.csv.gz",
         "hosp/diagnoses_icd.csv.gz",
         "hosp/labevents.csv.gz",
+        "hosp/d_labitems.csv.gz",
         "icu/icustays.csv.gz",
         "icu/chartevents.csv.gz",
+        "icu/d_items.csv.gz",
     ]
     for rel in required:
         status["required_files_present"][rel] = (data_root / rel).exists()
@@ -145,7 +147,7 @@ def summarize() -> dict:
             "unique_icu_stays": int(dataset["stay_id"].nunique()),
             "unique_subjects": int(dataset["subject_id"].nunique()),
             "label_distribution": {str(int(k)): int(v) for k, v in label_counts.items()},
-            "post_imputation_missing_cells": int(dataset[feature_cols].isna().sum().sum()),
+            "raw_feature_missing_cells": int(dataset[feature_cols].isna().sum().sum()),
         },
         "missingness": {
             "mean_pre_imputation_missing_pct": float(missingness["missing_pct"].mean()),
