@@ -71,6 +71,9 @@ Thesis-curser*.zip
 Thesis-curser*.textClipping
 *.textClipping
 
+# Node tooling (paper build scripts only)
+node_modules/
+
 # Temporary and cache
 *.tmp
 *.bak

@@ -75,7 +75,7 @@ REGISTRY_COLUMNS = [
 
 
 def load_config() -> dict:
-    with open(ROOT / "config.yaml", encoding="utf-8") as f:
+    with open(ROOT / os.environ.get("THESIS_CONFIG", "config.yaml"), encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

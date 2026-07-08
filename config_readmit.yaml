@@ -1,0 +1,130 @@
+# READMISSION-AWARE LABEL CONFIG (ETHOS-inspired). Use: THESIS_CONFIG=config_readmit.yaml
+# Few-Shot Treatment Feasibility Prediction — Configuration
+# All hyperparameters here; no hardcoding in scripts.
+# Random seed: 42 for reproducibility (MIT standard)
+
+seed: 42
+
+paths:
+  data_root: "mimic-iv-3.1"
+  hosp_dir: "mimic-iv-3.1/hosp"
+  icu_dir: "mimic-iv-3.1/icu"
+  processed_dir: "data/processed_full_cohort_readmit"
+  results_dir: "results/full_cohort_readmit"
+  figures_dir: "results/full_cohort_readmit/figures"
+  tables_dir: "results/full_cohort_readmit/tables"
+
+# Cohort extraction (01_cohort.py)
+cohort:
+  min_age: 18
+  min_icu_los_hours: 4
+  first_icu_only: true
+  include_icd9: false   # true => also include ICD-9-coded admissions (~2x cohort). See config_expanded.yaml.
+
+# Symptom extraction (02_symptoms.py)
+# max_cohort_sample must remain null for the full-cohort revision.
+symptoms:
+  first_24h_only: true
+  chunk_size: 100000
+  max_cohort_sample: null
+  # Lab itemids (MIMIC-IV d_labitems) — Blood, most frequent
+  lab_itemids: [50912, 50971, 50983, 50902, 50931, 50893, 50960, 50811, 51265, 51300, 50813, 50861, 50878, 51006, 50882]
+  # Vital itemids (MIMIC-IV d_items) — Routine Vital Signs
+  vital_itemids: [220045, 220050, 220051, 220052, 223761, 220277, 220210]
+  # Clinical ranges for outlier removal [min, max]
+  lab_ranges:
+    50912: [0.1, 30]      # Creatinine mg/dL
+    50971: [1.5, 10]     # Potassium mEq/L
+    50983: [100, 180]    # Sodium mEq/L
+    50902: [70, 130]     # Chloride mEq/L
+    50931: [20, 600]     # Glucose mg/dL
+    50893: [4, 16]       # Calcium mg/dL
+    50960: [0.5, 6]      # Magnesium mg/dL
+    50811: [3, 25]       # Hemoglobin g/dL
+    51265: [5, 1000]     # Platelets K/uL
+    51300: [0.5, 50]     # WBC K/uL
+    50813: [0.5, 25]     # Lactate mmol/L
+    50861: [5, 2000]     # ALT U/L
+    50878: [5, 2000]     # AST U/L
+    51006: [5, 300]      # BUN mg/dL
+    50882: [5, 50]       # Bicarbonate mEq/L
+  vital_ranges:
+    220045: [20, 250]    # Heart Rate bpm
+    220050: [40, 250]    # Systolic BP mmHg
+    220051: [20, 180]    # Diastolic BP mmHg
+    220052: [30, 200]    # Mean BP mmHg
+    223761: [90, 110]    # Temp Fahrenheit (32-43 C equiv)
+    220277: [50, 100]    # SpO2 %
+    220210: [1, 60]      # Respiratory Rate
+
+# Label definition (03_labels.py)
+labels:
+  feasible_discharge_locations: ["HOME", "HOME HEALTH CARE", "HOME WITH HOME IV PROVIDR", "REHAB/DISTINCT PART HOSP", "REHAB"]
+  max_icu_los_hours: 720  # 30 days
+  max_readmit_days: 30
+  require_no_readmission: true  # true => a feasible discharge must NOT be readmitted within max_readmit_days (ETHOS-inspired, stricter label)
+
+# Disease nodes for federated split (05_federated_split.py)
+# ICD-10 codes (MIMIC-IV standard). I25 added for ischemic heart disease.
+disease_nodes:
+  node_1_sepsis: ["A40", "A41", "R652"]
+  node_2_cardiac: ["I21", "I22", "I25", "I50", "I47", "I48", "I49"]
+  node_3_respiratory: ["J18", "J44", "J96", "J80", "J15"]
+  node_4_renal: ["N17", "N18", "N19"]
+  node_5_diabetes: ["E10", "E11", "E13"]
+
+# Tokenization (04_tokenize.py)
+tokenization:
+  seq_length: 25
+  mask_token_id: 0
+  n_symptom_types: 22  # 15 labs + 7 vitals
+
+# ETHOS Encoder (models/encoder.py)
+encoder:
+  d_model: 128
+  nhead: 8
+  num_layers: 2  # pretrained uses 2; 3 would need retraining
+  d_ff: 512
+  dropout: 0.2
+  vocab_size: 23  # 22 symptoms + 1 MASK
+
+# Few-shot (models/few_shot.py)
+few_shot:
+  n_support: 5
+  n_query: 15
+  n_way: 2  # binary: feasible vs infeasible
+  temperature: 10.0  # scale cosine logits
+  use_focal_loss: true
+  focal_gamma: 2.0
+  pos_weight: 1.38  # 58/42 class imbalance
+  n_episodes_train: 1500  # more episodes for convergence
+  n_finetune_epochs: 0    # set >0 to enable supervised finetune
+  use_projection: false   # ProjectionMLP can hurt with small batches
+  n_episodes_val: 100
+  n_episodes_test: 500
+  lr: 0.001
+  max_epochs: 50
+  early_stop_patience: 10
+
+# Federated (models/federated.py)
+federated:
+  n_rounds: 20
+  n_nodes: 5
+  aggregation: "fedavg"  # or fedprox
+  fedprox_mu: 0.01
+  local_epochs: 3
+  local_batch_size: 32
+
+# Baselines
+baselines:
+  cv_folds: 5
+  n_jobs: -1
+
+# Experiments
+experiments:
+  bootstrap_n: 1000
+  confidence_level: 0.95
+  wilcoxon_alpha: 0.05
+  metrics: ["accuracy", "f1_macro", "auroc", "auprc", "mcc"]
+  figure_dpi: 300
+  colorblind_palette: "colorblind"
